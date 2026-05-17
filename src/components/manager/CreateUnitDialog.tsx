@@ -18,20 +18,55 @@ import { cn } from "@/lib/utils";
 const INPUT =
   "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60";
 
-const CATEGORIES = [
-  "Mediterranean",
-  "Cocktails",
-  "Café",
-  "Seafood",
-  "Tacos",
-  "Pizza",
-  "Brunch",
-  "Steakhouse",
-  "Bakery",
-  "Wine bar",
-  "Nightclub",
-  "Other",
+type Category = { value: string; emoji: string };
+
+const CATEGORIES: Category[] = [
+  // Cuisines
+  { value: "Mediterranean", emoji: "🌿" },
+  { value: "Italian", emoji: "🍝" },
+  { value: "French", emoji: "🥖" },
+  { value: "Mexican", emoji: "🌶️" },
+  { value: "Spanish", emoji: "🥘" },
+  { value: "American", emoji: "🍔" },
+  { value: "Japanese", emoji: "🍱" },
+  { value: "Sushi", emoji: "🍣" },
+  { value: "Ramen", emoji: "🍜" },
+  { value: "Korean", emoji: "🥢" },
+  { value: "Chinese", emoji: "🥡" },
+  { value: "Thai", emoji: "🍲" },
+  { value: "Indian", emoji: "🍛" },
+  { value: "Middle Eastern", emoji: "🥙" },
+  { value: "Peruvian", emoji: "🐟" },
+  { value: "Argentinian", emoji: "🥩" },
+  // Formats
+  { value: "Steakhouse", emoji: "🥩" },
+  { value: "Seafood", emoji: "🦐" },
+  { value: "Pizza", emoji: "🍕" },
+  { value: "Tacos", emoji: "🌮" },
+  { value: "Burger", emoji: "🍔" },
+  { value: "BBQ", emoji: "🔥" },
+  { value: "Fine dining", emoji: "✨" },
+  // Daytime
+  { value: "Café", emoji: "☕" },
+  { value: "Bakery", emoji: "🥐" },
+  { value: "Brunch", emoji: "🍳" },
+  { value: "Tea house", emoji: "🫖" },
+  { value: "Dessert", emoji: "🍰" },
+  { value: "Ice cream", emoji: "🍦" },
+  { value: "Healthy", emoji: "🥗" },
+  { value: "Vegan", emoji: "🌱" },
+  // Bar / nightlife
+  { value: "Cocktails", emoji: "🍸" },
+  { value: "Wine bar", emoji: "🍷" },
+  { value: "Beer bar", emoji: "🍺" },
+  { value: "Speakeasy", emoji: "🥂" },
+  { value: "Lounge", emoji: "🛋️" },
+  { value: "Nightclub", emoji: "🪩" },
+  // Catch-all
+  { value: "Other", emoji: "🏪" },
 ];
+
+const FALLBACK_EMOJI = "🏪";
 
 const VIBES = [
   "Rooftop",
@@ -48,11 +83,8 @@ const VIBES = [
 
 const CITIES = ["CDMX", "Monterrey", "Guadalajara", "Querétaro", "Mérida", "Tulum", "Other"];
 
-const EMOJI_OPTIONS = ["🌙", "🍷", "🥐", "🍸", "🌮", "🍕", "☕", "🌊", "🌿", "✨", "🔥", "🥂"];
-
 export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState(EMOJI_OPTIONS[0]);
   const [category, setCategory] = useState("");
   const [vibe, setVibe] = useState("");
   const [city, setCity] = useState("CDMX");
@@ -62,6 +94,8 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const emoji = CATEGORIES.find((c) => c.value === category)?.emoji ?? FALLBACK_EMOJI;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +126,8 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-elev">
         <div className="flex items-start justify-between gap-3 px-6 pt-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-pink-gradient text-white shadow-sm">
-              <Store className="h-5 w-5" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-pink-gradient text-lg shadow-sm">
+              {category ? <span aria-hidden>{emoji}</span> : <Store className="h-5 w-5 text-white" />}
             </span>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-secondary">
@@ -142,8 +176,8 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
               >
                 <option value="">Select</option>
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                  <option key={c.value} value={c.value}>
+                    {c.emoji}  {c.value}
                   </option>
                 ))}
               </select>
@@ -164,27 +198,6 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
               </select>
             </Field>
           </div>
-
-          <Field label="Emoji">
-            <div className="flex flex-wrap gap-1.5">
-              {EMOJI_OPTIONS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => setEmoji(e)}
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-xl border text-lg transition",
-                    emoji === e
-                      ? "border-secondary bg-secondary/10"
-                      : "border-border bg-background hover:bg-muted",
-                  )}
-                  aria-label={`Emoji ${e}`}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-          </Field>
 
           <SectionLabel icon={<MapPin className="h-3 w-3" />}>Location</SectionLabel>
 
