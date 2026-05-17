@@ -74,6 +74,7 @@ export default function SwipePage() {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [exiting, setExiting] = useState<null | "left" | "right">(null);
+  const [resetFlash, setResetFlash] = useState(false);
   const startRef = useRef({ x: 0, y: 0, t: 0 });
   const lastRef = useRef({ x: 0, t: 0 });
   const lockedRef = useRef<null | "swipe" | "ignore">(null);
@@ -84,10 +85,20 @@ export default function SwipePage() {
   const nextStats = statsFor(next);
 
   const advance = () => {
-    setIdx((i) => (i + 1) % venues.length);
+    setIdx((i) => {
+      const nextIdx = (i + 1) % venues.length;
+      if (nextIdx === 0) setResetFlash(true);
+      return nextIdx;
+    });
     setDragX(0);
     setExiting(null);
   };
+
+  useEffect(() => {
+    if (!resetFlash) return;
+    const t = window.setTimeout(() => setResetFlash(false), 1500);
+    return () => window.clearTimeout(t);
+  }, [resetFlash]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("[data-no-swipe]")) return;
@@ -171,6 +182,14 @@ export default function SwipePage() {
   return (
     <div className="flex h-full flex-col px-3 pt-2 pb-3">
       <div className="relative flex-1">
+        {resetFlash && (
+          <div className="pointer-events-none absolute inset-x-0 top-3 z-50 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/90 px-3 py-1.5 text-[11px] font-semibold text-background shadow-elev backdrop-blur animate-in fade-in slide-in-from-top-2 duration-300">
+              <Sparkles className="h-3 w-3" />
+              You&apos;ve seen them all — starting over
+            </span>
+          </div>
+        )}
         <div
           key={`back-${next.id}-${idx}`}
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card shadow-elev transition-[transform,opacity] duration-300 ease-out"
@@ -197,7 +216,7 @@ export default function SwipePage() {
               {next.name}
             </h2>
             <p className="mt-1 text-[12px] text-muted-foreground">
-              {next.distanceKm} km · {next.walkMinutes} min walk · {priceDots(next.priceLevel)} · until {next.closesAt}
+              {next.distanceKm} km · {priceDots(next.priceLevel)} · until {next.closesAt}
             </p>
             <div className="mt-3 grid grid-cols-5 gap-2">
               {nextStats.map((s) => (
@@ -302,7 +321,7 @@ export default function SwipePage() {
                   {v.name}
                 </h2>
                 <p className="mt-1 text-[12px] text-muted-foreground">
-                  {v.distanceKm} km · {v.walkMinutes} min walk · {priceDots(v.priceLevel)} · until {v.closesAt}
+                  {v.distanceKm} km · {priceDots(v.priceLevel)} · until {v.closesAt}
                 </p>
               </div>
               <Link
