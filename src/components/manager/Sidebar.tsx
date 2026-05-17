@@ -22,14 +22,22 @@ import { cn } from "@/lib/utils";
 import { UNITS, CURRENT_MANAGER, type Unit } from "@/lib/manager-data";
 import { CreateUnitDialog } from "./CreateUnitDialog";
 
-const NAV = [
-  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true },
+type NavItem = {
+  href: string;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+  disabled?: boolean;
+};
+
+const NAV: NavItem[] = [
+  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true, disabled: true },
   { href: "/manager/place", label: "Place", Icon: Store },
   { href: "/manager/promos", label: "Promos", Icon: Megaphone },
-  { href: "/manager/analytics", label: "Analytics", Icon: BarChart3 },
-  { href: "/manager/wallet", label: "Wallet", Icon: Wallet },
-  { href: "/manager/team", label: "Team", Icon: Users },
-  { href: "/manager/copilot", label: "AI Copilot", Icon: Sparkles },
+  { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
+  { href: "/manager/wallet", label: "Wallet", Icon: Wallet, disabled: true },
+  { href: "/manager/team", label: "Team", Icon: Users, disabled: true },
+  { href: "/manager/copilot", label: "AI Copilot", Icon: Sparkles, disabled: true },
 ];
 
 export function Sidebar() {
@@ -94,7 +102,22 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-3">
-          {NAV.map(({ href, label, Icon, exact }) => {
+          {NAV.map(({ href, label, Icon, exact, disabled }) => {
+            if (disabled) {
+              return (
+                <div
+                  key={href}
+                  aria-disabled
+                  className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground/50"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1">{label}</span>
+                  <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Soon
+                  </span>
+                </div>
+              );
+            }
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
               <Link
