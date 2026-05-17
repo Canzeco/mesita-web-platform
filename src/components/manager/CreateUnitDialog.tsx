@@ -14,10 +14,11 @@ import {
   Instagram,
   Facebook,
   Music2,
-  Twitter,
-  Youtube,
-  AtSign,
-  Link2,
+  MessageCircle,
+  CalendarCheck,
+  CalendarHeart,
+  ShoppingBag,
+  Bike,
   Search,
   Star,
   Clock,
@@ -315,13 +316,16 @@ function ConfigureStep({
     [place.primaryType, place.types],
   );
 
+  const [website, setWebsite] = useState(place.website ?? "");
+  const [phone, setPhone] = useState(place.phone ?? "");
+  const [whatsapp, setWhatsapp] = useState("");
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [tiktok, setTiktok] = useState("");
-  const [x, setX] = useState("");
-  const [threads, setThreads] = useState("");
-  const [youtube, setYoutube] = useState("");
-  const [otherLinks, setOtherLinks] = useState("");
+  const [openTable, setOpenTable] = useState("");
+  const [resy, setResy] = useState("");
+  const [uberEats, setUberEats] = useState("");
+  const [rappi, setRappi] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -353,11 +357,11 @@ function ConfigureStep({
               New unit · step 2 of 2
             </p>
             <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight">
-              Social links
+              Channels & links
             </h2>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Drop every handle the venue has. We&apos;ll auto-fill the rest of the profile
-              (description, photos, menu) from these.
+              Drop every place the venue lives online. We&apos;ll auto-fill the rest of the
+              profile (description, photos, menu) from these.
             </p>
           </div>
         </div>
@@ -374,7 +378,35 @@ function ConfigureStep({
       <form onSubmit={submit} className="flex-1 overflow-y-auto px-6 pt-5 pb-2">
         <GooglePlaceCard place={place} emoji={inferredEmoji} />
 
-        <SectionLabel icon={<Instagram className="h-3 w-3" />}>Social handles</SectionLabel>
+        <SectionLabel icon={<MessageCircle className="h-3 w-3" />}>Channels</SectionLabel>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Website">
+            <SocialInput
+              Icon={Globe}
+              value={website}
+              onChange={setWebsite}
+              placeholder="venue.mx"
+            />
+          </Field>
+          <Field label="Phone">
+            <SocialInput
+              Icon={Phone}
+              value={phone}
+              onChange={setPhone}
+              placeholder="+52 81 ..."
+            />
+          </Field>
+        </div>
+
+        <Field label="WhatsApp" hint="Number or wa.me link guests can message directly.">
+          <SocialInput
+            Icon={MessageCircle}
+            value={whatsapp}
+            onChange={setWhatsapp}
+            placeholder="+52 81 ... or wa.me/..."
+          />
+        </Field>
 
         <Field label="Instagram" required hint="We validate guest stories against this handle.">
           <SocialInput
@@ -405,44 +437,45 @@ function ConfigureStep({
           </Field>
         </div>
 
+        <SectionLabel icon={<CalendarCheck className="h-3 w-3" />}>Reservations & delivery</SectionLabel>
+
         <div className="grid grid-cols-2 gap-3">
-          <Field label="X (Twitter)">
+          <Field label="OpenTable">
             <SocialInput
-              Icon={Twitter}
-              value={x}
-              onChange={setX}
-              placeholder="@handle"
+              Icon={CalendarCheck}
+              value={openTable}
+              onChange={setOpenTable}
+              placeholder="opentable.com/r/..."
             />
           </Field>
-          <Field label="Threads">
+          <Field label="Resy">
             <SocialInput
-              Icon={AtSign}
-              value={threads}
-              onChange={setThreads}
-              placeholder="@handle"
+              Icon={CalendarHeart}
+              value={resy}
+              onChange={setResy}
+              placeholder="resy.com/cities/..."
             />
           </Field>
         </div>
 
-        <Field label="YouTube">
-          <SocialInput
-            Icon={Youtube}
-            value={youtube}
-            onChange={setYoutube}
-            placeholder="@channel or URL"
-          />
-        </Field>
-
-        <SectionLabel icon={<Link2 className="h-3 w-3" />}>Other links (optional)</SectionLabel>
-        <Field label="Anything else worth scraping" hint="One URL per line. Spotify, Apple Maps listing, press feature, blog, etc.">
-          <textarea
-            value={otherLinks}
-            onChange={(e) => setOtherLinks(e.target.value)}
-            placeholder="https://..."
-            rows={3}
-            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 font-mono text-[12px] outline-none transition focus:border-secondary/60"
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Uber Eats">
+            <SocialInput
+              Icon={ShoppingBag}
+              value={uberEats}
+              onChange={setUberEats}
+              placeholder="store slug or URL"
+            />
+          </Field>
+          <Field label="Rappi">
+            <SocialInput
+              Icon={Bike}
+              value={rappi}
+              onChange={setRappi}
+              placeholder="store slug or URL"
+            />
+          </Field>
+        </div>
 
         {error && (
           <p className="mt-1 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
