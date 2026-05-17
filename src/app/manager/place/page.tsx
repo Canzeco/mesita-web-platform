@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Camera,
   MapPin,
   DollarSign,
-  Link2,
   Sparkles,
   Globe,
-  FileText,
   Clock,
   Instagram,
   Facebook,
@@ -29,6 +28,8 @@ import {
   Tag,
   Shirt,
   Plus,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { Topbar } from "@/components/manager/Topbar";
 import { VENUE } from "@/lib/manager-data";
@@ -64,26 +65,46 @@ export default function PlacePage() {
   const [menuMode, setMenuMode] = useState<"pdf" | "link">("pdf");
   const [menuUrl, setMenuUrl] = useState("");
 
+  const completeness = useMemo(() => {
+    const checks = [
+      name.trim().length > 0,
+      category.length > 0,
+      pitch.trim().length > 20,
+      story.trim().length > 40,
+      tags.trim().length > 0,
+    ];
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [name, category, pitch, story, tags]);
+
   return (
     <>
-      <Topbar title="Place" subtitle="The full profile guests see across Mesita." />
+      <Topbar
+        title="Place"
+        subtitle="Edit how guests discover and experience your venue on Mesita."
+      />
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
+        <div className="mx-auto max-w-5xl px-6 py-6 space-y-6">
+          <PlaceHeader
+            completeness={completeness}
+            name={name}
+            category={category}
+          />
+
           <HeroCard
             name={name}
             setName={setName}
             category={category}
             setCategory={setCategory}
+            vibe={vibe}
+            priceLevel={priceLevel}
           />
 
           <MediaCatalogSection />
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
             <PriceSection price={priceLevel} setPrice={setPriceLevel} />
             <LocationSection />
           </div>
-
-          <ExternalLinksSection />
 
           <MoreStuffSection
             pitch={pitch}
@@ -98,6 +119,8 @@ export default function PlacePage() {
             setTags={setTags}
           />
 
+          <ExternalLinksSection />
+
           <ChannelSummariesSection />
 
           <MenuSection
@@ -109,13 +132,87 @@ export default function PlacePage() {
 
           <HoursSection />
         </div>
+
+        <SaveBar />
       </div>
     </>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Hero — name + category
+// Header
+// ---------------------------------------------------------------------------
+
+function PlaceHeader({
+  completeness,
+  name,
+  category,
+}: {
+  completeness: number;
+  name: string;
+  category: string;
+}) {
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          Profile health
+        </p>
+        <h2 className="mt-1 truncate font-display text-xl font-semibold tracking-tight">
+          {name}
+          <span className="font-normal text-muted-foreground"> · {category}</span>
+        </h2>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="h-1.5 max-w-xs flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-pink-gradient transition-all duration-500"
+              style={{ width: `${completeness}%` }}
+            />
+          </div>
+          <span className="shrink-0 text-[12px] font-semibold tabular-nums text-muted-foreground">
+            {completeness}% complete
+          </span>
+        </div>
+      </div>
+      <Link
+        href="/guest/venue/casa-luminar"
+        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-pink-gradient px-4 py-2.5 text-[13px] font-semibold text-white shadow-glow transition hover:opacity-95"
+      >
+        <Eye className="h-4 w-4" />
+        Preview as guest
+      </Link>
+    </div>
+  );
+}
+
+function SaveBar() {
+  return (
+    <div className="sticky bottom-0 z-10 border-t border-border bg-background/90 px-6 py-3 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+        <p className="hidden text-[12px] text-muted-foreground sm:block">
+          Changes are saved to your unit · guests see updates within a few minutes
+        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-full border border-border bg-card px-4 py-2 text-[13px] font-semibold transition hover:bg-muted"
+          >
+            Discard
+          </button>
+          <button
+            type="button"
+            className="rounded-full bg-pink-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-glow transition hover:opacity-95"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Hero
 // ---------------------------------------------------------------------------
 
 function HeroCard({
@@ -123,45 +220,53 @@ function HeroCard({
   setName,
   category,
   setCategory,
+  vibe,
+  priceLevel,
 }: {
   name: string;
   setName: (s: string) => void;
   category: string;
   setCategory: (s: string) => void;
+  vibe: string;
+  priceLevel: PriceLevel;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="relative h-52 w-full">
+    <Card className="overflow-hidden p-0">
+      <div className="relative h-56 w-full sm:h-64">
         <Image
           src={VENUE.cover}
           alt={name}
           fill
-          sizes="100vw"
+          sizes="(max-width: 1024px) 100vw, 768px"
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
         <button
           type="button"
-          className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-[12px] font-semibold shadow-sm backdrop-blur"
+          className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[12px] font-semibold text-foreground shadow-sm backdrop-blur transition hover:bg-white"
         >
           <Camera className="h-3.5 w-3.5" />
           Replace cover
         </button>
-        <span className="absolute bottom-4 left-4 inline-flex items-center gap-1 rounded-full bg-secondary/95 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-secondary-foreground shadow-sm">
+        <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-secondary/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground shadow-sm">
           <BadgeCheck className="h-3 w-3" />
           Verified Partner
         </span>
-      </div>
-      <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
-        <FieldBlock label="Name">
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/70">
+            {vibe} · {"$".repeat(priceLevel)}
+          </p>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={INPUT}
+            className="mt-1 w-full bg-transparent font-display text-2xl font-semibold tracking-tight text-white outline-none placeholder:text-white/50 sm:text-3xl"
             maxLength={80}
+            placeholder="Venue name"
           />
-        </FieldBlock>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
         <FieldBlock label="Category">
           <select
             value={category}
@@ -175,13 +280,20 @@ function HeroCard({
             ))}
           </select>
         </FieldBlock>
+        <FieldBlock label="Neighborhood">
+          <input
+            readOnly
+            value={`${VENUE.area}, ${VENUE.city}`}
+            className={cn(INPUT, "cursor-default bg-muted/40 text-muted-foreground")}
+          />
+        </FieldBlock>
       </div>
-    </div>
+    </Card>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Media catalog
+// Media
 // ---------------------------------------------------------------------------
 
 function MediaCatalogSection() {
@@ -193,49 +305,72 @@ function MediaCatalogSection() {
     { type: "image" as const, src: VENUE.cover },
   ].slice(0, 7);
 
+  const [featured, ...rest] = media;
+
   return (
-    <Card
-      Icon={Camera}
-      title="Media catalog"
-      trailing={
-        <span className="text-[11px] text-muted-foreground">
-          {media.length} of 30 · drag to reorder
-        </span>
-      }
-    >
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-        {media.map((m, i) => (
-          <div
-            key={i}
-            className="group relative aspect-square overflow-hidden rounded-xl border border-border"
-          >
-            <Image src={m.src} alt="" fill sizes="160px" className="object-cover" />
-            {m.type === "video" && (
-              <span className="absolute bottom-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white">
-                <Play className="h-2.5 w-2.5" />
-              </span>
-            )}
-            {i === 0 && (
-              <span className="absolute top-1.5 left-1.5 rounded-md bg-pink-gradient px-1.5 py-0 text-[8px] font-bold uppercase tracking-wider text-white shadow-sm">
-                Cover
-              </span>
-            )}
+    <Card>
+      <CardTitle
+        Icon={Camera}
+        title="Photos & video"
+        sub="First image is your cover. Drag to reorder — up to 30 assets."
+        trailing={
+          <div className="flex items-center gap-2">
+            <span className="hidden text-[11px] text-muted-foreground sm:inline">
+              <span className="font-semibold text-foreground">{media.length}</span> / 30
+            </span>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12px] font-semibold transition hover:bg-muted"
+            >
+              <Upload className="h-3 w-3" />
+              Upload
+            </button>
           </div>
-        ))}
-        <button
-          type="button"
-          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-secondary/40 hover:bg-secondary/5 hover:text-secondary"
-        >
-          <Upload className="h-4 w-4" />
-          <span className="text-[10px] font-semibold">Add</span>
-        </button>
+        }
+      />
+
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-[1.4fr_1fr]">
+        <div className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border sm:aspect-auto sm:min-h-[220px]">
+          <Image src={featured.src} alt="" fill sizes="400px" className="object-cover" />
+          {featured.type === "video" && (
+            <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white">
+              <Play className="h-3 w-3" />
+              Video
+            </span>
+          )}
+          <span className="absolute left-3 top-3 rounded-full bg-pink-gradient px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+            Cover
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-2">
+          {rest.map((m, i) => (
+            <div
+              key={i}
+              className="group relative aspect-square overflow-hidden rounded-xl border border-border"
+            >
+              <Image src={m.src} alt="" fill sizes="120px" className="object-cover" />
+              {m.type === "video" && (
+                <span className="absolute bottom-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white">
+                  <Play className="h-2.5 w-2.5" />
+                </span>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-border bg-muted/20 text-muted-foreground transition hover:border-secondary/40 hover:bg-secondary/5 hover:text-secondary"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-[10px] font-semibold">Add</span>
+          </button>
+        </div>
       </div>
     </Card>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Price (Google)
+// Price & location
 // ---------------------------------------------------------------------------
 
 function PriceSection({
@@ -246,96 +381,92 @@ function PriceSection({
   setPrice: (p: PriceLevel) => void;
 }) {
   return (
-    <Card Icon={DollarSign} title="Price" trailing={<FromGoogle />}>
-      <div className="flex gap-1.5">
+    <Card className="lg:col-span-2">
+      <CardTitle Icon={DollarSign} title="Price level" trailing={<FromGoogle />} />
+      <div className="mt-4 flex gap-2">
         {PRICE_LEVELS.map((p) => (
           <button
             key={p}
             type="button"
             onClick={() => setPrice(p)}
             className={cn(
-              "flex h-12 flex-1 items-center justify-center rounded-xl border text-base font-bold tracking-wider transition",
+              "flex h-11 flex-1 items-center justify-center rounded-xl border text-sm font-bold tracking-wider transition",
               price === p
-                ? "border-secondary bg-secondary/10 text-secondary"
-                : "border-border bg-background text-muted-foreground hover:text-foreground",
+                ? "border-secondary bg-secondary/10 text-secondary shadow-sm"
+                : "border-border bg-background text-muted-foreground hover:border-secondary/30 hover:text-foreground",
             )}
           >
             {"$".repeat(p)}
           </button>
         ))}
       </div>
-      <p className="mt-3 text-[12px] text-muted-foreground">
-        Google says <span className="font-semibold text-foreground">{"$".repeat(3)}</span> — override
-        if it&apos;s off.
+      <p className="mt-3 rounded-xl bg-muted/50 px-3 py-2 text-[12px] text-muted-foreground">
+        Google suggests <span className="font-semibold text-foreground">{"$".repeat(3)}</span> — tap
+        to override if guests expect something different.
       </p>
     </Card>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Location (Google)
-// ---------------------------------------------------------------------------
-
 function LocationSection() {
   return (
-    <Card
-      Icon={MapPin}
-      title="Location"
-      trailing={<FromGoogle />}
-      cols="lg:col-span-2"
-    >
-      <div className="flex items-start gap-4">
-        <div className="relative h-28 w-44 shrink-0 overflow-hidden rounded-xl border border-border bg-[oklch(0.97_0.012_15)]">
+    <Card className="lg:col-span-3">
+      <CardTitle Icon={MapPin} title="Address" trailing={<FromGoogle />} />
+      <div className="mt-4 overflow-hidden rounded-2xl border border-border">
+        <div className="relative h-36 w-full bg-[oklch(0.96_0.014_12)]">
           <svg
-            viewBox="0 0 200 120"
-            preserveAspectRatio="none"
+            viewBox="0 0 400 144"
+            preserveAspectRatio="xMidYMid slice"
             className="absolute inset-0 h-full w-full"
             aria-hidden
           >
             <defs>
-              <pattern id="grid-place" width="20" height="20" patternUnits="userSpaceOnUse">
+              <pattern id="grid-place-v2" width="24" height="24" patternUnits="userSpaceOnUse">
                 <path
-                  d="M 20 0 L 0 0 0 20"
+                  d="M 24 0 L 0 0 0 24"
                   fill="none"
-                  stroke="oklch(0.90 0.015 10)"
+                  stroke="oklch(0.90 0.012 10)"
                   strokeWidth="1"
                 />
               </pattern>
             </defs>
-            <rect width="200" height="120" fill="url(#grid-place)" />
+            <rect width="400" height="144" fill="url(#grid-place-v2)" />
             <path
-              d="M-10,55 C40,30 110,80 150,50 C180,30 200,60 210,55"
-              stroke="oklch(0.78 0.16 80)"
-              strokeWidth="6"
+              d="M0,72 C80,40 160,100 240,68 C300,45 360,85 400,72"
+              stroke="oklch(0.75 0.14 75)"
+              strokeWidth="8"
               fill="none"
               strokeLinecap="round"
-              opacity="0.55"
+              opacity="0.5"
             />
           </svg>
-          <span className="absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-pink-gradient ring-4 ring-card">
-            <span className="block h-1.5 w-1.5 rounded-full bg-white" />
+          <span className="absolute left-1/2 top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-full items-center justify-center">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-gradient shadow-glow ring-4 ring-card">
+              <MapPin className="h-3.5 w-3.5 text-white" />
+            </span>
           </span>
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="border-t border-border bg-card p-4">
           <p className="font-medium leading-snug">
             Av. Presidente Masaryk 244, Polanco V Secc, 11560 CDMX
           </p>
           <p className="mt-1 text-[12px] text-muted-foreground">
-            {VENUE.area} · {VENUE.city} · 0.4 km from Mesita HQ pin
+            {VENUE.area} · {VENUE.city} · synced 2 min ago
           </p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold transition hover:bg-muted"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-2 text-[12px] font-semibold text-background transition hover:opacity-90"
             >
+              <ExternalLink className="h-3 w-3" />
               Open in Maps
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold transition hover:bg-muted"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-[12px] font-semibold transition hover:bg-muted"
             >
               <RefreshCw className="h-3 w-3" />
-              Re-sync
+              Re-sync from Google
             </button>
           </div>
         </div>
@@ -345,43 +476,67 @@ function LocationSection() {
 }
 
 // ---------------------------------------------------------------------------
-// External links — the 10
+// External links
 // ---------------------------------------------------------------------------
 
+const LINK_GROUPS = [
+  {
+    title: "Social & contact",
+    items: [
+      { label: "Instagram", Icon: Instagram, placeholder: "@yourvenue", value: "@casaluminar" },
+      { label: "TikTok", Icon: Music2, placeholder: "@handle", value: "@casaluminar" },
+      { label: "Facebook", Icon: Facebook, placeholder: "page name", value: "casaluminar" },
+      { label: "WhatsApp", Icon: MessageCircle, placeholder: "wa.me/...", value: "wa.me/5215555551234" },
+      { label: "Website", Icon: Globe, placeholder: "venue.mx", value: "casaluminar.mx" },
+      { label: "Phone", Icon: Phone, placeholder: "+52 81 ...", value: "+52 81 1234 5678" },
+    ],
+  },
+  {
+    title: "Reservations",
+    items: [
+      { label: "OpenTable", Icon: CalendarCheck, placeholder: "opentable.com/r/...", value: "" },
+      { label: "Resy", Icon: CalendarHeart, placeholder: "resy.com/cities/...", value: "" },
+    ],
+  },
+  {
+    title: "Delivery",
+    items: [
+      { label: "Uber Eats", Icon: ShoppingBag, placeholder: "store slug", value: "casaluminar-polanco" },
+      { label: "Rappi", Icon: Bike, placeholder: "store slug", value: "" },
+    ],
+  },
+] as const;
+
 function ExternalLinksSection() {
-  const links = [
-    { label: "Instagram", Icon: Instagram, placeholder: "@yourvenue", value: "@casaluminar" },
-    { label: "WhatsApp", Icon: MessageCircle, placeholder: "wa.me/...", value: "wa.me/5215555551234" },
-    { label: "Website", Icon: Globe, placeholder: "venue.mx", value: "casaluminar.mx" },
-    { label: "Phone", Icon: Phone, placeholder: "+52 81 ...", value: "+52 81 1234 5678" },
-    { label: "TikTok", Icon: Music2, placeholder: "@handle", value: "@casaluminar" },
-    { label: "Facebook", Icon: Facebook, placeholder: "page name", value: "casaluminar" },
-    { label: "OpenTable", Icon: CalendarCheck, placeholder: "opentable.com/r/...", value: "" },
-    { label: "Resy", Icon: CalendarHeart, placeholder: "resy.com/cities/...", value: "" },
-    { label: "Rappi", Icon: Bike, placeholder: "store slug", value: "" },
-    { label: "Uber Eats", Icon: ShoppingBag, placeholder: "store slug", value: "casaluminar-polanco" },
-  ];
   return (
-    <Card
-      Icon={Link2}
-      title="External links"
-      trailing={
-        <span className="text-[11px] text-muted-foreground">10 channels · all optional</span>
-      }
-    >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {links.map((l) => (
-          <FieldBlock key={l.label} label={l.label}>
-            <div className="relative">
-              <l.Icon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                defaultValue={l.value}
-                placeholder={l.placeholder}
-                className={cn(INPUT, "pl-8")}
-                maxLength={120}
-              />
+    <Card>
+      <CardTitle
+        Icon={LinkIcon}
+        title="External channels"
+        sub="Social, reservations, and delivery — all optional, all power your channel summaries."
+      />
+      <div className="mt-5 space-y-5">
+        {LINK_GROUPS.map((group, idx) => (
+          <div key={group.title} className={idx > 0 ? "border-t border-border pt-5" : undefined}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              {group.title}
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {group.items.map((l) => (
+                <FieldBlock key={l.label} label={l.label}>
+                  <div className="relative">
+                    <l.Icon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      defaultValue={l.value}
+                      placeholder={l.placeholder}
+                      className={cn(INPUT, "pl-9", !l.value && "border-dashed")}
+                      maxLength={120}
+                    />
+                  </div>
+                </FieldBlock>
+              ))}
             </div>
-          </FieldBlock>
+          </div>
         ))}
       </div>
     </Card>
@@ -389,7 +544,7 @@ function ExternalLinksSection() {
 }
 
 // ---------------------------------------------------------------------------
-// More stuff — AI fillable
+// Story / AI fill
 // ---------------------------------------------------------------------------
 
 function MoreStuffSection({
@@ -416,70 +571,64 @@ function MoreStuffSection({
   setTags: (s: string) => void;
 }) {
   return (
-    <Card
-      Icon={Sparkles}
-      title="Fill the profile"
-      trailing={
+    <Card>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <CardTitle
+          Icon={Sparkles}
+          title="Profile copy"
+          sub="Perplexity drafts from your socials — edit anything that's off."
+        />
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 rounded-full bg-pink-gradient px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-pink-gradient px-4 py-2 text-[12px] font-semibold text-white shadow-glow"
         >
-          <Sparkles className="h-3 w-3" />
+          <Sparkles className="h-3.5 w-3.5" />
           Auto-fill with AI
         </button>
-      }
-      sub="Pulled by Perplexity from your social links + press mentions. Edit anything that's off."
-    >
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <FieldBlock label="One-liner / pitch">
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <FieldBlock label="One-liner">
           <textarea
             value={pitch}
             onChange={(e) => setPitch(e.target.value)}
             rows={2}
             maxLength={180}
-            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-secondary/60"
+            className={TEXTAREA}
           />
-          <p className="mt-1 text-right text-[10px] text-muted-foreground">
-            {pitch.length} / 180
-          </p>
+          <CharCount current={pitch.length} max={180} />
         </FieldBlock>
-        <FieldBlock label="Vibe">
-          <input
-            value={vibe}
-            onChange={(e) => setVibe(e.target.value)}
-            className={INPUT}
-            maxLength={40}
-          />
-        </FieldBlock>
-      </div>
 
-      <FieldBlock label="The story">
-        <textarea
-          value={story}
-          onChange={(e) => setStory(e.target.value)}
-          rows={5}
-          maxLength={1200}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-secondary/60"
-        />
-        <p className="mt-1 text-right text-[10px] text-muted-foreground">
-          {story.length} / 1200
-        </p>
-      </FieldBlock>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FieldBlock label="Vibe">
+            <input value={vibe} onChange={(e) => setVibe(e.target.value)} className={INPUT} maxLength={40} />
+          </FieldBlock>
+          <FieldBlock label="Dress code" icon={<Shirt className="h-3 w-3" />}>
+            <input
+              value={dressCode}
+              onChange={(e) => setDressCode(e.target.value)}
+              className={INPUT}
+              maxLength={60}
+            />
+          </FieldBlock>
+        </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <FieldBlock label="Dress code" icon={<Shirt className="h-3 w-3" />}>
-          <input
-            value={dressCode}
-            onChange={(e) => setDressCode(e.target.value)}
-            className={INPUT}
-            maxLength={60}
+        <FieldBlock label="The story">
+          <textarea
+            value={story}
+            onChange={(e) => setStory(e.target.value)}
+            rows={5}
+            maxLength={1200}
+            className={TEXTAREA}
           />
+          <CharCount current={story.length} max={1200} />
         </FieldBlock>
-        <FieldBlock label="Tags / specialties" icon={<Tag className="h-3 w-3" />}>
+
+        <FieldBlock label="Tags & specialties" icon={<Tag className="h-3 w-3" />}>
           <input
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="Comma- or dot-separated"
+            placeholder="rooftop · natural wine · late-night"
             className={INPUT}
             maxLength={200}
           />
@@ -490,7 +639,7 @@ function MoreStuffSection({
 }
 
 // ---------------------------------------------------------------------------
-// Channel summaries — scraped metrics from every linked platform
+// Channel summaries
 // ---------------------------------------------------------------------------
 
 type ChannelStatus = "fresh" | "stale" | "missing" | "error";
@@ -515,7 +664,6 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     metrics: [
       { label: "Rating", value: "4.7" },
       { label: "Reviews", value: "1,284" },
-      { label: "Status", value: "Open" },
     ],
     lastSync: "2 min ago",
     status: "fresh",
@@ -528,7 +676,6 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     identity: "@casaluminar",
     metrics: [
       { label: "Followers", value: "12.4k" },
-      { label: "Posts", value: "286" },
       { label: "Engagement", value: "3.8%" },
     ],
     lastSync: "12 min ago",
@@ -542,8 +689,7 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     identity: "casaluminar",
     metrics: [
       { label: "Followers", value: "8.7k" },
-      { label: "Page rating", value: "4.2" },
-      { label: "Reviews", value: "432" },
+      { label: "Rating", value: "4.2" },
     ],
     lastSync: "1 h ago",
     status: "fresh",
@@ -556,8 +702,7 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     identity: "@casaluminar",
     metrics: [
       { label: "Followers", value: "45.2k" },
-      { label: "Total likes", value: "12.8M" },
-      { label: "Videos", value: "124" },
+      { label: "Likes", value: "12.8M" },
     ],
     lastSync: "1 h ago",
     status: "fresh",
@@ -570,8 +715,7 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     identity: "casaluminar.mx",
     metrics: [
       { label: "Status", value: "Up" },
-      { label: "Indexed", value: "47 pages" },
-      { label: "Last 200", value: "2 h ago" },
+      { label: "Pages", value: "47" },
     ],
     lastSync: "2 h ago",
     status: "fresh",
@@ -585,7 +729,6 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
     metrics: [
       { label: "Rating", value: "4.6" },
       { label: "Orders", value: "1.2k" },
-      { label: "Top-10", value: "12× this month" },
     ],
     lastSync: "6 h ago",
     status: "stale",
@@ -624,105 +767,85 @@ const CHANNEL_SUMMARIES: ChannelSummary[] = [
 ];
 
 function ChannelSummariesSection() {
+  const linked = CHANNEL_SUMMARIES.filter((c) => c.identity != null);
+  const missing = CHANNEL_SUMMARIES.filter((c) => c.identity == null);
+
   return (
-    <Card
-      Icon={Globe}
-      title="Channel summaries"
-      trailing={
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background transition hover:opacity-90"
-        >
-          <RefreshCw className="h-3 w-3" />
-          Re-sync all
-        </button>
-      }
-      sub="Live metrics scraped from every connected channel. Used to weight Discover, classify guests, and feed your AI Copilot."
-    >
-      <div className="overflow-hidden rounded-2xl border border-border">
-        {CHANNEL_SUMMARIES.map((c, i) => (
-          <ChannelRow
-            key={c.key}
-            channel={c}
-            last={i === CHANNEL_SUMMARIES.length - 1}
-          />
+    <Card>
+      <CardTitle
+        Icon={RefreshCw}
+        title="Live channel metrics"
+        sub="Synced from every linked platform — feeds Discover ranking and Copilot."
+        trailing={
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background transition hover:opacity-90"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Re-sync
+          </button>
+        }
+      />
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {linked.map((c) => (
+          <ChannelCard key={c.key} channel={c} />
         ))}
       </div>
+      {missing.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-dashed border-border bg-muted/20 p-4">
+          <p className="text-[12px] font-semibold text-muted-foreground">
+            {missing.length} channels not linked
+          </p>
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            Add links above to pull metrics into Discover and Copilot.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {missing.map((c) => (
+              <span
+                key={c.key}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+              >
+                <c.Icon className="h-3 w-3" />
+                {c.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
 
-function ChannelRow({
-  channel,
-  last,
-}: {
-  channel: ChannelSummary;
-  last: boolean;
-}) {
-  const linked = channel.identity != null;
+function ChannelCard({ channel }: { channel: ChannelSummary }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4",
-        !last && "border-b border-border",
-        !linked && "bg-muted/30",
-      )}
-    >
-      <div className="flex min-w-0 items-center gap-3 sm:w-56 sm:shrink-0">
-        <span
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-            linked ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground/60",
-          )}
-        >
+    <div className="rounded-2xl border border-border bg-card p-4 transition hover:border-secondary/20 hover:shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
           <channel.Icon className="h-4 w-4" />
         </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{channel.name}</p>
-          {linked ? (
-            <p className="truncate font-mono text-[11px] text-muted-foreground">
-              {channel.identity}
-            </p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground">Not linked</p>
-          )}
-        </div>
-      </div>
-
-      <div className="min-w-0 flex-1">
-        {linked ? (
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {channel.metrics.map((m) => (
-              <div key={m.label} className="min-w-0">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {m.label}
-                </p>
-                <p className="truncate font-display text-sm font-bold tabular-nums">
-                  {m.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12px] text-muted-foreground">
-            Link in <span className="font-semibold text-foreground">External links</span> above to
-            pull metrics.
-          </p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 sm:shrink-0">
         <StatusPill status={channel.status} source={channel.source} />
+      </div>
+      <p className="mt-3 font-display text-sm font-semibold">{channel.name}</p>
+      <p className="truncate font-mono text-[11px] text-muted-foreground">{channel.identity}</p>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {channel.metrics.map((m) => (
+          <div key={m.label} className="rounded-xl bg-muted/40 px-2.5 py-2">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {m.label}
+            </p>
+            <p className="font-display text-base font-bold tabular-nums">{m.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
         <span className="text-[11px] text-muted-foreground">{channel.lastSync}</span>
-        {linked && (
-          <button
-            type="button"
-            aria-label={`Re-sync ${channel.name}`}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
-          >
-            <RefreshCw className="h-3 w-3" />
-          </button>
-        )}
+        <button
+          type="button"
+          aria-label={`Re-sync ${channel.name}`}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+        >
+          <RefreshCw className="h-3 w-3" />
+        </button>
       </div>
     </div>
   );
@@ -745,7 +868,7 @@ function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
         cls,
       )}
       title={source === "official-api" ? "Official API" : "Web scraper"}
@@ -756,7 +879,7 @@ function StatusPill({
 }
 
 // ---------------------------------------------------------------------------
-// Menu — PDF or dynamic link
+// Menu
 // ---------------------------------------------------------------------------
 
 function MenuSection({
@@ -771,53 +894,59 @@ function MenuSection({
   setUrl: (u: string) => void;
 }) {
   return (
-    <Card Icon={FileText} title="Menu" sub="Guests open this from the venue page.">
-      <div className="flex rounded-full border border-border bg-background p-1 text-[12px] font-semibold">
-        <button
-          type="button"
-          onClick={() => setMode("pdf")}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition",
-            mode === "pdf" ? "bg-foreground text-background" : "text-muted-foreground",
-          )}
-        >
-          <Upload className="h-3 w-3" />
-          PDF upload
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("link")}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition",
-            mode === "link" ? "bg-foreground text-background" : "text-muted-foreground",
-          )}
-        >
-          <LinkIcon className="h-3 w-3" />
-          Dynamic link
-        </button>
-      </div>
+    <Card>
+      <CardTitle
+        Icon={LinkIcon}
+        title="Menu"
+        sub="What guests open on-site. Upload a PDF or link a page we refresh every 24h."
+        trailing={
+          <div className="flex rounded-full border border-border bg-muted/30 p-1 text-[12px] font-semibold">
+            <button
+              type="button"
+              onClick={() => setMode("pdf")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 transition",
+                mode === "pdf" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              <Upload className="h-3.5 w-3.5" />
+              PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("link")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 transition",
+                mode === "link" ? "bg-foreground text-background shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              <LinkIcon className="h-3.5 w-3.5" />
+              Link
+            </button>
+          </div>
+        }
+      />
 
       {mode === "pdf" ? (
         <button
           type="button"
-          className="mt-3 flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-secondary/40 hover:bg-secondary/5"
+          className="mt-5 flex h-32 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-muted/20 text-muted-foreground transition hover:border-secondary/40 hover:bg-secondary/5 hover:text-secondary"
         >
-          <Upload className="h-5 w-5" />
-          <span className="text-[12px] font-semibold">Drop menu.pdf or click to upload</span>
-          <span className="text-[10px]">Re-uploadable any time</span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+            <Upload className="h-5 w-5" />
+          </span>
+          <span className="text-[13px] font-semibold">Drop menu.pdf or click to upload</span>
+          <span className="text-[11px]">Replace any time — guests always see the latest</span>
         </button>
       ) : (
-        <FieldBlock
-          label="Menu URL"
-          hint="We re-fetch every 24h so seasonal menus stay current."
-        >
+        <FieldBlock label="Menu URL" hint="Re-fetched every 24h for seasonal updates." className="mt-5">
           <div className="relative">
             <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://casaluminar.mx/menu"
-              className={cn(INPUT, "pl-8 mt-3")}
+              className={cn(INPUT, "pl-9")}
             />
           </div>
         </FieldBlock>
@@ -827,94 +956,140 @@ function MenuSection({
 }
 
 // ---------------------------------------------------------------------------
-// Hours (Google)
+// Hours
 // ---------------------------------------------------------------------------
+
+const TODAY_INDEX = new Date().getDay();
+const DAY_TO_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
 
 function HoursSection() {
   return (
-    <Card
-      Icon={Clock}
-      title="Hours"
-      trailing={<FromGoogle />}
-      sub="Pulled from Google Business — overrides only when they're consistently wrong."
-    >
-      <div className="overflow-hidden rounded-2xl border border-border">
-        {VENUE.hours.map((h, i) => (
-          <div
-            key={h.day}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 text-sm",
-              i < VENUE.hours.length - 1 && "border-b border-border",
-            )}
-          >
-            <span className="w-12 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              {h.day}
-            </span>
-            <input
-              defaultValue={h.range}
-              className="flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-medium tabular-nums outline-none transition focus:border-border focus:bg-background"
-            />
-            <button
-              type="button"
-              aria-label="Edit"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+    <Card>
+      <CardTitle
+        Icon={Clock}
+        title="Weekly schedule"
+        trailing={<FromGoogle />}
+        sub="Override individual days only when Google is consistently wrong."
+      />
+      <div className="mt-4 space-y-1.5">
+        {VENUE.hours.map((h) => {
+          const isToday = DAY_TO_INDEX[h.day] === TODAY_INDEX;
+          const closed = h.range.toLowerCase() === "closed";
+          return (
+            <div
+              key={h.day}
+              className={cn(
+                "flex items-center gap-3 rounded-xl border px-4 py-3 transition",
+                isToday
+                  ? "border-secondary/30 bg-secondary/5"
+                  : "border-transparent bg-muted/30 hover:border-border",
+              )}
             >
-              <Pencil className="h-3 w-3" />
-            </button>
-          </div>
-        ))}
+              <span
+                className={cn(
+                  "w-11 text-[11px] font-bold uppercase tracking-wider",
+                  isToday ? "text-secondary" : "text-muted-foreground",
+                )}
+              >
+                {h.day}
+                {isToday && (
+                  <span className="mt-0.5 block text-[9px] font-semibold normal-case tracking-normal">
+                    Today
+                  </span>
+                )}
+              </span>
+              <input
+                defaultValue={h.range}
+                className="flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-medium tabular-nums outline-none transition focus:border-border focus:bg-background"
+              />
+              <span
+                className={cn(
+                  "hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider sm:inline-flex",
+                  closed ? "bg-muted text-muted-foreground" : "bg-secondary/15 text-secondary",
+                )}
+              >
+                {closed ? "Closed" : "Open"}
+              </span>
+              <button
+                type="button"
+                aria-label="Edit"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })}
       </div>
       <button
         type="button"
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-muted-foreground transition hover:text-foreground"
+        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-[12px] font-semibold text-muted-foreground transition hover:border-secondary/30 hover:text-foreground"
       >
-        <Plus className="h-3 w-3" />
-        Add a special day (holiday, private event)
+        <Plus className="h-3.5 w-3.5" />
+        Add special hours (holiday, private event)
       </button>
     </Card>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Shared
+// Shared UI
 // ---------------------------------------------------------------------------
 
 const INPUT =
-  "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60";
+  "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60 focus:ring-2 focus:ring-secondary/10";
+
+const TEXTAREA =
+  "w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-secondary/60 focus:ring-2 focus:ring-secondary/10";
 
 function Card({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("rounded-2xl border border-border bg-card p-5", className)}>
+      {children}
+    </section>
+  );
+}
+
+function CardTitle({
   Icon,
   title,
   sub,
   trailing,
-  children,
-  cols,
 }: {
   Icon: React.ComponentType<{ className?: string }>;
   title: string;
   sub?: string;
   trailing?: React.ReactNode;
-  children: React.ReactNode;
-  cols?: string;
 }) {
   return (
-    <section className={cn("rounded-2xl border border-border bg-card p-5", cols)}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="font-display text-base font-semibold leading-tight tracking-tight">
-              {title}
-            </p>
-            {sub && <p className="mt-0.5 text-[12px] text-muted-foreground">{sub}</p>}
-          </div>
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="font-display text-base font-semibold leading-tight tracking-tight">
+            {title}
+          </p>
+          {sub && <p className="mt-0.5 text-[12px] text-muted-foreground">{sub}</p>}
         </div>
-        {trailing}
       </div>
-      <div className="mt-4">{children}</div>
-    </section>
+      {trailing}
+    </div>
   );
 }
 
@@ -922,15 +1097,17 @@ function FieldBlock({
   label,
   hint,
   icon,
+  className,
   children,
 }: {
   label: string;
   hint?: string;
   icon?: React.ReactNode;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
+    <label className={cn("block", className)}>
       <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
         {icon}
         {label}
@@ -941,11 +1118,20 @@ function FieldBlock({
   );
 }
 
+function CharCount({ current, max }: { current: number; max: number }) {
+  return (
+    <p className="mt-1 text-right text-[10px] text-muted-foreground">
+      {current} / {max}
+    </p>
+  );
+}
+
 function FromGoogle() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-secondary">
       <Globe className="h-3 w-3" />
-      From Google
+      Google
     </span>
   );
 }
+
