@@ -7,6 +7,11 @@ import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { authSignInWithEmail } from "@/app/auth/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
 
+// Always dynamic: this page reads the session cookie to decide whether to
+// redirect signed-in users, and the Supabase client is only initialised at
+// request time.
+export const dynamic = "force-dynamic";
+
 const GUEST_AFTER_AUTH = "/guest/discover/swipe";
 
 export default async function GuestSignInPage() {

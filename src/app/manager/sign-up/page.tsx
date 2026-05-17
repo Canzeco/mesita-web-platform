@@ -4,6 +4,10 @@ import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { authSignUpWithEmail } from "@/app/auth/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
 
+// Always dynamic: reads the session cookie + initialises Supabase at
+// request time.
+export const dynamic = "force-dynamic";
+
 const MANAGER_AFTER_SIGNUP = "/manager";
 
 export default async function ManagerSignUpPage() {

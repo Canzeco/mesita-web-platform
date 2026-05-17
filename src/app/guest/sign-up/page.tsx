@@ -7,6 +7,10 @@ import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { authSignUpWithEmail } from "@/app/auth/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
 
+// Always dynamic: reads the session cookie + initialises Supabase at
+// request time.
+export const dynamic = "force-dynamic";
+
 // New accounts land on the profiling step. The /onboard form already
 // captures name / birthday / country and currently navigates on its own.
 const GUEST_AFTER_SIGNUP = "/guest/onboard";
