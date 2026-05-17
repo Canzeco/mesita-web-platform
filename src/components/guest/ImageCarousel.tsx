@@ -1,0 +1,129 @@
+"use client";
+
+import { useRef, useState } from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+export type MediaItem =
+  | { type: "image"; src: string }
+  | { type: "video"; src: string; poster?: string };
+
+export function ImageCarousel({
+  photos,
+  media,
+  alt,
+  aspect = "aspect-[4/5]",
+  rounded,
+  priority = false,
+  sizes = "(max-width: 768px) 100vw, 420px",
+}: {
+  photos: string[];
+  media?: MediaItem[];
+  alt: string;
+  aspect?: string;
+  rounded?: string;
+  priority?: boolean;
+  sizes?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [idx, setIdx] = useState(0);
+
+  const items: MediaItem[] =
+    media && media.length > 0
+      ? media
+      : photos.map((src) => ({ type: "image" as const, src }));
+
+  const goTo = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
+  };
+
+  return (
+    <div className={cn("relative w-full overflow-hidden", aspect, rounded)}>
+      <div
+        ref={ref}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const i = Math.round(el.scrollLeft / el.clientWidth);
+          if (i !== idx) setIdx(i);
+        }}
+        className="flex h-full w-full snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+      >
+        {items.map((m, i) => (
+          <div
+            key={`${m.src}-${i}`}
+            className="relative h-full w-full flex-shrink-0 snap-center"
+          >
+            {m.type === "video" ? (
+              <video
+                src={m.src}
+                poster={m.poster}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src={m.src}
+                alt={`${alt} photo ${i + 1}`}
+                fill
+                sizes={sizes}
+                priority={priority && i === 0}
+                className="object-cover"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {items.length > 1 && (
+        <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center gap-1.5">
+          {items.map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full bg-white shadow-sm transition-all duration-200",
+                i === idx ? "w-5 opacity-100" : "w-1.5 opacity-60",
+              )}
+            />
+          ))}
+        </div>
+      )}
+
+      {items.length > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="Previous"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (idx > 0) goTo(idx - 1);
+            }}
+            className="absolute inset-y-0 left-0 z-10 w-1/3 cursor-default opacity-0"
+          />
+          <button
+            type="button"
+            aria-label="Next"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (idx < items.length - 1) goTo(idx + 1);
+            }}
+            className="absolute inset-y-0 right-0 z-10 w-1/3 cursor-default opacity-0"
+          />
+        </>
+      )}
+
+      {items.length > 1 && (
+        <div className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
+          {idx + 1} / {items.length}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -4,15 +4,15 @@ export default function AdminPage() {
   return (
     <AppShell badge="Admin · Canzeco internal" title="Mesita Admin">
       <p className="text-muted-foreground">
-        Onboarding y revisión de venues, clasificación de tiers de guests, invitaciones Diamond,
-        transacciones, payouts, pipeline de auto-sourcing y enriquecimiento del catálogo Web-Listed.
+        Venue onboarding and review, guest tier classification, Diamond invitations,
+        transactions, payouts, auto-sourcing pipeline, and enrichment of the Web-Listed catalog.
       </p>
       <Sections
         items={[
-          { title: "Venues", desc: "Aprobación, edición y suspensión de Verified Partners y Web-Listed." },
-          { title: "Guests", desc: "Clases, apelaciones manuales, invitaciones Diamond." },
-          { title: "Transacciones", desc: "Pagos, payouts, comisiones, disputas." },
-          { title: "Pipeline", desc: "Auto-sourcing GBP + enriquecimiento de perfiles." },
+          { title: "Venues", desc: "Approval, edits, and suspension of Verified Partners and Web-Listed." },
+          { title: "Guests", desc: "Tiers, manual appeals, Diamond invitations." },
+          { title: "Transactions", desc: "Payments, payouts, commissions, disputes." },
+          { title: "Pipeline", desc: "GBP auto-sourcing + profile enrichment." },
         ]}
       />
     </AppShell>
@@ -61,7 +61,7 @@ function Sections({ items }: { items: { title: string; desc: string }[] }) {
         </div>
       ))}
       <div className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground md:col-span-2">
-        Próximamente: auth, datos en vivo desde Supabase, controles operativos.
+        Coming soon: auth, live data from Supabase, operational controls.
       </div>
     </div>
   );

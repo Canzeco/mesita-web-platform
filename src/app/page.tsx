@@ -24,23 +24,23 @@ function Nav() {
           mesita
         </Link>
         <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#guests" className="hover:text-foreground">Para ti</a>
-          <a href="#tiers" className="hover:text-foreground">Clases</a>
-          <a href="#venues" className="hover:text-foreground">Para tu negocio</a>
-          <a href="#how" className="hover:text-foreground">Cómo funciona</a>
+          <a href="#guests" className="hover:text-foreground">For you</a>
+          <a href="#tiers" className="hover:text-foreground">Tiers</a>
+          <a href="#venues" className="hover:text-foreground">For your business</a>
+          <a href="#how" className="hover:text-foreground">How it works</a>
         </nav>
         <div className="flex items-center gap-2">
           <Link
             href="/guest"
             className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
           >
-            Soy guest
+            I&apos;m a guest
           </Link>
           <Link
             href="/manager"
             className="rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
           >
-            Registrar restaurante
+            List your venue
           </Link>
         </div>
       </div>
@@ -53,30 +53,30 @@ function Hero() {
     <section className="border-b border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-24 text-center md:py-32">
         <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-          Hospitalidad inteligente · Hecho en Monterrey
+          Smart hospitality · Made in Monterrey
         </span>
         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
-          La cartera de cashback más inteligente para salir a comer, beber y celebrar.
+          The smartest cashback wallet for going out to eat, drink, and celebrate.
         </h1>
         <p className="max-w-2xl text-lg text-muted-foreground md:text-xl">
-          Mesita reúne cada bar, café, restaurante y antro de tu ciudad, te recomienda dónde ir esta noche, te reserva con un agente de IA y te paga cashback cuando pagas con la app.
+          Mesita brings together every bar, café, restaurant, and club in your city, recommends where to go tonight, books for you with an AI agent, and pays you cashback when you pay through the app.
         </p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/guest"
             className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
-            Descargar la app
+            Download the app
           </Link>
           <Link
             href="/manager"
             className="rounded-full border border-border px-6 py-3 text-sm font-medium hover:bg-muted"
           >
-            Registrar mi restaurante
+            List my venue
           </Link>
         </div>
         <p className="text-xs text-muted-foreground">
-          Sin hardware. Sin POS. Configuración en ~10 minutos.
+          No hardware. No POS. Setup in ~10 minutes.
         </p>
       </div>
     </section>
@@ -88,33 +88,33 @@ function Audience() {
     <section className="border-b border-border bg-muted/30">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2 mx-6 my-12 md:mx-auto md:my-16">
         <div className="bg-background p-8 md:p-10">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Para guests</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">For guests</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-            Descubre, reserva y gana.
+            Discover, book, and earn.
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Toda la ciudad en una sola app. Recomendaciones reales basadas en tu vibra, tu zona y tu presupuesto. Tu balance Mesita se acumula con cada visita.
+            The whole city in a single app. Real recommendations based on your vibe, your area, and your budget. Your Mesita balance grows with every visit.
           </p>
           <Link
             href="/guest"
             className="mt-6 inline-block rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
-            Empezar como guest
+            Get started as a guest
           </Link>
         </div>
         <div className="bg-background p-8 md:p-10">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Para negocios</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">For businesses</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-            Llena tu local con los guests que sí mueven la aguja.
+            Fill your venue with the guests who actually move the needle.
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Compite por los guests con presencia social, no por todos por igual. Configura cashback por clase, recibe historias en Instagram y mide cada peso atribuido.
+            Compete for guests with social presence, not for everyone equally. Configure cashback by tier, receive Instagram stories, and measure every attributed peso.
           </p>
           <Link
             href="/manager"
             className="mt-6 inline-block rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-muted"
           >
-            Convertirme en partner
+            Become a partner
           </Link>
         </div>
       </div>
@@ -125,16 +125,16 @@ function Audience() {
 function ForGuests() {
   const items = [
     {
-      title: "Inteligencia de experiencias",
-      body: "El catálogo más completo de tu ciudad, con reviews, ratings, precios, vibra, fotos y dónde están saliendo Bronze, Silver, Gold y Diamond ahora mismo. Swipe, mapa, catálogo o IA conversacional.",
+      title: "Experience intelligence",
+      body: "The most complete catalog in your city, with reviews, ratings, prices, vibe, photos, and where Bronze, Silver, Gold, and Diamond guests are going right now. Swipe, map, catalog, or conversational AI.",
     },
     {
-      title: "Reservas con IA",
-      body: "Un toque y un agente de voz, DM, WhatsApp o email contacta al restaurante por ti y deja la mesa cerrada. Funciona en cualquier venue de la ciudad, incluso si nunca firmó con nosotros.",
+      title: "AI-powered reservations",
+      body: "One tap and a voice, DM, WhatsApp, or email agent reaches out to the venue for you and locks in the table. Works at any venue in the city, even if they never signed with us.",
     },
     {
-      title: "Cashback real",
-      body: "Paga con Mesita, recibe cashback a tu balance prepago. Se aplica solo en tu siguiente visita a un partner verificado. Mientras más alta tu clase, mejor la tasa.",
+      title: "Real cashback",
+      body: "Pay with Mesita and earn cashback to your prepaid balance. It applies only on your next visit to a verified partner. The higher your tier, the better the rate.",
     },
   ];
 
@@ -142,7 +142,7 @@ function ForGuests() {
     <section id="guests" className="border-b border-border">
       <div className="mx-auto w-full max-w-6xl px-6 py-20">
         <h2 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">
-          Tres cosas que solo Mesita te da.
+          Three things only Mesita gives you.
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {items.map((it) => (
@@ -162,10 +162,10 @@ function ForGuests() {
 
 function Tiers() {
   const tiers = [
-    { name: "Bronze", req: "Default", desc: "Acceso completo al catálogo y reservas." },
-    { name: "Silver", req: "1K seguidores · o $20K gastados", desc: "Cashback elevado en partners." },
-    { name: "Gold", req: "5K seguidores · o $50K gastados", desc: "Tasas premium y prioridad." },
-    { name: "Diamond", req: "20K seguidores · o $100K · o invitación", desc: "Trato VIP y eventos privados." },
+    { name: "Bronze", req: "Default", desc: "Full catalog and reservation access." },
+    { name: "Silver", req: "1K followers · or $20K spent", desc: "Elevated cashback at partners." },
+    { name: "Gold", req: "5K followers · or $50K spent", desc: "Premium rates and priority." },
+    { name: "Diamond", req: "20K followers · or $100K · or invite", desc: "VIP treatment and private events." },
   ];
 
   return (
@@ -173,10 +173,10 @@ function Tiers() {
       <div className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="flex flex-col items-start gap-3 md:flex-row md:items-end md:justify-between">
           <h2 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">
-            Tu capital social vale dinero.
+            Your social capital is worth money.
           </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Cuatro clases. Mientras más alta, mejor cashback y acceso. Sube por seguidores reales, gasto histórico o invitación.
+            Four tiers. The higher you go, the better the cashback and access. Climb by real followers, historical spend, or invitation.
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -199,24 +199,24 @@ function Tiers() {
 function ForVenues() {
   const solutions = [
     {
-      title: "Que te descubran",
-      body: "Prioridad sobre el catálogo automático ~100× más grande. Oferta de bienvenida lista contra el pool real de guests cercanos que nunca te han visitado.",
+      title: "Get discovered",
+      body: "Priority over the auto-listed catalog ~100× larger. A welcome offer ready against the real pool of nearby guests who have never visited you.",
     },
     {
-      title: "Atrae a los magnéticos",
-      body: "Configura cashback distinto por Bronze, Silver, Gold y Diamond. Premia a los guests que llenan el lugar y lo posean a sus 8,000 seguidores.",
+      title: "Attract the magnetic ones",
+      body: "Configure different cashback for Bronze, Silver, Gold, and Diamond. Reward the guests who fill the room and post it to their 8,000 followers.",
     },
     {
-      title: "Historias de Instagram automáticas",
-      body: "Nuestro bot valida que cada Story etiquete tu venue. Sin story, no hay cashback. Exposición real, medible, sin perseguir screenshots.",
+      title: "Automatic Instagram stories",
+      body: "Our bot validates that every Story tags your venue. No Story, no cashback. Real, measurable exposure — no chasing screenshots.",
     },
     {
-      title: "Reservas sin fricción",
-      body: "Aparecen al momento de existir en el catálogo. Verás clase y tamaño de grupo antes de la visita. Llena días lentos con descuentos quirúrgicos.",
+      title: "Frictionless reservations",
+      body: "They appear the moment you exist in the catalog. You'll see tier and party size before the visit. Fill slow days with surgical discounts.",
     },
     {
-      title: "Inteligencia de marketing",
-      body: "Profile views, gasto influido, cashback pagado, ROAS, embudo completo y un copilot IA que arma la próxima campaña en un click.",
+      title: "Marketing intelligence",
+      body: "Profile views, influenced spend, cashback paid, ROAS, full funnel, and an AI copilot that builds your next campaign in one click.",
     },
   ];
 
@@ -224,13 +224,13 @@ function ForVenues() {
     <section id="venues" className="border-b border-border">
       <div className="mx-auto w-full max-w-6xl px-6 py-20">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Para Verified Partners
+          For Verified Partners
         </p>
         <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl">
-          Un canal de adquisición, no un directorio más.
+          An acquisition channel, not just another directory.
         </h2>
         <p className="mt-4 max-w-2xl text-muted-foreground">
-          Compite por guests de alta intención que están decidiendo ahorita dónde salir. Setup en 10 minutos. Cero hardware, cero POS, cero training.
+          Compete for high-intent guests deciding right now where to go out. Setup in 10 minutes. Zero hardware, zero POS, zero training.
         </p>
         <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {solutions.map((s) => (
@@ -245,13 +245,13 @@ function ForVenues() {
         </div>
         <div className="mt-12 rounded-xl border border-border bg-card p-8 text-card-foreground">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Caso conservador
+            Conservative case
           </p>
           <p className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-            300 partners × 30 redenciones/mes × $300 ticket = $2.7M MXN influidos al mes.
+            300 partners × 30 redemptions/month × $300 ticket = $2.7M MXN influenced per month.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            ~$270K MXN de comisión mensual al 10%. ~$3.24M MXN anual.
+            ~$270K MXN in monthly commission at 10%. ~$3.24M MXN annual.
           </p>
         </div>
       </div>
@@ -261,21 +261,21 @@ function ForVenues() {
 
 function HowItWorks() {
   const steps = [
-    "El guest pide la cuenta y abre su QR personal en la app.",
-    "El waiter escanea con su teléfono y abre el bot de WhatsApp de Mesita.",
-    "Captura total de cuenta y propina en un formulario corto.",
-    "El guest recibe un link de Stripe y paga desde su celular.",
-    "Cashback aterriza al balance Mesita. Si subió por seguidores, valida su Story.",
+    "The guest asks for the check and opens their personal QR in the app.",
+    "The waiter scans with their phone and opens the Mesita WhatsApp bot.",
+    "Captures the check total and tip in a short form.",
+    "The guest receives a Stripe link and pays from their phone.",
+    "Cashback lands in the Mesita balance. If they leveled up by followers, their Story is validated.",
   ];
 
   return (
     <section id="how" className="border-b border-border bg-muted/30">
       <div className="mx-auto w-full max-w-6xl px-6 py-20">
         <h2 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">
-          El checkout que cambia todo.
+          The checkout that changes everything.
         </h2>
         <p className="mt-4 max-w-2xl text-muted-foreground">
-          Solo pagos con tarjeta vía Stripe. Solo Verified Partners. Ideal para FSR. Cero cambios para el guest hasta el momento de pagar.
+          Card payments only via Stripe. Verified Partners only. Ideal for FSR. Zero changes for the guest until the moment of payment.
         </p>
         <ol className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-5">
           {steps.map((s, i) => (
@@ -300,23 +300,23 @@ function CTA() {
     <section className="border-b border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-24 text-center">
         <h2 className="max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
-          Salir a comer ya no es lo mismo.
+          Going out isn&apos;t the same anymore.
         </h2>
         <p className="max-w-xl text-muted-foreground">
-          Descubre la ciudad, reserva con IA y recupera dinero en cada visita. Tu próximo plan empieza aquí.
+          Discover the city, book with AI, and earn money back on every visit. Your next plan starts here.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
             href="/guest"
             className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
-            Empezar como guest
+            Get started as a guest
           </Link>
           <Link
             href="/manager"
             className="rounded-full border border-border px-6 py-3 text-sm font-medium hover:bg-muted"
           >
-            Registrar mi restaurante
+            List my venue
           </Link>
         </div>
       </div>
@@ -327,7 +327,7 @@ function CTA() {
 function Footer() {
   const cols = [
     {
-      title: "Producto",
+      title: "Product",
       links: [
         { label: "Guest", href: "/guest" },
         { label: "Manager", href: "/manager" },
@@ -336,20 +336,20 @@ function Footer() {
       ],
     },
     {
-      title: "Empresa",
+      title: "Company",
       links: [
-        { label: "Manifiesto", href: "#" },
-        { label: "Contacto", href: "mailto:pato@canzeco.com" },
-        { label: "Términos", href: "#" },
-        { label: "Privacidad", href: "#" },
+        { label: "Manifesto", href: "#" },
+        { label: "Contact", href: "mailto:pato@canzeco.com" },
+        { label: "Terms", href: "#" },
+        { label: "Privacy", href: "#" },
       ],
     },
     {
-      title: "Soporte",
+      title: "Support",
       links: [
         { label: "WhatsApp", href: "#" },
-        { label: "Centro de ayuda", href: "#" },
-        { label: "Estado del sistema", href: "#" },
+        { label: "Help center", href: "#" },
+        { label: "System status", href: "#" },
       ],
     },
   ];
@@ -360,7 +360,7 @@ function Footer() {
         <div className="col-span-2 md:col-span-1">
           <p className="text-lg font-semibold tracking-tight">mesita</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Hospitalidad inteligente. Hecho en Monterrey.
+            Smart hospitality. Made in Monterrey.
           </p>
         </div>
         {cols.map((c) => (
@@ -380,7 +380,7 @@ function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 text-xs text-muted-foreground">
-          <p>© 2026 Canzeco. Todos los derechos reservados.</p>
+          <p>© 2026 Canzeco. All rights reserved.</p>
           <p>v0.1.0</p>
         </div>
       </div>

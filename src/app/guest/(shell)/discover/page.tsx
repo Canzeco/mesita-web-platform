@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function GuestIndexPage() {
+export default function DiscoverIndex() {
   redirect("/guest/discover/swipe");
 }

@@ -1,0 +1,436 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { X, Check, Camera, QrCode, CreditCard, Instagram, RefreshCw, ShieldCheck, Loader2 } from "lucide-react";
+import type { SavedItem } from "@/lib/guest-data";
+import { venueById } from "@/lib/guest-data";
+import { workflowFor, getTicketType } from "@/lib/ticket-workflow";
+import { cn } from "@/lib/utils";
+import { FakeQR } from "./FakeQR";
+
+const ACTION_META: Record<
+  string,
+  { label: string; Icon: React.ComponentType<{ className?: string }> }
+> = {
+  "attach-screenshot": { label: "Attach screenshot", Icon: Camera },
+  "show-qr": { label: "Show my QR", Icon: QrCode },
+  "stripe-checkout": { label: "Open Stripe checkout", Icon: CreditCard },
+};
+
+type StoryStatus = "idle" | "verifying" | "verified";
+
+export function TicketSheet({ item, onClose }: { item: SavedItem; onClose: () => void }) {
+  const v = venueById(item.venueId);
+  const [doneDots, setDoneDots] = useState(item.doneDots);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [storyUrl, setStoryUrl] = useState<string | null>(null);
+  const [storyStatus, setStoryStatus] = useState<StoryStatus>("idle");
+  const [storyFileName, setStoryFileName] = useState<string | null>(null);
+  const verifyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (verifyTimerRef.current) clearTimeout(verifyTimerRef.current);
+      if (storyUrl) URL.revokeObjectURL(storyUrl);
+    };
+  }, [storyUrl]);
+
+  if (!v) return null;
+  const type = getTicketType(item);
+  const steps = workflowFor(type, item, v);
+  const hasStory = type === "PSC" || type === "RPSC";
+  const hasCashback = type === "PC" || type === "RPC" || type === "PSC" || type === "RPSC";
+  const venueHandle = `@${v.id.replace(/-/g, "")}`;
+
+  const markCurrentDone = () => {
+    setDoneDots((n) => Math.min(n + 1, steps.length));
+  };
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFile = (file: File) => {
+    if (storyUrl) URL.revokeObjectURL(storyUrl);
+    const url = URL.createObjectURL(file);
+    setStoryUrl(url);
+    setStoryFileName(file.name);
+    setStoryStatus("verifying");
+    if (verifyTimerRef.current) clearTimeout(verifyTimerRef.current);
+    verifyTimerRef.current = setTimeout(() => {
+      setStoryStatus("verified");
+    }, 1400);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) handleFile(file);
+  };
+
+  return (
+    <div className="absolute inset-0 z-50 flex items-end">
+      <div
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden
+      />
+      <div className="relative z-10 flex h-[88%] w-full flex-col rounded-t-3xl bg-background shadow-elev">
+        <div className="mx-auto mt-2 mb-1 h-1 w-12 shrink-0 rounded-full bg-foreground/30" />
+
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="relative px-4 pt-2">
+            <div className="relative h-44 w-full overflow-hidden rounded-2xl">
+              <Image
+                src={v.photos[0]}
+                alt={v.name}
+                fill
+                sizes="400px"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 text-foreground shadow-sm backdrop-blur"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="absolute bottom-3 left-4 right-4 text-white">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-90">
+                  {hasCashback ? "Cashback coupon" : "Reservation"}
+                </p>
+                <h2 className="mt-1 font-display text-3xl font-semibold leading-tight tracking-tight">
+                  {v.name}
+                </h2>
+                <p className="mt-0.5 text-[12px] opacity-90">
+                  {v.category} · {v.distanceKm} km
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pt-5">
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  Cashback
+                </p>
+                <p className="mt-1 font-display text-5xl font-bold leading-none text-secondary">
+                  {item.cashback ?? 0}
+                  <span className="text-2xl">%</span>
+                </p>
+                <p className="mt-2 text-[12px] text-muted-foreground">
+                  on every visit
+                  {item.cashbackCap ? ` · up to $${item.cashbackCap.toLocaleString()} MXN` : ""}
+                </p>
+              </div>
+              <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card p-2">
+                <div className="h-14 w-14 overflow-hidden">
+                  <FakeQR seed={v.id} size={9} />
+                </div>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Tap to pay
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pt-5">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {hasCashback ? "Coupon details" : "Reservation details"}
+              </p>
+              <dl className="mt-3 flex flex-col gap-2.5 text-sm">
+                {item.cashbackCap != null && (
+                  <Row label="Cap per visit" value={`$${item.cashbackCap.toLocaleString()} MXN`} />
+                )}
+                {item.reservationStatus && (
+                  <Row
+                    label="Reservation"
+                    value={
+                      <span
+                        className={cn(
+                          "font-semibold",
+                          item.reservationStatus === "pending" ? "text-secondary" : "text-secondary",
+                        )}
+                      >
+                        {item.reservationStatus === "pending" ? "Pending (AI calling)" : "Confirmed"}
+                      </span>
+                    }
+                  />
+                )}
+                {item.when && <Row label="When" value={item.when} />}
+                {item.partySize != null && <Row label="Party" value={`${item.partySize} guests`} />}
+              </dl>
+            </div>
+          </div>
+
+          {hasStory && (
+            <div className="px-4 pt-5">
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    Story evidence
+                  </p>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      storyStatus === "verified"
+                        ? "bg-primary/15 text-primary"
+                        : "bg-secondary/15 text-secondary",
+                    )}
+                  >
+                    {storyStatus === "verified" ? "Verified" : "Required"}
+                  </span>
+                </div>
+                <p className="mt-3 text-[13px] leading-relaxed text-foreground">
+                  <span className="font-semibold">Instagram story required.</span>{" "}
+                  <span className="text-muted-foreground">
+                    Post a story tagging{" "}
+                    <span className="text-secondary">{venueHandle}</span> during your visit to
+                    unlock the {item.cashback ?? 0}% cashback, then upload a screenshot here — we
+                    verify the tag automatically. No story · no cashback.
+                  </span>
+                </p>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  className="hidden"
+                  onChange={onFileChange}
+                />
+
+                {storyUrl ? (
+                  <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-muted">
+                    <div className="relative h-56 w-full bg-foreground/5">
+                      <Image
+                        src={storyUrl}
+                        alt="Story screenshot"
+                        fill
+                        sizes="400px"
+                        className="object-contain"
+                        unoptimized
+                      />
+                      <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-semibold shadow-sm backdrop-blur">
+                        {storyStatus === "verifying" ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin text-secondary" />
+                            <span className="text-foreground">Verifying tag…</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="h-3 w-3 text-primary" />
+                            <span className="text-foreground">
+                              {venueHandle} tag detected
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                        {storyFileName ?? "screenshot.png"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={openFilePicker}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[11px] font-semibold text-foreground transition hover:bg-muted"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Replace
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={openFilePicker}
+                    className="mt-3 flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-secondary/40 bg-secondary/5 px-4 py-5 text-center transition hover:bg-secondary/10"
+                  >
+                    <span
+                      className="flex h-12 w-12 items-center justify-center rounded-full text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, oklch(0.70 0.20 30), oklch(0.65 0.22 0), oklch(0.55 0.18 320))",
+                      }}
+                    >
+                      <Instagram className="h-5 w-5" />
+                    </span>
+                    <span className="text-sm font-semibold">Attach story screenshot</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      PNG or JPG · must show the {venueHandle} tag
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="px-4 pt-5">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Your progress
+              </p>
+              <ol className="mt-4 flex flex-col">
+                {steps.map((step, i) => {
+                  const done = i < doneDots;
+                  const current = i === doneDots;
+                  const isLast = i === steps.length - 1;
+                  const action = step.action ? ACTION_META[step.action] : null;
+                  return (
+                    <li key={i} className="relative flex gap-3 pb-5">
+                      {!isLast && (
+                        <span
+                          className={cn(
+                            "absolute left-3.5 top-7 bottom-0 w-px",
+                            done ? "bg-primary" : "bg-border",
+                          )}
+                          aria-hidden
+                        />
+                      )}
+                      <span
+                        className={cn(
+                          "relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
+                          done && "bg-primary text-white",
+                          current && "bg-primary text-white ring-4 ring-primary/15",
+                          !done && !current && "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={cn(
+                            "text-[14px] font-semibold leading-tight",
+                            done && "text-muted-foreground line-through",
+                          )}
+                        >
+                          {step.title}
+                        </p>
+                        <p
+                          className={cn(
+                            "mt-1 text-[12px] leading-snug text-muted-foreground",
+                            done && "line-through",
+                          )}
+                        >
+                          {step.sub}
+                        </p>
+                        {action && (
+                          <StepActionButton
+                            actionId={step.action!}
+                            actionLabel={action.label}
+                            ActionIcon={action.Icon}
+                            current={current}
+                            storyStatus={storyStatus}
+                            storyUploaded={!!storyUrl}
+                            onAttach={openFilePicker}
+                            onComplete={markCurrentDone}
+                          />
+                        )}
+                        {step.forClarity && current && (
+                          <button
+                            type="button"
+                            onClick={markCurrentDone}
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-foreground bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground transition hover:bg-muted"
+                          >
+                            <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                            Done
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </div>
+
+          <div className="px-4 py-5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex w-full items-center justify-center rounded-full border border-border bg-card py-3 text-sm font-semibold transition hover:bg-muted"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepActionButton({
+  actionId,
+  actionLabel,
+  ActionIcon,
+  current,
+  storyStatus,
+  storyUploaded,
+  onAttach,
+  onComplete,
+}: {
+  actionId: string;
+  actionLabel: string;
+  ActionIcon: React.ComponentType<{ className?: string }>;
+  current: boolean;
+  storyStatus: StoryStatus;
+  storyUploaded: boolean;
+  onAttach: () => void;
+  onComplete: () => void;
+}) {
+  const isAttach = actionId === "attach-screenshot";
+  const attachVerifying = isAttach && storyStatus === "verifying";
+  const attachReady = isAttach && storyStatus === "verified";
+  const label = isAttach
+    ? storyUploaded
+      ? attachReady
+        ? "Mark as done"
+        : "Verifying screenshot…"
+      : "Attach screenshot"
+    : actionLabel;
+  const Icon = isAttach && attachReady ? Check : ActionIcon;
+  const disabled = !current || attachVerifying;
+  const onClick = () => {
+    if (!current) return;
+    if (!isAttach) return;
+    if (attachReady) {
+      onComplete();
+      return;
+    }
+    onAttach();
+  };
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition",
+        current && !disabled
+          ? "border-foreground bg-foreground text-background hover:opacity-90"
+          : "border-border bg-muted text-muted-foreground",
+      )}
+    >
+      {attachVerifying ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : (
+        <Icon className="h-3.5 w-3.5" />
+      )}
+      {label}
+    </button>
+  );
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium">{value}</dd>
+    </div>
+  );
+}
