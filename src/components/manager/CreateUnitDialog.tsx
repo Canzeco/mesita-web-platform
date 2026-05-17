@@ -380,6 +380,25 @@ function ConfigureStep({
 
         <SectionLabel icon={<MessageCircle className="h-3 w-3" />}>Channels</SectionLabel>
 
+        <Field label="Instagram" required hint="We validate guest stories against this handle.">
+          <SocialInput
+            Icon={Instagram}
+            value={instagram}
+            onChange={setInstagram}
+            placeholder="@yourvenue"
+            required
+          />
+        </Field>
+
+        <Field label="WhatsApp" hint="Number or wa.me link guests can message directly.">
+          <SocialInput
+            Icon={MessageCircle}
+            value={whatsapp}
+            onChange={setWhatsapp}
+            placeholder="+52 81 ... or wa.me/..."
+          />
+        </Field>
+
         <div className="grid grid-cols-2 gap-3">
           <Field label="Website">
             <SocialInput
@@ -399,40 +418,21 @@ function ConfigureStep({
           </Field>
         </div>
 
-        <Field label="WhatsApp" hint="Number or wa.me link guests can message directly.">
-          <SocialInput
-            Icon={MessageCircle}
-            value={whatsapp}
-            onChange={setWhatsapp}
-            placeholder="+52 81 ... or wa.me/..."
-          />
-        </Field>
-
-        <Field label="Instagram" required hint="We validate guest stories against this handle.">
-          <SocialInput
-            Icon={Instagram}
-            value={instagram}
-            onChange={setInstagram}
-            placeholder="@yourvenue"
-            required
-          />
-        </Field>
-
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Facebook">
-            <SocialInput
-              Icon={Facebook}
-              value={facebook}
-              onChange={setFacebook}
-              placeholder="page name or URL"
-            />
-          </Field>
           <Field label="TikTok">
             <SocialInput
               Icon={Music2}
               value={tiktok}
               onChange={setTiktok}
               placeholder="@handle"
+            />
+          </Field>
+          <Field label="Facebook">
+            <SocialInput
+              Icon={Facebook}
+              value={facebook}
+              onChange={setFacebook}
+              placeholder="page name or URL"
             />
           </Field>
         </div>
@@ -459,19 +459,19 @@ function ConfigureStep({
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Uber Eats">
-            <SocialInput
-              Icon={ShoppingBag}
-              value={uberEats}
-              onChange={setUberEats}
-              placeholder="store slug or URL"
-            />
-          </Field>
           <Field label="Rappi">
             <SocialInput
               Icon={Bike}
               value={rappi}
               onChange={setRappi}
+              placeholder="store slug or URL"
+            />
+          </Field>
+          <Field label="Uber Eats">
+            <SocialInput
+              Icon={ShoppingBag}
+              value={uberEats}
+              onChange={setUberEats}
               placeholder="store slug or URL"
             />
           </Field>
