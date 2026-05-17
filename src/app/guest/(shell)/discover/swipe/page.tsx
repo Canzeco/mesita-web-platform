@@ -252,7 +252,7 @@ export default function SwipePage() {
                   )}
                   <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
                     <Sparkles className="h-3 w-3" />
-                    MESITA PARTNER
+                    VERIFIED PARTNER
                   </span>
                 </>
               ) : (
@@ -369,7 +369,7 @@ export default function SwipePage() {
                   )}
                   <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
                     <Sparkles className="h-3 w-3" />
-                    MESITA PARTNER
+                    VERIFIED PARTNER
                   </span>
                 </>
               ) : (
