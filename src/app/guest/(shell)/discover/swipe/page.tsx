@@ -199,7 +199,7 @@ export default function SwipePage() {
           }}
           aria-hidden
         >
-          <div className="relative h-[58%] w-full bg-muted">
+          <div className="absolute inset-0 bg-muted">
             <Image
               src={next.photos[0]}
               alt=""
@@ -208,61 +208,7 @@ export default function SwipePage() {
               className="object-cover"
             />
           </div>
-          <div className="flex h-[42%] flex-col p-5">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              {next.vibe.toLowerCase()} · {next.category.toLowerCase()}
-            </p>
-            <h2 className="mt-1 font-display text-3xl font-semibold tracking-tight">
-              {next.name}
-            </h2>
-            <p className="mt-1 text-[12px] text-muted-foreground">
-              {next.distanceKm} km · {priceDots(next.priceLevel)} · until {next.closesAt}
-            </p>
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {nextStats.map((s) => (
-                <div
-                  key={s.label}
-                  className={`rounded-xl border border-border p-1.5 ${s.tint ?? "bg-background"}`}
-                >
-                  <p
-                    className={`text-[8px] font-semibold tracking-wider ${
-                      s.tint ? "text-white/90" : "text-muted-foreground"
-                    }`}
-                  >
-                    {s.label}
-                  </p>
-                  <p className="mt-0.5 font-display text-base font-bold leading-none">{s.value}</p>
-                  <p
-                    className={`mt-0.5 text-[8px] ${
-                      s.tint ? "text-white/80" : "text-muted-foreground"
-                    }`}
-                  >
-                    {s.sub}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              {next.listingType === "partner" ? (
-                <>
-                  {next.cashbackPercent != null && (
-                    <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
-                      {next.cashbackPercent}% cashback
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
-                    <Sparkles className="h-3 w-3" />
-                    VERIFIED PARTNER
-                  </span>
-                </>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
-                  <Globe className="h-3 w-3" />
-                  Web listing
-                </span>
-              )}
-            </div>
-          </div>
+          <CardOverlay venue={next} stats={nextStats} />
         </div>
 
         <div
@@ -283,7 +229,7 @@ export default function SwipePage() {
             opacity: exiting ? 0 : 1,
           }}
         >
-          <div className="relative h-[58%] w-full" data-no-swipe>
+          <div className="absolute inset-0" data-no-swipe>
             <ImageCarousel
               key={v.id}
               photos={v.photos}
@@ -291,94 +237,27 @@ export default function SwipePage() {
               alt={v.name}
               aspect="h-full"
               priority
+              mutePosition="top-right"
             />
-            <div
-              className={cn(
-                "pointer-events-none absolute left-4 top-4 z-20 rounded-full border-2 border-white bg-foreground/40 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white transition-all",
-                dragX < -30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
-              )}
-            >
-              Skip
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute right-4 top-4 z-20 rounded-full bg-pink-gradient px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-all",
-                dragX > 30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
-              )}
-            >
-              Save
-            </div>
-
           </div>
 
-          <div className="flex h-[42%] flex-col p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {v.vibe.toLowerCase()} · {v.category.toLowerCase()}
-                </p>
-                <h2 className="mt-1 font-display text-3xl font-semibold tracking-tight">
-                  {v.name}
-                </h2>
-                <p className="mt-1 text-[12px] text-muted-foreground">
-                  {v.distanceKm} km · {priceDots(v.priceLevel)} · until {v.closesAt}
-                </p>
-              </div>
-              <Link
-                href={`/guest/venue/${v.id}`}
-                data-no-swipe
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground"
-                aria-label="More info"
-              >
-                <Info className="h-4 w-4" />
-              </Link>
-            </div>
+          <CardOverlay venue={v} stats={stats} hrefInfo={`/guest/venue/${v.id}`} />
 
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {stats.map((s) => (
-                <div
-                  key={s.label}
-                  className={`rounded-xl border border-border p-1.5 ${s.tint ?? "bg-background"}`}
-                >
-                  <p
-                    className={`text-[8px] font-semibold tracking-wider ${
-                      s.tint ? "text-white/90" : "text-muted-foreground"
-                    }`}
-                  >
-                    {s.label}
-                  </p>
-                  <p className="mt-0.5 font-display text-base font-bold leading-none">{s.value}</p>
-                  <p
-                    className={`mt-0.5 text-[8px] ${
-                      s.tint ? "text-white/80" : "text-muted-foreground"
-                    }`}
-                  >
-                    {s.sub}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              {v.listingType === "partner" ? (
-                <>
-                  {v.cashbackPercent != null && (
-                    <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
-                      {v.cashbackPercent}% cashback
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
-                    <Sparkles className="h-3 w-3" />
-                    VERIFIED PARTNER
-                  </span>
-                </>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
-                  <Globe className="h-3 w-3" />
-                  Web listing
-                </span>
-              )}
-            </div>
+          <div
+            className={cn(
+              "pointer-events-none absolute left-4 top-4 z-30 rounded-full border-2 border-white bg-foreground/40 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white transition-all",
+              dragX < -30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
+            )}
+          >
+            Skip
+          </div>
+          <div
+            className={cn(
+              "pointer-events-none absolute right-4 top-4 z-30 rounded-full bg-pink-gradient px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-all",
+              dragX > 30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
+            )}
+          >
+            Save
           </div>
         </div>
 
@@ -423,6 +302,102 @@ export default function SwipePage() {
             </>
           )}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function CardOverlay({
+  venue,
+  stats,
+  hrefInfo,
+}: {
+  venue: Venue;
+  stats: Stat[];
+  hrefInfo?: string;
+}) {
+  return (
+    <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-5 pt-24 text-white">
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/75">
+            {venue.vibe.toLowerCase()} · {venue.category.toLowerCase()}
+          </p>
+          <h2 className="mt-1 font-display text-3xl font-semibold leading-tight tracking-tight drop-shadow-sm">
+            {venue.name}
+          </h2>
+          <p className="mt-1 text-[12px] text-white/85">
+            {venue.distanceKm} km · {priceDots(venue.priceLevel)} · until {venue.closesAt}
+          </p>
+        </div>
+        {hrefInfo && (
+          <Link
+            href={hrefInfo}
+            data-no-swipe
+            aria-label="More info"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/90 text-foreground shadow-sm backdrop-blur transition hover:bg-white"
+          >
+            <Info className="h-4 w-4" />
+          </Link>
+        )}
+      </div>
+
+      <div className="grid grid-cols-5 gap-2">
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            className={cn(
+              "rounded-xl p-1.5 shadow-sm backdrop-blur",
+              s.tint ?? "bg-white/95",
+            )}
+          >
+            <p
+              className={cn(
+                "text-[8px] font-semibold tracking-wider",
+                s.tint ? "text-white/90" : "text-muted-foreground",
+              )}
+            >
+              {s.label}
+            </p>
+            <p
+              className={cn(
+                "mt-0.5 font-display text-base font-bold leading-none",
+                s.tint ? "text-white" : "text-foreground",
+              )}
+            >
+              {s.value}
+            </p>
+            <p
+              className={cn(
+                "mt-0.5 text-[8px]",
+                s.tint ? "text-white/80" : "text-muted-foreground",
+              )}
+            >
+              {s.sub}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {venue.listingType === "partner" ? (
+          <>
+            {venue.cashbackPercent != null && (
+              <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
+                {venue.cashbackPercent}% cashback
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-sm">
+              <Sparkles className="h-3 w-3" />
+              Verified partner
+            </span>
+          </>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
+            <Globe className="h-3 w-3" />
+            Web listing
+          </span>
+        )}
       </div>
     </div>
   );
