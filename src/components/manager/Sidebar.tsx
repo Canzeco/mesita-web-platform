@@ -29,6 +29,7 @@ const NAV = [
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3 },
   { href: "/manager/wallet", label: "Wallet", Icon: Wallet },
   { href: "/manager/team", label: "Team", Icon: Users },
+  { href: "/manager/copilot", label: "AI Copilot", Icon: Sparkles },
 ];
 
 export function Sidebar() {
@@ -113,28 +114,13 @@ export function Sidebar() {
           })}
         </nav>
 
-        <div className="space-y-2 border-t border-border p-3">
-          <Link
-            href="/manager/copilot"
-            className="block rounded-2xl border border-border bg-background p-3 transition hover:bg-muted/40"
-          >
-            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">
-              <Sparkles className="h-3 w-3" />
-              AI Copilot
-            </p>
-            <p className="mt-1.5 text-[13px] leading-snug text-foreground">
-              Generate your next campaign in 1 click.
-            </p>
-          </Link>
-
-          <div className="border-t border-border pt-2">
-            <SidebarLink Icon={Settings} label="Settings" href="#" />
-            <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
-          </div>
+        <div className="space-y-1 border-t border-border p-3">
+          <SidebarLink Icon={Settings} label="Settings" href="#" />
+          <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
 
           <Link
             href="#"
-            className="flex items-center gap-3 rounded-2xl px-2 py-2 transition hover:bg-muted/40"
+            className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2 transition hover:bg-muted/40"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-sm font-bold text-white">
               {CURRENT_MANAGER.name[0].toUpperCase()}
