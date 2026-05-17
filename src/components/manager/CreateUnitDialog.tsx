@@ -8,10 +8,17 @@ import {
   Sparkles,
   Phone,
   Globe,
+  Mail,
   Camera,
   ArrowRight,
   Loader2,
   Check,
+  Instagram,
+  Facebook,
+  Music2,
+  ShoppingBag,
+  PenLine,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,14 +90,25 @@ const VIBES = [
 
 const CITIES = ["CDMX", "Monterrey", "Guadalajara", "Querétaro", "Mérida", "Tulum", "Other"];
 
+const PRICE_LEVELS = [1, 2, 3, 4] as const;
+
 export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [vibe, setVibe] = useState("");
+  const [priceLevel, setPriceLevel] = useState<1 | 2 | 3 | 4>(2);
   const [city, setCity] = useState("CDMX");
   const [area, setArea] = useState("");
+  const [address, setAddress] = useState("");
+  const [pitch, setPitch] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [tiktok, setTiktok] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
+  const [uberEats, setUberEats] = useState("");
+  const [rappi, setRappi] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +120,10 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
     setError(null);
     if (!name.trim() || !category || !vibe || !city || !area.trim()) {
       setError("Place name, category, vibe, city and neighborhood are required");
+      return;
+    }
+    if (!instagram.trim()) {
+      setError("Instagram handle is required so we can validate guest stories");
       return;
     }
     setLoading(true);
@@ -199,6 +221,42 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
             </Field>
           </div>
 
+          <Field label="Price level" required>
+            <div className="flex gap-1.5">
+              {PRICE_LEVELS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPriceLevel(p)}
+                  className={cn(
+                    "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold tracking-wider transition",
+                    priceLevel === p
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-border bg-background text-muted-foreground hover:text-foreground",
+                  )}
+                  aria-label={`${"$".repeat(p)} price level`}
+                >
+                  {"$".repeat(p)}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <SectionLabel icon={<PenLine className="h-3 w-3" />}>The pitch (optional)</SectionLabel>
+          <Field label="One-liner">
+            <textarea
+              value={pitch}
+              onChange={(e) => setPitch(e.target.value)}
+              placeholder="e.g. Mediterranean tasting menu on a candle-lit rooftop with mountain views."
+              rows={2}
+              maxLength={180}
+              className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-secondary/60"
+            />
+            <p className="mt-1 text-right text-[10px] text-muted-foreground">
+              {pitch.length} / 180
+            </p>
+          </Field>
+
           <SectionLabel icon={<MapPin className="h-3 w-3" />}>Location</SectionLabel>
 
           <div className="grid grid-cols-2 gap-3">
@@ -228,6 +286,63 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
             </Field>
           </div>
 
+          <Field label="Street address (optional)">
+            <input
+              className={INPUT}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="e.g. Av. Presidente Masaryk 123"
+              maxLength={120}
+            />
+          </Field>
+
+          <SectionLabel icon={<Instagram className="h-3 w-3" />}>Social</SectionLabel>
+
+          <Field
+            label="Instagram"
+            required
+            hint="We validate guest stories against this handle."
+          >
+            <div className="relative">
+              <Instagram className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                className={cn(INPUT, "pl-8")}
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@yourvenue"
+                maxLength={40}
+                required
+              />
+            </div>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Facebook">
+              <div className="relative">
+                <Facebook className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  className={cn(INPUT, "pl-8")}
+                  value={facebook}
+                  onChange={(e) => setFacebook(e.target.value)}
+                  placeholder="page name"
+                  maxLength={40}
+                />
+              </div>
+            </Field>
+            <Field label="TikTok">
+              <div className="relative">
+                <Music2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  className={cn(INPUT, "pl-8")}
+                  value={tiktok}
+                  onChange={(e) => setTiktok(e.target.value)}
+                  placeholder="@handle"
+                  maxLength={40}
+                />
+              </div>
+            </Field>
+          </div>
+
           <SectionLabel icon={<Sparkles className="h-3 w-3" />}>Contact (optional)</SectionLabel>
 
           <div className="grid grid-cols-2 gap-3">
@@ -244,21 +359,60 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
                 />
               </div>
             </Field>
-            <Field label="Website">
+            <Field label="Email">
               <div className="relative">
-                <Globe className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
+                  type="email"
                   className={cn(INPUT, "pl-8")}
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="venue.mx"
-                  maxLength={60}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="hello@venue.mx"
+                  maxLength={80}
                 />
               </div>
             </Field>
           </div>
 
-          <Field label="Cover photo">
+          <Field label="Website">
+            <div className="relative">
+              <Globe className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                className={cn(INPUT, "pl-8")}
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="venue.mx"
+                maxLength={60}
+              />
+            </div>
+          </Field>
+
+          <SectionLabel icon={<ShoppingBag className="h-3 w-3" />}>Delivery (optional)</SectionLabel>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Uber Eats">
+              <input
+                className={INPUT}
+                value={uberEats}
+                onChange={(e) => setUberEats(e.target.value)}
+                placeholder="store slug"
+                maxLength={40}
+              />
+            </Field>
+            <Field label="Rappi">
+              <input
+                className={INPUT}
+                value={rappi}
+                onChange={(e) => setRappi(e.target.value)}
+                placeholder="store slug"
+                maxLength={40}
+              />
+            </Field>
+          </div>
+
+          <SectionLabel icon={<DollarSign className="h-3 w-3" />}>Cover photo</SectionLabel>
+
+          <Field label="Hero image">
             <button
               type="button"
               className="flex h-24 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-[12px] text-muted-foreground transition hover:bg-muted/50"
@@ -320,7 +474,7 @@ function SectionLabel({
   children: React.ReactNode;
 }) {
   return (
-    <p className="mt-3 mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+    <p className="mt-4 mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
       {icon}
       {children}
     </p>
@@ -330,10 +484,12 @@ function SectionLabel({
 function Field({
   label,
   required,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -343,6 +499,7 @@ function Field({
         {required && <span className="text-secondary">*</span>}
       </span>
       {children}
+      {hint && <span className="mt-1 block text-[10px] text-muted-foreground/80">{hint}</span>}
     </label>
   );
 }
