@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Star, Navigation, Bookmark } from "lucide-react";
 import type { Venue } from "@/lib/guest-data";
 import { priceDots } from "@/lib/guest-data";
-import { CashbackPill, PartnerPill } from "./Pills";
+import { CashbackPill, PartnerPill, WebListingPill } from "./Pills";
 
 export function VenueCard({ venue }: { venue: Venue }) {
   return (
@@ -21,12 +21,16 @@ export function VenueCard({ venue }: { venue: Venue }) {
           sizes="(max-width: 768px) 50vw, 320px"
           className="object-cover"
         />
-        {venue.isPartner && (
-          <div className="absolute left-2 top-2 flex items-center gap-1.5">
-            <PartnerPill />
-            {venue.cashbackPercent != null && <CashbackPill percent={venue.cashbackPercent} />}
-          </div>
-        )}
+        <div className="absolute left-2 top-2 flex items-center gap-1.5">
+          {venue.listingType === "partner" ? (
+            <>
+              <PartnerPill />
+              {venue.cashbackPercent != null && <CashbackPill percent={venue.cashbackPercent} />}
+            </>
+          ) : (
+            <WebListingPill />
+          )}
+        </div>
         <button
           type="button"
           aria-label="Save"

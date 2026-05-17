@@ -1,4 +1,4 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function CashbackPill({
@@ -30,6 +30,20 @@ export function PartnerPill({ className }: { className?: string }) {
     >
       <BadgeCheck className="h-3 w-3 text-primary" />
       Partner
+    </span>
+  );
+}
+
+export function WebListingPill({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full bg-foreground/85 px-2 py-1 text-[10px] font-semibold text-background shadow-sm backdrop-blur",
+        className,
+      )}
+    >
+      <Globe className="h-3 w-3" />
+      Web listing
     </span>
   );
 }

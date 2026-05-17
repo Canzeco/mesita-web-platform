@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type MediaItem =
@@ -26,18 +27,49 @@ export function ImageCarousel({
   sizes?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [idx, setIdx] = useState(0);
+  const [muted, setMuted] = useState(true);
 
   const items: MediaItem[] =
     media && media.length > 0
       ? media
       : photos.map((src) => ({ type: "image" as const, src }));
 
+  const hasVideo = items.some((m) => m.type === "video");
+
   const goTo = (i: number) => {
     const el = ref.current;
     if (!el) return;
     el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
   };
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    // Pause non-active videos, play+unmute the active one.
+    videoRefs.current.forEach((vid, i) => {
+      if (!vid) return;
+      vid.muted = next;
+      if (!next && i === idx) {
+        // Browsers require the play() to be tied to the same user gesture as the unmute.
+        vid.play().catch(() => {
+          // If the browser still refuses, keep the icon honest.
+          setMuted(true);
+          vid.muted = true;
+        });
+      }
+    });
+  };
+
+  // Keep videos muted when they're not the visible slide so audio doesn't overlap.
+  useEffect(() => {
+    videoRefs.current.forEach((vid, i) => {
+      if (!vid) return;
+      const shouldHaveSound = !muted && i === idx;
+      vid.muted = !shouldHaveSound;
+    });
+  }, [idx, muted]);
 
   return (
     <div className={cn("relative w-full overflow-hidden", aspect, rounded)}>
@@ -57,6 +89,9 @@ export function ImageCarousel({
           >
             {m.type === "video" ? (
               <video
+                ref={(el) => {
+                  videoRefs.current[i] = el;
+                }}
                 src={m.src}
                 poster={m.poster}
                 autoPlay
@@ -79,6 +114,22 @@ export function ImageCarousel({
           </div>
         ))}
       </div>
+
+      {hasVideo && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMute();
+          }}
+          aria-label={muted ? "Unmute video" : "Mute video"}
+          data-no-swipe
+          className="absolute bottom-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-sm backdrop-blur transition hover:bg-black/80"
+        >
+          {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+        </button>
+      )}
 
       {items.length > 1 && (
         <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center gap-1.5">

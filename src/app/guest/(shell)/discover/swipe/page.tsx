@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Info, VolumeX, X, Ticket, Sparkles } from "lucide-react";
+import { Info, X, Ticket, Sparkles, Heart, Globe, Calendar } from "lucide-react";
 import { VENUES, priceDots, type Venue } from "@/lib/guest-data";
 import { ImageCarousel } from "@/components/guest/ImageCarousel";
 import { cn } from "@/lib/utils";
 
-const SWIPE_THRESHOLD = 110;
+const SWIPE_THRESHOLD = 64;
+const SWIPE_VELOCITY = 0.35; // px/ms — a quick flick commits even with small displacement
+const MIN_FLICK_DISTANCE = 16;
 
 type Stat = { label: string; value: string; sub: string; tint?: string };
 
@@ -67,12 +69,13 @@ function clamp(n: number, lo: number, hi: number) {
 }
 
 export default function SwipePage() {
-  const venues = VENUES.filter((v) => v.isPartner);
+  const venues = VENUES;
   const [idx, setIdx] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [exiting, setExiting] = useState<null | "left" | "right">(null);
-  const startRef = useRef({ x: 0, y: 0 });
+  const startRef = useRef({ x: 0, y: 0, t: 0 });
+  const lastRef = useRef({ x: 0, t: 0 });
   const lockedRef = useRef<null | "swipe" | "ignore">(null);
 
   const v = venues[idx % venues.length];
@@ -89,7 +92,9 @@ export default function SwipePage() {
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("[data-no-swipe]")) return;
     if (exiting) return;
-    startRef.current = { x: e.clientX, y: e.clientY };
+    const t = performance.now();
+    startRef.current = { x: e.clientX, y: e.clientY, t };
+    lastRef.current = { x: e.clientX, t };
     setDragging(true);
     lockedRef.current = null;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -100,23 +105,46 @@ export default function SwipePage() {
     const dx = e.clientX - startRef.current.x;
     const dy = e.clientY - startRef.current.y;
     if (lockedRef.current == null) {
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
         lockedRef.current = Math.abs(dx) > Math.abs(dy) ? "swipe" : "ignore";
       }
     }
     if (lockedRef.current === "swipe") {
       setDragX(dx);
+      lastRef.current = { x: e.clientX, t: performance.now() };
     }
   };
 
   const onPointerUp = () => {
     if (!dragging) return;
     setDragging(false);
-    if (lockedRef.current === "swipe" && Math.abs(dragX) > SWIPE_THRESHOLD) {
-      setExiting(dragX > 0 ? "right" : "left");
+    if (lockedRef.current === "swipe") {
+      const now = performance.now();
+      const dt = Math.max(1, now - lastRef.current.t);
+      const recentDx = lastRef.current.x - startRef.current.x;
+      const totalDt = Math.max(1, now - startRef.current.t);
+      const velocity = recentDx / totalDt;
+      const isFlick =
+        Math.abs(velocity) >= SWIPE_VELOCITY && Math.abs(dragX) >= MIN_FLICK_DISTANCE && dt < 250;
+      if (Math.abs(dragX) > SWIPE_THRESHOLD || isFlick) {
+        const dir = (Math.abs(velocity) > 0.05 ? velocity : dragX) > 0 ? "right" : "left";
+        setExiting(dir);
+      } else {
+        setDragX(0);
+      }
     } else {
       setDragX(0);
     }
+    lockedRef.current = null;
+  };
+
+  // Browser sometimes cancels pointer capture (scroll gesture, OS interruption,
+  // element unmount). Without this, dragX is left at the cancel position and
+  // the card appears "stuck" mid-swipe. Reset cleanly.
+  const onLostPointerCapture = () => {
+    if (!dragging) return;
+    setDragging(false);
+    setDragX(0);
     lockedRef.current = null;
   };
 
@@ -195,19 +223,26 @@ export default function SwipePage() {
                 </div>
               ))}
             </div>
-            {next.cashbackPercent != null && (
-              <div className="mt-3 flex items-center gap-2">
-                <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
-                  {next.cashbackPercent}% cashback
-                </span>
-                {next.isPartner && (
+            <div className="mt-3 flex items-center gap-2">
+              {next.listingType === "partner" ? (
+                <>
+                  {next.cashbackPercent != null && (
+                    <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
+                      {next.cashbackPercent}% cashback
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
                     <Sparkles className="h-3 w-3" />
                     MESITA PARTNER
                   </span>
-                )}
-              </div>
-            )}
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
+                  <Globe className="h-3 w-3" />
+                  Web listing · reservation only
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -217,10 +252,12 @@ export default function SwipePage() {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
+          onLostPointerCapture={onLostPointerCapture}
           className={cn(
-            "absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card shadow-elev select-none",
+            "absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card shadow-elev select-none touch-none",
             !dragging && "transition-[transform,opacity] duration-300 ease-out",
             isSwiping && "cursor-grabbing",
+            exiting && "pointer-events-none",
           )}
           style={{
             transform: `translate3d(${visibleOffset}px, ${Math.abs(visibleOffset) * 0.04}px, 0) rotate(${rotate}deg)`,
@@ -236,31 +273,23 @@ export default function SwipePage() {
               aspect="h-full"
               priority
             />
-            <button
-              type="button"
-              data-no-swipe
-              className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur"
-              aria-label="Mute"
-            >
-              <VolumeX className="h-4 w-4" />
-            </button>
-
             <div
               className={cn(
-                "pointer-events-none absolute left-4 top-4 z-20 rounded-full border-2 border-white bg-foreground/40 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white transition-opacity",
-                dragX < -30 ? "opacity-100" : "opacity-0",
+                "pointer-events-none absolute left-4 top-4 z-20 rounded-full border-2 border-white bg-foreground/40 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white transition-all",
+                dragX < -30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
               )}
             >
               Skip
             </div>
             <div
               className={cn(
-                "pointer-events-none absolute right-4 top-4 z-20 rounded-full bg-pink-gradient px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-opacity",
-                dragX > 30 ? "opacity-100" : "opacity-0",
+                "pointer-events-none absolute right-4 top-4 z-20 rounded-full bg-pink-gradient px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-all",
+                dragX > 30 ? "scale-100 opacity-100" : "scale-90 opacity-0",
               )}
             >
               Save
             </div>
+
           </div>
 
           <div className="flex h-[42%] flex-col p-5">
@@ -311,19 +340,45 @@ export default function SwipePage() {
               ))}
             </div>
 
-            {v.cashbackPercent != null && (
-              <div className="mt-3 flex items-center gap-2">
-                <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
-                  {v.cashbackPercent}% cashback
+            <div className="mt-3 flex items-center gap-2">
+              {v.listingType === "partner" ? (
+                <>
+                  {v.cashbackPercent != null && (
+                    <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
+                      {v.cashbackPercent}% cashback
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
+                    <Sparkles className="h-3 w-3" />
+                    MESITA PARTNER
+                  </span>
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
+                  <Globe className="h-3 w-3" />
+                  Web listing · reservation only
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold px-3 py-1.5 text-[10px] font-bold text-black shadow-sm">
-                  <Sparkles className="h-3 w-3" />
-                  MESITA PARTNER
-                </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
+        {exiting === "right" && (
+          <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center">
+            <span className="inline-flex -rotate-[8deg] items-center gap-2 rounded-2xl border-[3px] border-white bg-pink-gradient px-5 py-2.5 text-2xl font-black uppercase tracking-[0.15em] text-white shadow-glow animate-in fade-in zoom-in-50 duration-200 ease-out">
+              <Heart className="h-6 w-6 fill-white" />
+              Saved
+            </span>
+          </div>
+        )}
+        {exiting === "left" && (
+          <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center">
+            <span className="inline-flex rotate-[8deg] items-center gap-2 rounded-2xl border-[3px] border-foreground/70 bg-foreground/85 px-5 py-2.5 text-2xl font-black uppercase tracking-[0.15em] text-background animate-in fade-in zoom-in-50 duration-200 ease-out">
+              <X className="h-6 w-6 stroke-[3]" />
+              Skip
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex items-center gap-3">
@@ -339,7 +394,15 @@ export default function SwipePage() {
           onClick={save}
           className="flex h-12 flex-[1.6] items-center justify-center gap-2 rounded-full bg-pink-gradient text-sm font-semibold text-white shadow-glow"
         >
-          <Ticket className="h-4 w-4" /> Save or reserve
+          {v.listingType === "partner" ? (
+            <>
+              <Ticket className="h-4 w-4" /> Save or reserve
+            </>
+          ) : (
+            <>
+              <Calendar className="h-4 w-4" /> Reserve
+            </>
+          )}
         </button>
       </div>
     </div>

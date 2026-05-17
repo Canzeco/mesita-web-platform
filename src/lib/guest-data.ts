@@ -34,7 +34,7 @@ export type Venue = {
   distanceKm: number;
   walkMinutes: number;
   closesAt: string;
-  isPartner: boolean;
+  listingType: "partner" | "web";
   cashbackPercent: number | null;
   rating: number;
   ratingExternal: number;
@@ -83,7 +83,7 @@ export const VENUES: Venue[] = [
     distanceKm: 0.4,
     walkMinutes: 5,
     closesAt: "2:00am",
-    isPartner: true,
+    listingType: "partner",
     cashbackPercent: 20,
     rating: 4.9,
     ratingExternal: 4.7,
@@ -199,7 +199,7 @@ export const VENUES: Venue[] = [
     distanceKm: 0.4,
     walkMinutes: 6,
     closesAt: "3:00am",
-    isPartner: true,
+    listingType: "partner",
     cashbackPercent: 20,
     rating: 4.8,
     ratingExternal: 4.4,
@@ -210,6 +210,17 @@ export const VENUES: Venue[] = [
       "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1200&q=80&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=1200&q=80&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80&auto=format&fit=crop",
+    ],
+    media: [
+      {
+        type: "video",
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+        poster: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80&auto=format&fit=crop",
+      },
+      { type: "image", src: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80&auto=format&fit=crop" },
+      { type: "image", src: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1200&q=80&auto=format&fit=crop" },
+      { type: "image", src: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=1200&q=80&auto=format&fit=crop" },
+      { type: "image", src: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80&auto=format&fit=crop" },
     ],
     description:
       "Neon-lit cocktail den with industry favorites at the bar and a vinyl room in the back. Walk-ins only after 11pm.",
@@ -225,7 +236,7 @@ export const VENUES: Venue[] = [
     distanceKm: 1.2,
     walkMinutes: 14,
     closesAt: "12:00am",
-    isPartner: true,
+    listingType: "partner",
     cashbackPercent: 10,
     rating: 4.7,
     ratingExternal: 4.6,
@@ -251,7 +262,7 @@ export const VENUES: Venue[] = [
     distanceKm: 2.1,
     walkMinutes: 22,
     closesAt: "11:30pm",
-    isPartner: false,
+    listingType: "web",
     cashbackPercent: null,
     rating: 4.9,
     ratingExternal: 4.8,
@@ -276,7 +287,7 @@ export const VENUES: Venue[] = [
     distanceKm: 0.8,
     walkMinutes: 9,
     closesAt: "6:00pm",
-    isPartner: true,
+    listingType: "partner",
     cashbackPercent: 10,
     rating: 4.6,
     ratingExternal: 4.5,
@@ -302,8 +313,8 @@ export const VENUES: Venue[] = [
     distanceKm: 1.6,
     walkMinutes: 18,
     closesAt: "1:00am",
-    isPartner: true,
-    cashbackPercent: 15,
+    listingType: "partner",
+    cashbackPercent: 10,
     rating: 4.8,
     ratingExternal: 4.7,
     externalLabel: "G",
@@ -328,7 +339,7 @@ export const VENUES: Venue[] = [
     distanceKm: 0.9,
     walkMinutes: 11,
     closesAt: "12:00am",
-    isPartner: true,
+    listingType: "partner",
     cashbackPercent: 5,
     rating: 4.5,
     ratingExternal: 4.4,
@@ -353,7 +364,7 @@ export const VENUES: Venue[] = [
     distanceKm: 1.4,
     walkMinutes: 16,
     closesAt: "1:00am",
-    isPartner: false,
+    listingType: "web",
     cashbackPercent: null,
     rating: 4.7,
     ratingExternal: 4.6,
@@ -644,7 +655,7 @@ export const MAP_PINS = [
   { id: "casa-luminar", emoji: "🎶", x: 52, y: 46, cashback: 20 },
   { id: "mar-verde", emoji: "🐟", x: 32, y: 60, cashback: null },
   { id: "loto-cafe", emoji: "☕", x: 70, y: 68, cashback: 10 },
-  { id: "taqueria-cruz", emoji: "🌮", x: 26, y: 78, cashback: 15 },
+  { id: "taqueria-cruz", emoji: "🌮", x: 26, y: 78, cashback: 10 },
 ];
 
 export function venueById(id: string): Venue | undefined {

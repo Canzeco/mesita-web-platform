@@ -181,42 +181,42 @@ export default function PromosPage() {
                         <GuestTypeBadge type={t.guestType} />
                       </div>
 
-                      {t.example ? (
+                      {t.examples.length > 0 ? (
                         <div className="rounded-xl border border-border bg-card p-2">
-                          <div className="flex items-center gap-2">
-                            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
-                              <Image
-                                src={t.example.avatar}
-                                alt={t.example.name}
-                                fill
-                                sizes="36px"
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[12px] font-semibold leading-tight">
-                                {t.example.name}
-                              </p>
-                              <p className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                <Instagram className="h-2.5 w-2.5" />
-                                {t.example.handle} ·{" "}
-                                <span className="font-semibold text-secondary">
-                                  {t.example.followers}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          {t.example.spendNote && (
-                            <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-tier-gold/20 px-1.5 py-0.5 text-[9px] font-semibold text-foreground">
+                          <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Who you&apos;re paying for
+                          </p>
+                          <ul className="flex flex-col gap-1.5">
+                            {t.examples.map((g) => (
+                              <li key={g.handle} className="flex items-center gap-2">
+                                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                                  <Image
+                                    src={g.avatar}
+                                    alt={g.name}
+                                    fill
+                                    sizes="32px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-[11px] font-semibold leading-tight">
+                                    {g.name}
+                                  </p>
+                                  <p className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                    <Instagram className="h-2.5 w-2.5" />
+                                    {g.handle}
+                                    <span className="ml-auto font-semibold text-secondary">
+                                      {g.followers}
+                                    </span>
+                                  </p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                          {t.examples.some((g) => g.spendNote) && (
+                            <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-tier-gold/25 px-1.5 py-0.5 text-[9px] font-semibold text-foreground">
                               <Gem className="h-2.5 w-2.5" />
-                              {t.example.spendNote}
-                            </p>
-                          )}
-                          {t.alsoHandles.length > 0 && (
-                            <p className="mt-1.5 text-[9px] text-muted-foreground">
-                              also{" "}
-                              {t.alsoHandles.slice(0, 2).join(", ")}
-                              {t.alsoHandles.length > 2 && ` +${t.alsoHandles.length - 2}`}
+                              avg MX$60k+ lifetime
                             </p>
                           )}
                         </div>
@@ -226,7 +226,7 @@ export default function PromosPage() {
                             {t.reach}
                           </p>
                           <p className="mt-0.5 text-[10px] text-muted-foreground">
-                            High-volume tier · no featured guest
+                            High-volume tier · no featured guests
                           </p>
                         </div>
                       )}

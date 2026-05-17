@@ -113,6 +113,14 @@ export const VALIDATOR_THREAD: {
 
 export type GuestType = "Volume" | "Magnetic" | "Rich" | "Magnetic + Rich";
 
+export type ExampleGuest = {
+  name: string;
+  handle: string;
+  followers: string;
+  avatar: string;
+  spendNote?: string;
+};
+
 export const TIER_CASHBACK: {
   tier: Tier;
   percent: number;
@@ -120,14 +128,7 @@ export const TIER_CASHBACK: {
   audience: number;
   reach: string;
   guestType: GuestType;
-  example: {
-    name: string;
-    handle: string;
-    followers: string;
-    avatar: string;
-    spendNote?: string;
-  } | null;
-  alsoHandles: string[];
+  examples: ExampleGuest[];
 }[] = [
   {
     tier: "bronze",
@@ -136,8 +137,7 @@ export const TIER_CASHBACK: {
     audience: 18_420,
     reach: "Everyone within 1km",
     guestType: "Volume",
-    example: null,
-    alsoHandles: [],
+    examples: [],
   },
   {
     tier: "silver",
@@ -146,13 +146,26 @@ export const TIER_CASHBACK: {
     audience: 6_240,
     reach: "1K+ followers",
     guestType: "Magnetic",
-    example: {
-      name: "Sofía P.",
-      handle: "@sofip",
-      followers: "1.4K",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80&auto=format&fit=crop&crop=faces",
-    },
-    alsoHandles: ["@renatak", "@tomasl"],
+    examples: [
+      {
+        name: "Sofía P.",
+        handle: "@sofip",
+        followers: "1.4K",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+      {
+        name: "Renata K.",
+        handle: "@renatak",
+        followers: "2.1K",
+        avatar: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+      {
+        name: "Tomás L.",
+        handle: "@tomasl",
+        followers: "1.8K",
+        avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+    ],
   },
   {
     tier: "gold",
@@ -161,29 +174,57 @@ export const TIER_CASHBACK: {
     audience: 1_860,
     reach: "5K+ followers",
     guestType: "Magnetic",
-    example: {
-      name: "Valentina R.",
-      handle: "@valenrose",
-      followers: "12.5K",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop&crop=faces",
-    },
-    alsoHandles: ["@lucasm", "@camivb", "@matef", "@anat"],
+    examples: [
+      {
+        name: "Valentina R.",
+        handle: "@valenrose",
+        followers: "12.5K",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+      {
+        name: "Lucas M.",
+        handle: "@lucasm",
+        followers: "8.4K",
+        avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+      {
+        name: "Mateo F.",
+        handle: "@matef",
+        followers: "6.2K",
+        avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200&q=80&auto=format&fit=crop&crop=faces",
+      },
+    ],
   },
   {
     tier: "diamond",
-    percent: 30,
+    percent: 50,
     visitsRange: "20+ visits",
     audience: 184,
     reach: "20K+ followers · invite-only",
     guestType: "Magnetic + Rich",
-    example: {
-      name: "Camila V.",
-      handle: "@camivb",
-      followers: "142K",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80&auto=format&fit=crop&crop=faces",
-      spendNote: "MX$84k lifetime",
-    },
-    alsoHandles: ["@valenrose", "@anat", "@matef"],
+    examples: [
+      {
+        name: "Camila V.",
+        handle: "@camivb",
+        followers: "142K",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80&auto=format&fit=crop&crop=faces",
+        spendNote: "MX$84k lifetime",
+      },
+      {
+        name: "Ana T.",
+        handle: "@anat",
+        followers: "67K",
+        avatar: "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=200&q=80&auto=format&fit=crop&crop=faces",
+        spendNote: "MX$62k lifetime",
+      },
+      {
+        name: "Valentina R.",
+        handle: "@valenrose",
+        followers: "38K",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop&crop=faces",
+        spendNote: "MX$47k lifetime",
+      },
+    ],
   },
 ];
 
