@@ -24,7 +24,12 @@ import {
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PlaceDetails, PlacePrediction } from "@/lib/google-places";
+import {
+  placesAutocomplete,
+  placeDetails,
+  type PlaceDetails,
+  type PlacePrediction,
+} from "@/lib/google-places";
 
 const INPUT =
   "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60";
@@ -154,30 +159,19 @@ function SearchStep({
 
   useEffect(() => {
     if (!active) return;
-    const ac = new AbortController();
     let cancelled = false;
     const t = window.setTimeout(() => {
       setLoading(true);
       setError(null);
-      fetch("/api/places/autocomplete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: trimmed, sessionToken }),
-        signal: ac.signal,
-      })
-        .then((res) => res.json())
-        .then((data: { ok: boolean; predictions?: PlacePrediction[]; mock?: boolean; error?: string }) => {
+      placesAutocomplete(trimmed, sessionToken)
+        .then((data) => {
           if (cancelled) return;
           if (data.ok) {
-            setPredictions(data.predictions ?? []);
-            setMockMode(!!data.mock);
+            setPredictions(data.predictions);
+            setMockMode(data.mock);
           } else {
-            setError(data.error ?? "Search failed");
+            setError(data.error);
           }
-        })
-        .catch((err: unknown) => {
-          if (cancelled || ac.signal.aborted) return;
-          setError(err instanceof Error ? err.message : "Network error");
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -186,34 +180,19 @@ function SearchStep({
     return () => {
       cancelled = true;
       window.clearTimeout(t);
-      ac.abort();
     };
   }, [active, trimmed, sessionToken]);
 
   const pick = async (p: PlacePrediction) => {
     setPickingId(p.placeId);
     setError(null);
-    try {
-      const res = await fetch("/api/places/details", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeId: p.placeId, sessionToken }),
-      });
-      const data = (await res.json()) as {
-        ok: boolean;
-        details?: PlaceDetails;
-        error?: string;
-      };
-      if (!data.ok || !data.details) {
-        setError(data.error ?? "Could not load place details");
-        setPickingId(null);
-        return;
-      }
-      onPick(data.details);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error");
+    const data = await placeDetails(p.placeId, sessionToken);
+    if (!data.ok) {
+      setError(data.error);
       setPickingId(null);
+      return;
     }
+    onPick(data.details);
   };
 
   return (

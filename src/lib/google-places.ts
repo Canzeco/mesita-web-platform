@@ -1,31 +1,12 @@
-// Google Places API (New) wrapper.
+// Google Places client.
 //
-// All calls are server-side: we read GOOGLE_PLACES_API_KEY from process.env and
-// proxy the response back to the client through /api/places/*. The key never
-// ships to the browser. When the key is missing we return canned mock data so
-// the UI is fully usable in dev without burning quota.
-
-const AUTOCOMPLETE_URL = "https://places.googleapis.com/v1/places:autocomplete";
-const DETAILS_URL_BASE = "https://places.googleapis.com/v1/places";
-
-const DETAILS_FIELD_MASK = [
-  "id",
-  "displayName",
-  "formattedAddress",
-  "addressComponents",
-  "location",
-  "rating",
-  "userRatingCount",
-  "nationalPhoneNumber",
-  "internationalPhoneNumber",
-  "websiteUri",
-  "regularOpeningHours.weekdayDescriptions",
-  "types",
-  "primaryType",
-  "priceLevel",
-  "googleMapsUri",
-  "photos.name",
-].join(",");
+// Talks to the Supabase Edge Functions `places-autocomplete` and `places-details`,
+// which proxy Google Places API (New). The Google key lives as a Supabase secret
+// (`google_places_api_key`) and is never shipped to the browser.
+//
+// If Supabase env vars are missing — or `NEXT_PUBLIC_PLACES_MOCK=1` is set —
+// we serve a canned set of CDMX results so the UI is still usable in dev without
+// any backend hooked up.
 
 export type PlacePrediction = {
   placeId: string;
@@ -60,9 +41,40 @@ export type DetailsResult =
   | { ok: true; details: PlaceDetails; mock: boolean }
   | { ok: false; error: string };
 
-function getKey(): string | null {
-  const k = process.env.GOOGLE_PLACES_API_KEY;
-  return k && k.trim().length > 0 ? k.trim() : null;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+const FORCED_MOCK = process.env.NEXT_PUBLIC_PLACES_MOCK === "1";
+
+function mockMode(): boolean {
+  return FORCED_MOCK || !SUPABASE_URL || !SUPABASE_KEY;
+}
+
+function fnUrl(name: string): string {
+  return `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/${name}`;
+}
+
+async function callFunction<T>(name: string, body: unknown): Promise<T> {
+  const res = await fetch(fnUrl(name), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      apikey: SUPABASE_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    // Try to surface the function's own error payload before falling back to status text.
+    let detail: string | undefined;
+    try {
+      const data = (await res.json()) as { error?: string };
+      detail = data.error;
+    } catch {
+      detail = await res.text().catch(() => undefined);
+    }
+    throw new Error(detail ?? `Edge function ${name} ${res.status}`);
+  }
+  return (await res.json()) as T;
 }
 
 // --- Autocomplete ---------------------------------------------------------
@@ -72,53 +84,17 @@ export async function placesAutocomplete(
   sessionToken: string,
 ): Promise<AutocompleteResult> {
   const trimmed = input.trim();
-  if (trimmed.length < 2) return { ok: true, predictions: [], mock: false };
-
-  const key = getKey();
-  if (!key) return { ok: true, predictions: mockPredictions(trimmed), mock: true };
-
+  if (trimmed.length < 2) return { ok: true, predictions: [], mock: mockMode() };
+  if (mockMode()) {
+    return { ok: true, predictions: mockPredictions(trimmed), mock: true };
+  }
   try {
-    const res = await fetch(AUTOCOMPLETE_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": key,
-      },
-      body: JSON.stringify({
-        input: trimmed,
-        sessionToken,
-        includedPrimaryTypes: ["restaurant", "bar", "cafe", "bakery", "night_club", "food"],
-      }),
-      cache: "no-store",
+    return await callFunction<AutocompleteResult>("places-autocomplete", {
+      input: trimmed,
+      sessionToken,
     });
-    if (!res.ok) {
-      const body = await res.text();
-      return { ok: false, error: `Google autocomplete ${res.status}: ${body.slice(0, 240)}` };
-    }
-    const data = (await res.json()) as {
-      suggestions?: Array<{
-        placePrediction?: {
-          placeId: string;
-          structuredFormat?: {
-            mainText?: { text?: string };
-            secondaryText?: { text?: string };
-          };
-          text?: { text?: string };
-        };
-      }>;
-    };
-    const predictions: PlacePrediction[] = (data.suggestions ?? [])
-      .map((s) => s.placePrediction)
-      .filter((p): p is NonNullable<typeof p> => !!p)
-      .map((p) => ({
-        placeId: p.placeId,
-        mainText: p.structuredFormat?.mainText?.text ?? p.text?.text ?? "",
-        secondaryText: p.structuredFormat?.secondaryText?.text ?? "",
-      }))
-      .filter((p) => p.placeId && p.mainText);
-    return { ok: true, predictions, mock: false };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Unknown error" };
+    return { ok: false, error: err instanceof Error ? err.message : "Network error" };
   }
 }
 
@@ -129,97 +105,18 @@ export async function placeDetails(
   sessionToken: string,
 ): Promise<DetailsResult> {
   if (!placeId) return { ok: false, error: "Missing placeId" };
-
-  const key = getKey();
-  if (!key) {
+  if (mockMode()) {
     const mock = mockDetails(placeId);
     if (!mock) return { ok: false, error: "Unknown mock placeId" };
     return { ok: true, details: mock, mock: true };
   }
-
   try {
-    const url = new URL(`${DETAILS_URL_BASE}/${encodeURIComponent(placeId)}`);
-    url.searchParams.set("sessionToken", sessionToken);
-
-    const res = await fetch(url.toString(), {
-      headers: {
-        "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": DETAILS_FIELD_MASK,
-      },
-      cache: "no-store",
+    return await callFunction<DetailsResult>("places-details", {
+      placeId,
+      sessionToken,
     });
-    if (!res.ok) {
-      const body = await res.text();
-      return { ok: false, error: `Google details ${res.status}: ${body.slice(0, 240)}` };
-    }
-    const data = (await res.json()) as GoogleDetailsResponse;
-    return { ok: true, details: normaliseDetails(placeId, data), mock: false };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Unknown error" };
-  }
-}
-
-// --- Helpers --------------------------------------------------------------
-
-type AddressComponent = { longText?: string; shortText?: string; types?: string[] };
-type GoogleDetailsResponse = {
-  id?: string;
-  displayName?: { text?: string };
-  formattedAddress?: string;
-  addressComponents?: AddressComponent[];
-  location?: { latitude?: number; longitude?: number };
-  rating?: number;
-  userRatingCount?: number;
-  nationalPhoneNumber?: string;
-  internationalPhoneNumber?: string;
-  websiteUri?: string;
-  regularOpeningHours?: { weekdayDescriptions?: string[] };
-  types?: string[];
-  primaryType?: string;
-  priceLevel?: string; // "PRICE_LEVEL_INEXPENSIVE" etc.
-  googleMapsUri?: string;
-};
-
-function normaliseDetails(placeId: string, d: GoogleDetailsResponse): PlaceDetails {
-  const find = (type: string) =>
-    d.addressComponents?.find((c) => c.types?.includes(type))?.longText ?? null;
-  return {
-    placeId: d.id ?? placeId,
-    name: d.displayName?.text ?? "",
-    formattedAddress: d.formattedAddress ?? "",
-    location:
-      d.location?.latitude != null && d.location?.longitude != null
-        ? { lat: d.location.latitude, lng: d.location.longitude }
-        : null,
-    rating: d.rating ?? null,
-    userRatingsTotal: d.userRatingCount ?? null,
-    phone: d.nationalPhoneNumber ?? d.internationalPhoneNumber ?? null,
-    website: d.websiteUri ?? null,
-    openingHours: d.regularOpeningHours?.weekdayDescriptions ?? [],
-    types: d.types ?? [],
-    primaryType: d.primaryType ?? null,
-    priceLevel: priceLevelFromString(d.priceLevel),
-    googleMapsUri: d.googleMapsUri ?? null,
-    city: find("locality") ?? find("administrative_area_level_2"),
-    neighborhood:
-      find("neighborhood") ?? find("sublocality_level_1") ?? find("sublocality"),
-    country: find("country"),
-  };
-}
-
-function priceLevelFromString(p: string | undefined): 1 | 2 | 3 | 4 | null {
-  switch (p) {
-    case "PRICE_LEVEL_FREE":
-    case "PRICE_LEVEL_INEXPENSIVE":
-      return 1;
-    case "PRICE_LEVEL_MODERATE":
-      return 2;
-    case "PRICE_LEVEL_EXPENSIVE":
-      return 3;
-    case "PRICE_LEVEL_VERY_EXPENSIVE":
-      return 4;
-    default:
-      return null;
+    return { ok: false, error: err instanceof Error ? err.message : "Network error" };
   }
 }
 
