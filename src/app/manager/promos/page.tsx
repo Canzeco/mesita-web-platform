@@ -22,7 +22,9 @@ import { cn } from "@/lib/utils";
 
 const TIERS: Tier[] = ["bronze", "silver", "gold", "diamond"];
 
-const CASHBACK_OPTIONS = [0, 5, 10, 15, 20, 25, 30] as const;
+// Mesita cashback ladder. Hard cap on what a manager can set anywhere in the
+// product. Keeps the comparison signal across the catalog tight.
+const CASHBACK_OPTIONS = [5, 10, 20, 50] as const;
 
 type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 const DAY_LABEL: Record<Day, string> = {
@@ -71,7 +73,7 @@ const STARTER_SEGMENTS: Segment[] = [
   {
     id: "tec-thursdays",
     name: "Tec Thursdays",
-    cashbackPercent: 15,
+    cashbackPercent: 10,
     filters: {
       communities: ["Tec de Monterrey"],
       days: ["thu"],
@@ -81,7 +83,7 @@ const STARTER_SEGMENTS: Segment[] = [
   {
     id: "diamond-cdmx",
     name: "CDMX Diamond locals",
-    cashbackPercent: 25,
+    cashbackPercent: 50,
     filters: {
       classes: ["diamond"],
       countries: ["MX"],
@@ -96,8 +98,8 @@ export default function PromosPage() {
   const [tierValues, setTierValues] = useState<Record<Tier, number>>({
     bronze: 5,
     silver: 10,
-    gold: 15,
-    diamond: 20,
+    gold: 20,
+    diamond: 50,
   });
   const [advancedEnabled, setAdvancedEnabled] = useState(true);
   const [segments, setSegments] = useState<Segment[]>(STARTER_SEGMENTS);
