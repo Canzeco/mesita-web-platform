@@ -17,6 +17,7 @@ export function ImageCarousel({
   rounded,
   priority = false,
   sizes = "(max-width: 768px) 100vw, 420px",
+  mutePosition = "bottom-right",
 }: {
   photos: string[];
   media?: MediaItem[];
@@ -25,6 +26,7 @@ export function ImageCarousel({
   rounded?: string;
   priority?: boolean;
   sizes?: string;
+  mutePosition?: "bottom-right" | "top-right";
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -125,7 +127,14 @@ export function ImageCarousel({
           }}
           aria-label={muted ? "Unmute video" : "Mute video"}
           data-no-swipe
-          className="absolute bottom-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-sm backdrop-blur transition hover:bg-black/80"
+          className={cn(
+            "absolute z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-sm backdrop-blur transition hover:bg-black/80",
+            mutePosition === "top-right"
+              ? items.length > 1
+                ? "right-3 top-12"
+                : "right-3 top-3"
+              : "bottom-3 right-3",
+          )}
         >
           {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </button>
