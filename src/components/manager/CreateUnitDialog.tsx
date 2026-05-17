@@ -8,21 +8,11 @@ import {
   Phone,
   Globe,
   ArrowRight,
-  ArrowLeft,
   Loader2,
   Check,
-  Instagram,
-  Facebook,
-  Music2,
-  MessageCircle,
-  CalendarCheck,
-  CalendarHeart,
-  ShoppingBag,
-  Bike,
   Search,
   Star,
   Clock,
-  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,25 +21,6 @@ import {
   type PlaceDetails,
   type PlacePrediction,
 } from "@/lib/google-places";
-
-const INPUT =
-  "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60";
-
-const VIBES = [
-  "Rooftop",
-  "Late night",
-  "Date night",
-  "Brunch",
-  "Casual",
-  "Fine dining",
-  "Tasting menu",
-  "Family",
-  "Pizza bar",
-  "Dancefloor",
-];
-
-const PRICE_LEVELS = [1, 2, 3, 4] as const;
-type PriceLevel = (typeof PRICE_LEVELS)[number];
 
 const TYPE_TO_EMOJI: Record<string, string> = {
   restaurant: "🍽️",
@@ -94,53 +65,25 @@ function emojiForTypes(primary: string | null, types: string[]): string {
   return "🏪";
 }
 
-type Step = "search" | "design" | "channels";
+type Step = "search" | "creating";
 
 export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<Step>("search");
   const [selected, setSelected] = useState<PlaceDetails | null>(null);
+  const [done, setDone] = useState(false);
   const [sessionToken] = useState(() =>
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `s-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 
-  // Step 2 — design
-  const [vibe, setVibe] = useState("");
-  const [priceLevel, setPriceLevel] = useState<PriceLevel | null>(null);
-  const [pitch, setPitch] = useState("");
-
-  // Step 3 — channels (all optional)
-  const [instagram, setInstagram] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [website, setWebsite] = useState("");
-  const [phone, setPhone] = useState("");
-  const [tiktok, setTiktok] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [openTable, setOpenTable] = useState("");
-  const [resy, setResy] = useState("");
-  const [rappi, setRappi] = useState("");
-  const [uberEats, setUberEats] = useState("");
-
-  // Submit state
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-
   const handlePick = (d: PlaceDetails) => {
     setSelected(d);
-    setPriceLevel(d.priceLevel ?? null);
-    setWebsite(d.website ?? "");
-    setPhone(d.phone ?? "");
-    setStep("design");
-  };
-
-  const handleSubmit = () => {
-    setLoading(true);
+    setStep("creating");
     window.setTimeout(() => {
-      setLoading(false);
       setDone(true);
-      window.setTimeout(onClose, 900);
-    }, 700);
+      window.setTimeout(onClose, 1100);
+    }, 800);
   };
 
   return (
@@ -151,7 +94,7 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
     >
       <div
         className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={done ? undefined : onClose}
         aria-hidden
       />
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-elev">
@@ -162,49 +105,8 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
             onPick={handlePick}
           />
         )}
-        {step === "design" && selected && (
-          <DesignStep
-            place={selected}
-            vibe={vibe}
-            setVibe={setVibe}
-            priceLevel={priceLevel}
-            setPriceLevel={setPriceLevel}
-            pitch={pitch}
-            setPitch={setPitch}
-            onBack={() => setStep("search")}
-            onNext={() => setStep("channels")}
-            onClose={onClose}
-          />
-        )}
-        {step === "channels" && selected && (
-          <ChannelsStep
-            place={selected}
-            instagram={instagram}
-            setInstagram={setInstagram}
-            whatsapp={whatsapp}
-            setWhatsapp={setWhatsapp}
-            website={website}
-            setWebsite={setWebsite}
-            phone={phone}
-            setPhone={setPhone}
-            tiktok={tiktok}
-            setTiktok={setTiktok}
-            facebook={facebook}
-            setFacebook={setFacebook}
-            openTable={openTable}
-            setOpenTable={setOpenTable}
-            resy={resy}
-            setResy={setResy}
-            rappi={rappi}
-            setRappi={setRappi}
-            uberEats={uberEats}
-            setUberEats={setUberEats}
-            loading={loading}
-            done={done}
-            onSubmit={handleSubmit}
-            onBack={() => setStep("design")}
-            onClose={onClose}
-          />
+        {step === "creating" && selected && (
+          <CreatingStep place={selected} done={done} />
         )}
       </div>
     </div>
@@ -212,7 +114,7 @@ export function CreateUnitDialog({ onClose }: { onClose: () => void }) {
 }
 
 // ---------------------------------------------------------------------------
-// Step 1 — Place lookup via Google Places
+// Search step — single step. Picking a result auto-creates the unit.
 // ---------------------------------------------------------------------------
 
 function SearchStep({
@@ -275,14 +177,14 @@ function SearchStep({
   return (
     <>
       <Header
-        step="1 of 3"
         iconNode={
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-pink-gradient text-white shadow-sm">
             <Store className="h-5 w-5" />
           </span>
         }
+        eyebrow="New unit"
         title="Find your place"
-        subtitle="Type the venue name or address. We'll grab the location, photos and Google rating from there."
+        subtitle="Pick the venue from Google. We'll auto-fill everything else from there."
         onClose={onClose}
       />
 
@@ -378,340 +280,70 @@ function SearchStep({
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 — Design / how it looks in Mesita
+// Creating step — brief confirmation flash, auto-closes.
 // ---------------------------------------------------------------------------
 
-function DesignStep({
-  place,
-  vibe,
-  setVibe,
-  priceLevel,
-  setPriceLevel,
-  pitch,
-  setPitch,
-  onBack,
-  onNext,
-  onClose,
-}: {
-  place: PlaceDetails;
-  vibe: string;
-  setVibe: (v: string) => void;
-  priceLevel: PriceLevel | null;
-  setPriceLevel: (p: PriceLevel) => void;
-  pitch: string;
-  setPitch: (p: string) => void;
-  onBack: () => void;
-  onNext: () => void;
-  onClose: () => void;
-}) {
+function CreatingStep({ place, done }: { place: PlaceDetails; done: boolean }) {
   const emoji = useMemo(
     () => emojiForTypes(place.primaryType, place.types),
     [place.primaryType, place.types],
   );
 
   return (
-    <>
-      <Header
-        step="2 of 3"
-        iconNode={
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-pink-gradient text-lg shadow-sm">
+    <div className="flex flex-col items-center px-6 pb-8 pt-10">
+      <div
+        className={cn(
+          "flex h-16 w-16 items-center justify-center rounded-3xl text-2xl shadow-elev transition-all duration-300",
+          done ? "bg-pink-gradient text-white" : "bg-card",
+        )}
+      >
+        {done ? <Check className="h-7 w-7" strokeWidth={3} /> : <span>{emoji}</span>}
+      </div>
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.18em] text-secondary">
+        {done ? "Added" : "Creating unit"}
+      </p>
+      <h2 className="mt-1 font-display text-2xl font-semibold leading-tight tracking-tight">
+        {place.name}
+      </h2>
+      <p className="mt-1 max-w-xs text-center text-[13px] text-muted-foreground">
+        {done
+          ? "Live in your catalog. We're filling in the rest in the background."
+          : "Pulling photos, hours and reviews from Google…"}
+      </p>
+
+      <div className="mt-6 w-full max-w-sm">
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-background p-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-card text-lg shadow-sm">
             {emoji}
           </span>
-        }
-        title="How it looks"
-        subtitle="A few visual touches for how this venue shows up in the Mesita catalog."
-        onClose={onClose}
-      />
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onNext();
-        }}
-        className="flex-1 overflow-y-auto px-6 pt-5 pb-2"
-      >
-        <GooglePlaceCard place={place} emoji={emoji} />
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Field label="Vibe">
-            <select
-              className={INPUT}
-              value={vibe}
-              onChange={(e) => setVibe(e.target.value)}
-            >
-              <option value="">Select</option>
-              {VIBES.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Price level">
-            <div className="flex gap-1.5">
-              {PRICE_LEVELS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPriceLevel(p)}
-                  className={cn(
-                    "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold tracking-wider transition",
-                    priceLevel === p
-                      ? "border-secondary bg-secondary/10 text-secondary"
-                      : "border-border bg-background text-muted-foreground hover:text-foreground",
-                  )}
-                  aria-label={`${"$".repeat(p)} price level`}
-                >
-                  {"$".repeat(p)}
-                </button>
-              ))}
-            </div>
-          </Field>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold leading-tight">{place.name}</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              <MapPin className="mr-1 inline-block h-3 w-3 align-text-bottom" />
+              {place.formattedAddress}
+            </p>
+          </div>
+          {!done && <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
+          {done && <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" strokeWidth={3} />}
         </div>
-
-        <Field label="One-liner" hint="What a friend would say recommending this place.">
-          <textarea
-            value={pitch}
-            onChange={(e) => setPitch(e.target.value)}
-            placeholder="e.g. Mediterranean tasting menu on a candle-lit rooftop with mountain views."
-            rows={2}
-            maxLength={180}
-            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-secondary/60"
-          />
-          <p className="mt-1 text-right text-[10px] text-muted-foreground">
-            {pitch.length} / 180
-          </p>
-        </Field>
-
-        <Field label="Cover photo (optional · we use Google's for now)">
-          <button
-            type="button"
-            className="flex h-24 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-[12px] text-muted-foreground transition hover:bg-muted/50"
-          >
-            <Camera className="h-4 w-4" />
-            Upload your own · skip for now
-          </button>
-        </Field>
-      </form>
-
-      <Footer
-        backLabel="Pick another"
-        onBack={onBack}
-        primary={{ label: "Continue", state: "idle" }}
-        primaryType="submit"
-        onPrimary={onNext}
-      />
-    </>
+      </div>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Step 3 — Channels & links (5×2 grid, all optional)
-// ---------------------------------------------------------------------------
-
-function ChannelsStep({
-  place,
-  instagram,
-  setInstagram,
-  whatsapp,
-  setWhatsapp,
-  website,
-  setWebsite,
-  phone,
-  setPhone,
-  tiktok,
-  setTiktok,
-  facebook,
-  setFacebook,
-  openTable,
-  setOpenTable,
-  resy,
-  setResy,
-  rappi,
-  setRappi,
-  uberEats,
-  setUberEats,
-  loading,
-  done,
-  onSubmit,
-  onBack,
-  onClose,
-}: {
-  place: PlaceDetails;
-  instagram: string;
-  setInstagram: (v: string) => void;
-  whatsapp: string;
-  setWhatsapp: (v: string) => void;
-  website: string;
-  setWebsite: (v: string) => void;
-  phone: string;
-  setPhone: (v: string) => void;
-  tiktok: string;
-  setTiktok: (v: string) => void;
-  facebook: string;
-  setFacebook: (v: string) => void;
-  openTable: string;
-  setOpenTable: (v: string) => void;
-  resy: string;
-  setResy: (v: string) => void;
-  rappi: string;
-  setRappi: (v: string) => void;
-  uberEats: string;
-  setUberEats: (v: string) => void;
-  loading: boolean;
-  done: boolean;
-  onSubmit: () => void;
-  onBack: () => void;
-  onClose: () => void;
-}) {
-  const emoji = useMemo(
-    () => emojiForTypes(place.primaryType, place.types),
-    [place.primaryType, place.types],
-  );
-
-  return (
-    <>
-      <Header
-        step="3 of 3"
-        iconNode={
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-pink-gradient text-lg shadow-sm">
-            {emoji}
-          </span>
-        }
-        title="Channels & links"
-        subtitle="Drop every place the venue lives online. All optional — we'll auto-fill the rest of the profile from whatever you give us."
-        onClose={onClose}
-      />
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onSubmit();
-        }}
-        className="flex-1 overflow-y-auto px-6 pt-5 pb-2"
-      >
-        <GooglePlaceCard place={place} emoji={emoji} />
-
-        <p className="mt-4 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-          10 channels · all optional
-        </p>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Instagram">
-            <SocialInput
-              Icon={Instagram}
-              value={instagram}
-              onChange={setInstagram}
-              placeholder="@yourvenue"
-            />
-          </Field>
-          <Field label="WhatsApp">
-            <SocialInput
-              Icon={MessageCircle}
-              value={whatsapp}
-              onChange={setWhatsapp}
-              placeholder="wa.me/..."
-            />
-          </Field>
-
-          <Field label="Website">
-            <SocialInput
-              Icon={Globe}
-              value={website}
-              onChange={setWebsite}
-              placeholder="venue.mx"
-            />
-          </Field>
-          <Field label="Phone">
-            <SocialInput
-              Icon={Phone}
-              value={phone}
-              onChange={setPhone}
-              placeholder="+52 81 ..."
-            />
-          </Field>
-
-          <Field label="TikTok">
-            <SocialInput
-              Icon={Music2}
-              value={tiktok}
-              onChange={setTiktok}
-              placeholder="@handle"
-            />
-          </Field>
-          <Field label="Facebook">
-            <SocialInput
-              Icon={Facebook}
-              value={facebook}
-              onChange={setFacebook}
-              placeholder="page name or URL"
-            />
-          </Field>
-
-          <Field label="OpenTable">
-            <SocialInput
-              Icon={CalendarCheck}
-              value={openTable}
-              onChange={setOpenTable}
-              placeholder="opentable.com/r/..."
-            />
-          </Field>
-          <Field label="Resy">
-            <SocialInput
-              Icon={CalendarHeart}
-              value={resy}
-              onChange={setResy}
-              placeholder="resy.com/cities/..."
-            />
-          </Field>
-
-          <Field label="Rappi">
-            <SocialInput
-              Icon={Bike}
-              value={rappi}
-              onChange={setRappi}
-              placeholder="store slug or URL"
-            />
-          </Field>
-          <Field label="Uber Eats">
-            <SocialInput
-              Icon={ShoppingBag}
-              value={uberEats}
-              onChange={setUberEats}
-              placeholder="store slug or URL"
-            />
-          </Field>
-        </div>
-      </form>
-
-      <Footer
-        backLabel="Back"
-        onBack={onBack}
-        primary={{
-          label: done ? "Created" : loading ? "Creating…" : "Create unit",
-          state: done ? "done" : loading ? "loading" : "idle",
-        }}
-        primaryType="submit"
-        onPrimary={onSubmit}
-        disabled={loading || done}
-      />
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Shared sub-components
+// Shared
 // ---------------------------------------------------------------------------
 
 function Header({
-  step,
   iconNode,
+  eyebrow,
   title,
   subtitle,
   onClose,
 }: {
-  step: string;
   iconNode: React.ReactNode;
+  eyebrow: string;
   title: string;
   subtitle: string;
   onClose: () => void;
@@ -722,7 +354,7 @@ function Header({
         {iconNode}
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-secondary">
-            New unit · step {step}
+            {eyebrow}
           </p>
           <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight">
             {title}
@@ -742,87 +374,8 @@ function Header({
   );
 }
 
-function Footer({
-  backLabel,
-  onBack,
-  primary,
-  primaryType,
-  onPrimary,
-  disabled,
-}: {
-  backLabel: string;
-  onBack: () => void;
-  primary: { label: string; state: "idle" | "loading" | "done" };
-  primaryType: "button" | "submit";
-  onPrimary: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2 border-t border-border bg-background/60 px-6 py-4">
-      <button
-        type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-[13px] font-semibold transition hover:bg-muted"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        {backLabel}
-      </button>
-      <button
-        type={primaryType}
-        disabled={disabled}
-        onClick={onPrimary}
-        className="inline-flex items-center gap-2 rounded-full bg-pink-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-sm transition disabled:opacity-60"
-      >
-        {primary.state === "done" ? (
-          <>
-            <Check className="h-4 w-4" />
-            {primary.label}
-          </>
-        ) : primary.state === "loading" ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {primary.label}
-          </>
-        ) : (
-          <>
-            {primary.label}
-            <ArrowRight className="h-4 w-4" />
-          </>
-        )}
-      </button>
-    </div>
-  );
-}
-
-function SocialInput({
-  Icon,
-  value,
-  onChange,
-  placeholder,
-  required,
-}: {
-  Icon: React.ComponentType<{ className?: string }>;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="relative">
-      <Icon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-      <input
-        className={cn(INPUT, "pl-8")}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        maxLength={120}
-        required={required}
-      />
-    </div>
-  );
-}
-
-function GooglePlaceCard({ place, emoji }: { place: PlaceDetails; emoji: string }) {
+// GooglePlaceCard / Pill / prettyHost kept for reuse if needed later.
+export function GooglePlaceCard({ place, emoji }: { place: PlaceDetails; emoji: string }) {
   return (
     <div className="rounded-2xl border border-border bg-[linear-gradient(135deg,oklch(0.97_0.018_10),oklch(0.95_0.030_5))] p-4">
       <div className="flex items-start gap-3">
@@ -892,27 +445,4 @@ function prettyHost(url: string): string {
   } catch {
     return url;
   }
-}
-
-function Field({
-  label,
-  required,
-  hint,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="mb-3 block">
-      <span className="mb-1.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-        {label}
-        {required && <span className="text-secondary">*</span>}
-      </span>
-      {children}
-      {hint && <span className="mt-1 block text-[10px] text-muted-foreground/80">{hint}</span>}
-    </label>
-  );
 }
