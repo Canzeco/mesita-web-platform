@@ -1,5 +1,25 @@
 import type { Tier } from "./guest-data";
 
+export type Unit = {
+  id: string;
+  name: string;
+  emoji: string;
+  city: string;
+  area: string;
+};
+
+export const UNITS: Unit[] = [
+  { id: "casa-luminar", name: "Casa Luminar", emoji: "🌙", city: "CDMX", area: "Polanco" },
+  { id: "bocanada", name: "Bocanada", emoji: "🍷", city: "CDMX", area: "Roma Norte" },
+  { id: "patio-verde", name: "Patio Verde", emoji: "🥐", city: "CDMX", area: "Condesa" },
+];
+
+export const CURRENT_MANAGER = {
+  name: "manager",
+  role: "Owner",
+  email: "manager@casaluminar.mx",
+};
+
 export const VENUE = {
   id: "casa-luminar",
   name: "Casa Luminar",

@@ -258,7 +258,7 @@ export default function SwipePage() {
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
                   <Globe className="h-3 w-3" />
-                  Web listing · reservation only
+                  Web listing
                 </span>
               )}
             </div>
@@ -375,7 +375,7 @@ export default function SwipePage() {
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/85 px-3 py-1.5 text-[11px] font-semibold text-background shadow-sm">
                   <Globe className="h-3 w-3" />
-                  Web listing · reservation only
+                  Web listing
                 </span>
               )}
             </div>
