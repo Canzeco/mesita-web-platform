@@ -20,7 +20,7 @@ export default async function NewVenuePage() {
     <>
       <Topbar title="Create venue" subtitle="A minute of setup. Live the moment you save." />
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-2xl px-6 py-8">
+        <div className="mx-auto max-w-2xl px-4 py-6 md:px-6 md:py-8">
           <Link
             href="/manager"
             className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"

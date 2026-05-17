@@ -37,7 +37,7 @@ export default async function ManagerDashboardPage({
       <>
         <Topbar title="Welcome to Mesita" subtitle="Let's get your first venue online." />
         <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-3xl px-6 py-10">
+          <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <EmptyState />
           </div>
         </div>
@@ -58,7 +58,7 @@ export default async function ManagerDashboardPage({
         subtitle={`Dashboard · ${venueSubtitle(active)}`}
       />
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-4xl px-6 py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-8">
           <VenueOverview venue={active} />
         </div>
       </div>
@@ -74,7 +74,7 @@ function VenueOverview({ venue }: { venue: MyVenue }) {
   return (
     <div className="flex flex-col gap-5">
       <article className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="relative aspect-[16/7] w-full bg-pink-gradient">
+        <div className="relative aspect-[3/2] w-full bg-pink-gradient sm:aspect-[16/9] lg:aspect-[16/7]">
           {venue.photos[0] ? (
             <Image
               src={venue.photos[0]}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -16,6 +16,8 @@ import {
   Plus,
   Settings,
   LifeBuoy,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -48,7 +50,24 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [open, setOpen] = useState(false);
+  const [unitPickerOpen, setUnitPickerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Lock body scroll while the mobile drawer is open — otherwise the page
+  // behind the backdrop can be swiped. (Sidebar nav/unit Links close the
+  // drawer via their own onClick handlers below — no effect-on-navigation
+  // shenanigans needed.)
+  useEffect(() => {
+    if (drawerOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [drawerOpen]);
+
+  const closeDrawer = () => setDrawerOpen(false);
 
   // Auth pages render edge-to-edge under /manager/*: there's no session yet,
   // so the sidebar (unit-picker, nav, profile card) has nothing to show.
@@ -57,8 +76,7 @@ export function Sidebar({
   }
 
   // The active unit is URL-driven (?unit=<venueId>). Falls back to the first
-  // venue the manager owns when the URL has nothing useful — that becomes the
-  // default once a manager has any venues at all.
+  // venue the manager owns when the URL has nothing useful.
   const unitParam = searchParams.get("unit");
   const activeVenue =
     venues.find((v) => v.id === unitParam) ?? venues[0] ?? null;
@@ -71,126 +89,178 @@ export function Sidebar({
   };
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-card">
-      <div className="border-b border-border px-4 py-4">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peacock text-base shadow-glow">
-            🦚
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">mesita.</span>
-        </Link>
-      </div>
+    <>
+      {/* Hamburger — fixed top-left on mobile, never visible on md+. */}
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label="Open menu"
+        className="fixed left-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition hover:bg-muted md:hidden"
+      >
+        <Menu className="h-4 w-4" />
+      </button>
 
-      <div className="px-3 pt-3">
-        {activeVenue ? (
-          <>
-            <UnitTrigger venue={activeVenue} open={open} onToggle={() => setOpen((o) => !o)} />
-            {open && (
-              <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
-                {venues.map((v) => (
-                  <Link
-                    key={v.id}
-                    href={switchUnitHref(v.id)}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-muted/40",
-                      v.id === activeVenue.id && "bg-secondary/5",
-                    )}
-                  >
-                    <UnitAvatar name={v.name} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold leading-tight">{v.name}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {venueSubtitle(v)}
-                      </p>
-                    </div>
-                    {v.id === activeVenue.id && (
-                      <Check className="h-4 w-4 shrink-0 text-secondary" />
-                    )}
-                  </Link>
-                ))}
-                <Link
-                  href="/manager/venues/new"
-                  onClick={() => setOpen(false)}
-                  className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm font-semibold text-secondary transition hover:bg-secondary/5"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add new unit
-                </Link>
-              </div>
-            )}
-          </>
-        ) : (
-          <EmptyUnitTrigger isAuthenticated={!!user} />
+      {/* Backdrop. Only mounted on mobile + when the drawer is open. */}
+      {drawerOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+        />
+      )}
+
+      <aside
+        aria-label="Manager navigation"
+        className={cn(
+          // Shared
+          "z-40 flex h-full w-72 shrink-0 flex-col border-r border-border bg-card",
+          // Mobile: fixed-position drawer, slides in from the left.
+          "fixed inset-y-0 left-0 -translate-x-full transition-transform duration-200 ease-out",
+          drawerOpen && "translate-x-0",
+          // Desktop: relative inside the flex layout, always visible, narrower.
+          "md:relative md:w-64 md:translate-x-0 md:transition-none",
         )}
-      </div>
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-4">
+          <Link href="/" className="inline-flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peacock text-base shadow-glow">
+              🦚
+            </span>
+            <span className="font-display text-lg font-semibold tracking-tight">mesita.</span>
+          </Link>
+          {/* Close button — mobile-only, sits where the hamburger normally lives. */}
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground md:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
+        <div className="px-3 pt-3">
+          {activeVenue ? (
+            <>
+              <UnitTrigger
+                venue={activeVenue}
+                open={unitPickerOpen}
+                onToggle={() => setUnitPickerOpen((o) => !o)}
+              />
+              {unitPickerOpen && (
+                <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
+                  {venues.map((v) => (
+                    <Link
+                      key={v.id}
+                      href={switchUnitHref(v.id)}
+                      onClick={() => {
+                        setUnitPickerOpen(false);
+                        closeDrawer();
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-muted/40",
+                        v.id === activeVenue.id && "bg-secondary/5",
+                      )}
+                    >
+                      <UnitAvatar name={v.name} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold leading-tight">{v.name}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          {venueSubtitle(v)}
+                        </p>
+                      </div>
+                      {v.id === activeVenue.id && (
+                        <Check className="h-4 w-4 shrink-0 text-secondary" />
+                      )}
+                    </Link>
+                  ))}
+                  <Link
+                    href="/manager/venues/new"
+                    onClick={() => {
+                      setUnitPickerOpen(false);
+                      closeDrawer();
+                    }}
+                    className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm font-semibold text-secondary transition hover:bg-secondary/5"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add new unit
+                  </Link>
+                </div>
+              )}
+            </>
+          ) : (
+            <EmptyUnitTrigger isAuthenticated={!!user} />
+          )}
+        </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {NAV.map(({ href, label, Icon, exact, disabled }) => {
-          if (disabled) {
+        <nav className="flex-1 overflow-y-auto px-2 py-3">
+          {NAV.map(({ href, label, Icon, exact, disabled }) => {
+            if (disabled) {
+              return (
+                <div
+                  key={href}
+                  aria-disabled
+                  className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground/50"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1">{label}</span>
+                  <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Soon
+                  </span>
+                </div>
+              );
+            }
+            const active = exact ? pathname === href : pathname.startsWith(href);
             return (
-              <div
+              <Link
                 key={href}
-                aria-disabled
-                className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground/50"
+                href={navHrefWithUnit(href)}
+                onClick={closeDrawer}
+                className={cn(
+                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
+                  active
+                    ? "bg-secondary/10 text-secondary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
               >
                 <Icon className="h-4 w-4" />
-                <span className="flex-1">{label}</span>
-                <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Soon
-                </span>
-              </div>
+                {label}
+              </Link>
             );
-          }
-          const active = exact ? pathname === href : pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={navHrefWithUnit(href)}
-              className={cn(
-                "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
-                active
-                  ? "bg-secondary/10 text-secondary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+          })}
+        </nav>
 
-      <div className="space-y-1 border-t border-border p-3">
-        <SidebarLink Icon={Settings} label="Settings" href="#" />
-        <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
+        <div className="space-y-1 border-t border-border p-3">
+          <SidebarLink Icon={Settings} label="Settings" href="#" />
+          <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
 
-        {user ? (
-          <div className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-sm font-bold text-white">
-              {emailInitial(user.email)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{accountLabel(user.email)}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{user.email ?? ""}</p>
+          {user ? (
+            <div className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-sm font-bold text-white">
+                {emailInitial(user.email)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{accountLabel(user.email)}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{user.email ?? ""}</p>
+              </div>
+              <SignOutButton
+                redirectTo="/manager/sign-in"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                label=""
+              />
             </div>
-            <SignOutButton
-              redirectTo="/manager/sign-in"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
-              label=""
-            />
-          </div>
-        ) : (
-          <Link
-            href="/manager/sign-in"
-            className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-sm font-semibold transition hover:bg-muted"
-          >
-            Sign in or create account
-          </Link>
-        )}
-      </div>
-    </aside>
+          ) : (
+            <Link
+              href="/manager/sign-in"
+              className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-sm font-semibold transition hover:bg-muted"
+            >
+              Sign in or create account
+            </Link>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }
 

@@ -26,7 +26,7 @@ export default async function ManagerPlacePage({
       <>
         <Topbar title="Place" subtitle="Edit the venue this unit is for." />
         <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-3xl px-6 py-10">
+          <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
                 <Store className="h-5 w-5 text-muted-foreground" />
@@ -61,7 +61,7 @@ export default async function ManagerPlacePage({
     <>
       <Topbar title={active.name} subtitle="Place — edit catalog details, hours, photos." />
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-8">
           <EditVenueForm venue={active} />
         </div>
       </div>
