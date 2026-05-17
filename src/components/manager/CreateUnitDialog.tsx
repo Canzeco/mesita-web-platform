@@ -5,11 +5,8 @@ import {
   X,
   Store,
   MapPin,
-  Sparkles,
   Phone,
   Globe,
-  Mail,
-  Camera,
   ArrowRight,
   ArrowLeft,
   Loader2,
@@ -17,8 +14,10 @@ import {
   Instagram,
   Facebook,
   Music2,
-  ShoppingBag,
-  PenLine,
+  Twitter,
+  Youtube,
+  AtSign,
+  Link2,
   Search,
   Star,
   Clock,
@@ -33,21 +32,6 @@ import {
 
 const INPUT =
   "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-secondary/60";
-
-const VIBES = [
-  "Rooftop",
-  "Late night",
-  "Date night",
-  "Brunch",
-  "Casual",
-  "Fine dining",
-  "Tasting menu",
-  "Family",
-  "Pizza bar",
-  "Dancefloor",
-];
-
-const PRICE_LEVELS = [1, 2, 3, 4] as const;
 
 const TYPE_TO_EMOJI: Record<string, string> = {
   restaurant: "🍽️",
@@ -331,15 +315,13 @@ function ConfigureStep({
     [place.primaryType, place.types],
   );
 
-  const [vibe, setVibe] = useState("");
-  const [priceLevel, setPriceLevel] = useState<1 | 2 | 3 | 4>(place.priceLevel ?? 2);
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [tiktok, setTiktok] = useState("");
-  const [email, setEmail] = useState("");
-  const [uberEats, setUberEats] = useState("");
-  const [rappi, setRappi] = useState("");
-  const [pitch, setPitch] = useState("");
+  const [x, setX] = useState("");
+  const [threads, setThreads] = useState("");
+  const [youtube, setYoutube] = useState("");
+  const [otherLinks, setOtherLinks] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -347,10 +329,6 @@ function ConfigureStep({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!vibe) {
-      setError("Vibe is required");
-      return;
-    }
     if (!instagram.trim()) {
       setError("Instagram handle is required so we can validate guest stories");
       return;
@@ -375,11 +353,11 @@ function ConfigureStep({
               New unit · step 2 of 2
             </p>
             <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight">
-              Confirm & add details
+              Social links
             </h2>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Place pulled from Google. Add a vibe, your Instagram, and any extras Mesita uses
-              that Google doesn&apos;t carry.
+              Drop every handle the venue has. We&apos;ll auto-fill the rest of the profile
+              (description, photos, menu) from these.
             </p>
           </div>
         </div>
@@ -396,147 +374,74 @@ function ConfigureStep({
       <form onSubmit={submit} className="flex-1 overflow-y-auto px-6 pt-5 pb-2">
         <GooglePlaceCard place={place} emoji={inferredEmoji} />
 
-        <SectionLabel icon={<Sparkles className="h-3 w-3" />}>Mesita details</SectionLabel>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Vibe" required>
-            <select
-              className={INPUT}
-              value={vibe}
-              onChange={(e) => setVibe(e.target.value)}
-              required
-            >
-              <option value="">Select</option>
-              {VIBES.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Price level">
-            <div className="flex gap-1.5">
-              {PRICE_LEVELS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPriceLevel(p)}
-                  className={cn(
-                    "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold tracking-wider transition",
-                    priceLevel === p
-                      ? "border-secondary bg-secondary/10 text-secondary"
-                      : "border-border bg-background text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {"$".repeat(p)}
-                </button>
-              ))}
-            </div>
-          </Field>
-        </div>
-
-        <SectionLabel icon={<PenLine className="h-3 w-3" />}>The pitch (optional)</SectionLabel>
-        <Field label="One-liner">
-          <textarea
-            value={pitch}
-            onChange={(e) => setPitch(e.target.value)}
-            placeholder="e.g. Mediterranean tasting menu on a candle-lit rooftop with mountain views."
-            rows={2}
-            maxLength={180}
-            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-secondary/60"
-          />
-          <p className="mt-1 text-right text-[10px] text-muted-foreground">{pitch.length} / 180</p>
-        </Field>
-
-        <SectionLabel icon={<Instagram className="h-3 w-3" />}>Social</SectionLabel>
+        <SectionLabel icon={<Instagram className="h-3 w-3" />}>Social handles</SectionLabel>
 
         <Field label="Instagram" required hint="We validate guest stories against this handle.">
-          <div className="relative">
-            <Instagram className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              className={cn(INPUT, "pl-8")}
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="@yourvenue"
-              maxLength={40}
-              required
-            />
-          </div>
+          <SocialInput
+            Icon={Instagram}
+            value={instagram}
+            onChange={setInstagram}
+            placeholder="@yourvenue"
+            required
+          />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Facebook">
-            <div className="relative">
-              <Facebook className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                className={cn(INPUT, "pl-8")}
-                value={facebook}
-                onChange={(e) => setFacebook(e.target.value)}
-                placeholder="page name"
-                maxLength={40}
-              />
-            </div>
+            <SocialInput
+              Icon={Facebook}
+              value={facebook}
+              onChange={setFacebook}
+              placeholder="page name or URL"
+            />
           </Field>
           <Field label="TikTok">
-            <div className="relative">
-              <Music2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                className={cn(INPUT, "pl-8")}
-                value={tiktok}
-                onChange={(e) => setTiktok(e.target.value)}
-                placeholder="@handle"
-                maxLength={40}
-              />
-            </div>
+            <SocialInput
+              Icon={Music2}
+              value={tiktok}
+              onChange={setTiktok}
+              placeholder="@handle"
+            />
           </Field>
         </div>
 
-        <SectionLabel icon={<Mail className="h-3 w-3" />}>Contact (optional)</SectionLabel>
-        <Field label="Booking email">
-          <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="email"
-              className={cn(INPUT, "pl-8")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="hello@venue.mx"
-              maxLength={80}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="X (Twitter)">
+            <SocialInput
+              Icon={Twitter}
+              value={x}
+              onChange={setX}
+              placeholder="@handle"
             />
-          </div>
+          </Field>
+          <Field label="Threads">
+            <SocialInput
+              Icon={AtSign}
+              value={threads}
+              onChange={setThreads}
+              placeholder="@handle"
+            />
+          </Field>
+        </div>
+
+        <Field label="YouTube">
+          <SocialInput
+            Icon={Youtube}
+            value={youtube}
+            onChange={setYoutube}
+            placeholder="@channel or URL"
+          />
         </Field>
 
-        <SectionLabel icon={<ShoppingBag className="h-3 w-3" />}>Delivery (optional)</SectionLabel>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Uber Eats">
-            <input
-              className={INPUT}
-              value={uberEats}
-              onChange={(e) => setUberEats(e.target.value)}
-              placeholder="store slug"
-              maxLength={40}
-            />
-          </Field>
-          <Field label="Rappi">
-            <input
-              className={INPUT}
-              value={rappi}
-              onChange={(e) => setRappi(e.target.value)}
-              placeholder="store slug"
-              maxLength={40}
-            />
-          </Field>
-        </div>
-
-        <SectionLabel icon={<Camera className="h-3 w-3" />}>Cover photo</SectionLabel>
-        <Field label="Hero image (optional — we&apos;ll pull from Google for now)">
-          <button
-            type="button"
-            className="flex h-24 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-[12px] text-muted-foreground transition hover:bg-muted/50"
-          >
-            <Camera className="h-4 w-4" />
-            Upload your own · skip for now
-          </button>
+        <SectionLabel icon={<Link2 className="h-3 w-3" />}>Other links (optional)</SectionLabel>
+        <Field label="Anything else worth scraping" hint="One URL per line. Spotify, Apple Maps listing, press feature, blog, etc.">
+          <textarea
+            value={otherLinks}
+            onChange={(e) => setOtherLinks(e.target.value)}
+            placeholder="https://..."
+            rows={3}
+            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 font-mono text-[12px] outline-none transition focus:border-secondary/60"
+          />
         </Field>
 
         {error && (
@@ -580,6 +485,34 @@ function ConfigureStep({
         </button>
       </div>
     </>
+  );
+}
+
+function SocialInput({
+  Icon,
+  value,
+  onChange,
+  placeholder,
+  required,
+}: {
+  Icon: React.ComponentType<{ className?: string }>;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <Icon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+      <input
+        className={cn(INPUT, "pl-8")}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={120}
+        required={required}
+      />
+    </div>
   );
 }
 
