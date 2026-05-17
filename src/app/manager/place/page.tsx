@@ -98,15 +98,14 @@ export default function PlacePage() {
             setTags={setTags}
           />
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <GoogleSummarySection />
-            <MenuSection
-              mode={menuMode}
-              setMode={setMenuMode}
-              url={menuUrl}
-              setUrl={setMenuUrl}
-            />
-          </div>
+          <ChannelSummariesSection />
+
+          <MenuSection
+            mode={menuMode}
+            setMode={setMenuMode}
+            url={menuUrl}
+            setUrl={setMenuUrl}
+          />
 
           <HoursSection />
         </div>
@@ -491,49 +490,268 @@ function MoreStuffSection({
 }
 
 // ---------------------------------------------------------------------------
-// Google business summary
+// Channel summaries — scraped metrics from every linked platform
 // ---------------------------------------------------------------------------
 
-function GoogleSummarySection() {
+type ChannelStatus = "fresh" | "stale" | "missing" | "error";
+
+type ChannelSummary = {
+  key: string;
+  name: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  identity: string | null;
+  metrics: { label: string; value: string }[];
+  lastSync: string;
+  status: ChannelStatus;
+  source: "official-api" | "scraper";
+};
+
+const CHANNEL_SUMMARIES: ChannelSummary[] = [
+  {
+    key: "google",
+    name: "Google Business",
+    Icon: Globe,
+    identity: "ChIJ7c2…HXBg",
+    metrics: [
+      { label: "Rating", value: "4.7" },
+      { label: "Reviews", value: "1,284" },
+      { label: "Status", value: "Open" },
+    ],
+    lastSync: "2 min ago",
+    status: "fresh",
+    source: "official-api",
+  },
+  {
+    key: "instagram",
+    name: "Instagram",
+    Icon: Instagram,
+    identity: "@casaluminar",
+    metrics: [
+      { label: "Followers", value: "12.4k" },
+      { label: "Posts", value: "286" },
+      { label: "Engagement", value: "3.8%" },
+    ],
+    lastSync: "12 min ago",
+    status: "fresh",
+    source: "scraper",
+  },
+  {
+    key: "facebook",
+    name: "Facebook",
+    Icon: Facebook,
+    identity: "casaluminar",
+    metrics: [
+      { label: "Followers", value: "8.7k" },
+      { label: "Page rating", value: "4.2" },
+      { label: "Reviews", value: "432" },
+    ],
+    lastSync: "1 h ago",
+    status: "fresh",
+    source: "scraper",
+  },
+  {
+    key: "tiktok",
+    name: "TikTok",
+    Icon: Music2,
+    identity: "@casaluminar",
+    metrics: [
+      { label: "Followers", value: "45.2k" },
+      { label: "Total likes", value: "12.8M" },
+      { label: "Videos", value: "124" },
+    ],
+    lastSync: "1 h ago",
+    status: "fresh",
+    source: "scraper",
+  },
+  {
+    key: "website",
+    name: "Website",
+    Icon: Globe,
+    identity: "casaluminar.mx",
+    metrics: [
+      { label: "Status", value: "Up" },
+      { label: "Indexed", value: "47 pages" },
+      { label: "Last 200", value: "2 h ago" },
+    ],
+    lastSync: "2 h ago",
+    status: "fresh",
+    source: "scraper",
+  },
+  {
+    key: "ubereats",
+    name: "Uber Eats",
+    Icon: ShoppingBag,
+    identity: "casaluminar-polanco",
+    metrics: [
+      { label: "Rating", value: "4.6" },
+      { label: "Orders", value: "1.2k" },
+      { label: "Top-10", value: "12× this month" },
+    ],
+    lastSync: "6 h ago",
+    status: "stale",
+    source: "scraper",
+  },
+  {
+    key: "opentable",
+    name: "OpenTable",
+    Icon: CalendarCheck,
+    identity: null,
+    metrics: [],
+    lastSync: "Not linked",
+    status: "missing",
+    source: "scraper",
+  },
+  {
+    key: "resy",
+    name: "Resy",
+    Icon: CalendarHeart,
+    identity: null,
+    metrics: [],
+    lastSync: "Not linked",
+    status: "missing",
+    source: "scraper",
+  },
+  {
+    key: "rappi",
+    name: "Rappi",
+    Icon: Bike,
+    identity: null,
+    metrics: [],
+    lastSync: "Not linked",
+    status: "missing",
+    source: "scraper",
+  },
+];
+
+function ChannelSummariesSection() {
   return (
     <Card
       Icon={Globe}
-      title="Google Business summary"
+      title="Channel summaries"
       trailing={
         <button
           type="button"
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold transition hover:bg-muted"
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background transition hover:opacity-90"
         >
           <RefreshCw className="h-3 w-3" />
-          Re-sync
+          Re-sync all
         </button>
       }
-      sub="What Google currently says about this place. Last synced 2 min ago."
+      sub="Live metrics scraped from every connected channel. Used to weight Discover, classify guests, and feed your AI Copilot."
     >
-      <dl className="flex flex-col gap-2 text-sm">
-        <Row label="Place ID">
-          <span className="font-mono text-[12px]">ChIJ7c2…HXBg</span>
-        </Row>
-        <Row label="Google rating">
-          <span className="font-semibold">4.7 · 1,284 reviews</span>
-        </Row>
-        <Row label="Primary category">
-          <span>{VENUE.category}</span>
-        </Row>
-        <Row label="Phone (Google)">
-          <span>+52 81 1234 5678</span>
-        </Row>
-        <Row label="Website (Google)">
-          <span className="text-secondary">{VENUE.contact.website}</span>
-        </Row>
-        <Row label="Open now">
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2 py-0.5 text-[11px] font-semibold text-secondary">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-secondary" />
-            Yes
-          </span>
-        </Row>
-      </dl>
+      <div className="overflow-hidden rounded-2xl border border-border">
+        {CHANNEL_SUMMARIES.map((c, i) => (
+          <ChannelRow
+            key={c.key}
+            channel={c}
+            last={i === CHANNEL_SUMMARIES.length - 1}
+          />
+        ))}
+      </div>
     </Card>
+  );
+}
+
+function ChannelRow({
+  channel,
+  last,
+}: {
+  channel: ChannelSummary;
+  last: boolean;
+}) {
+  const linked = channel.identity != null;
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4",
+        !last && "border-b border-border",
+        !linked && "bg-muted/30",
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-3 sm:w-56 sm:shrink-0">
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+            linked ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground/60",
+          )}
+        >
+          <channel.Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{channel.name}</p>
+          {linked ? (
+            <p className="truncate font-mono text-[11px] text-muted-foreground">
+              {channel.identity}
+            </p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground">Not linked</p>
+          )}
+        </div>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        {linked ? (
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {channel.metrics.map((m) => (
+              <div key={m.label} className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {m.label}
+                </p>
+                <p className="truncate font-display text-sm font-bold tabular-nums">
+                  {m.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-muted-foreground">
+            Link in <span className="font-semibold text-foreground">External links</span> above to
+            pull metrics.
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 sm:shrink-0">
+        <StatusPill status={channel.status} source={channel.source} />
+        <span className="text-[11px] text-muted-foreground">{channel.lastSync}</span>
+        {linked && (
+          <button
+            type="button"
+            aria-label={`Re-sync ${channel.name}`}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <RefreshCw className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatusPill({
+  status,
+  source,
+}: {
+  status: ChannelStatus;
+  source: ChannelSummary["source"];
+}) {
+  if (status === "missing") return null;
+  const cls = {
+    fresh: "bg-secondary/15 text-secondary",
+    stale: "bg-tier-gold/30 text-foreground",
+    error: "bg-destructive/15 text-destructive",
+  }[status as "fresh" | "stale" | "error"];
+  const label = status === "fresh" ? "Fresh" : status === "stale" ? "Stale" : "Error";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+        cls,
+      )}
+      title={source === "official-api" ? "Official API" : "Web scraper"}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -720,15 +938,6 @@ function FieldBlock({
       {children}
       {hint && <span className="mt-1 block text-[10px] text-muted-foreground/80">{hint}</span>}
     </label>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between border-b border-border/50 py-1.5 last:border-0">
-      <dt className="text-[12px] text-muted-foreground">{label}</dt>
-      <dd className="text-right text-sm">{children}</dd>
-    </div>
   );
 }
 
