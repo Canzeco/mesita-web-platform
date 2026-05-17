@@ -1,4 +1,12 @@
 import Link from "next/link";
+import { Flame, LayoutDashboard, ScanLine, ShieldCheck } from "lucide-react";
+
+const personaShortcuts = [
+  { href: "/guest", label: "Guest", icon: Flame },
+  { href: "/manager", label: "Manager", icon: LayoutDashboard },
+  { href: "/validator", label: "Validator", icon: ScanLine },
+  { href: "/admin", label: "Admin", icon: ShieldCheck },
+] as const;
 
 export default function Home() {
   return (
@@ -19,29 +27,28 @@ export default function Home() {
 function Nav() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-6">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           mesita
         </Link>
-        <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
+        <nav className="hidden gap-6 text-sm text-muted-foreground lg:flex">
           <a href="#guests" className="hover:text-foreground">For you</a>
           <a href="#tiers" className="hover:text-foreground">Tiers</a>
           <a href="#venues" className="hover:text-foreground">For your business</a>
           <a href="#how" className="hover:text-foreground">How it works</a>
         </nav>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/guest"
-            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
-          >
-            I&apos;m a guest
-          </Link>
-          <Link
-            href="/manager"
-            className="rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-          >
-            List your venue
-          </Link>
+        <div className="flex items-center gap-1.5">
+          {personaShortcuts.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              aria-label={label}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground sm:px-3"
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{label}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </header>

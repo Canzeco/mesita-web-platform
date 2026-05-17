@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Crown,
   TrendingUp,
@@ -16,11 +17,11 @@ import {
   Bell,
   Shield,
   HelpCircle,
-  LogOut,
   Award,
   Lock,
 } from "lucide-react";
 import { SimpleHeader } from "@/components/guest/SimpleHeader";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import {
   CURRENT_USER,
   TIERS,
@@ -495,13 +496,20 @@ function SettingsTab() {
         ))}
       </div>
 
-      <button
-        type="button"
+      <SignOutButton
+        redirectTo="/guest/sign-in"
         className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 text-sm font-semibold transition hover:bg-muted"
-      >
-        <LogOut className="h-4 w-4" />
-        Sign out
-      </button>
+      />
+      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+        Not signed in?{" "}
+        <Link href="/guest/sign-in" className="font-semibold text-foreground hover:underline">
+          Sign in
+        </Link>
+        {" · "}
+        <Link href="/guest/sign-up" className="font-semibold text-foreground hover:underline">
+          Create account
+        </Link>
+      </p>
       <p className="mt-4 text-center text-[11px] text-muted-foreground">Mesita · v2.4.1</p>
     </div>
   );

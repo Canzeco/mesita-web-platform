@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Store,
@@ -12,15 +12,14 @@ import {
   Users,
   Sparkles,
   ChevronDown,
-  ChevronRight,
   Check,
   Plus,
   Settings,
   LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UNITS, CURRENT_MANAGER, type Unit } from "@/lib/manager-data";
-import { CreateUnitDialog } from "./CreateUnitDialog";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import type { MyVenue } from "@/lib/api/venues";
 
 type NavItem = {
   href: string;
@@ -31,136 +30,167 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true, disabled: true },
+  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true },
   { href: "/manager/place", label: "Place", Icon: Store },
-  { href: "/manager/promos", label: "Promos", Icon: Megaphone },
+  { href: "/manager/promos", label: "Promos", Icon: Megaphone, disabled: true },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
   { href: "/manager/wallet", label: "Wallet", Icon: Wallet, disabled: true },
   { href: "/manager/team", label: "Team", Icon: Users, disabled: true },
   { href: "/manager/copilot", label: "AI Copilot", Icon: Sparkles, disabled: true },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  venues,
+  user,
+}: {
+  venues: MyVenue[];
+  user: { email: string | null } | null;
+}) {
   const pathname = usePathname();
-  const [unitId, setUnitId] = useState(UNITS[0].id);
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const unit = UNITS.find((u) => u.id === unitId) ?? UNITS[0];
+
+  // Auth pages render edge-to-edge under /manager/*: there's no session yet,
+  // so the sidebar (unit-picker, nav, profile card) has nothing to show.
+  if (pathname?.startsWith("/manager/sign-")) {
+    return null;
+  }
+
+  // The active unit is URL-driven (?unit=<venueId>). Falls back to the first
+  // venue the manager owns when the URL has nothing useful — that becomes the
+  // default once a manager has any venues at all.
+  const unitParam = searchParams.get("unit");
+  const activeVenue =
+    venues.find((v) => v.id === unitParam) ?? venues[0] ?? null;
+  const activeUnitId = activeVenue?.id ?? null;
+  const navHrefWithUnit = (base: string) =>
+    activeUnitId ? `${base}?unit=${activeUnitId}` : base;
+  const switchUnitHref = (venueId: string) => {
+    const path = pathname ?? "/manager";
+    return `${path}?unit=${venueId}`;
+  };
 
   return (
-    <>
-      <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-card">
-        <div className="border-b border-border px-4 py-4">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peacock text-base shadow-glow">
-              🦚
-            </span>
-            <span className="font-display text-lg font-semibold tracking-tight">mesita.</span>
-          </Link>
-        </div>
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-card">
+      <div className="border-b border-border px-4 py-4">
+        <Link href="/" className="inline-flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peacock text-base shadow-glow">
+            🦚
+          </span>
+          <span className="font-display text-lg font-semibold tracking-tight">mesita.</span>
+        </Link>
+      </div>
 
-        <div className="px-3 pt-3">
-          <UnitTrigger unit={unit} open={open} onToggle={() => setOpen((o) => !o)} />
-          {open && (
-            <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
-              {UNITS.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => {
-                    setUnitId(u.id);
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-muted/40",
-                    u.id === unitId && "bg-secondary/5",
-                  )}
+      <div className="px-3 pt-3">
+        {activeVenue ? (
+          <>
+            <UnitTrigger venue={activeVenue} open={open} onToggle={() => setOpen((o) => !o)} />
+            {open && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card">
+                {venues.map((v) => (
+                  <Link
+                    key={v.id}
+                    href={switchUnitHref(v.id)}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-muted/40",
+                      v.id === activeVenue.id && "bg-secondary/5",
+                    )}
+                  >
+                    <UnitAvatar name={v.name} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold leading-tight">{v.name}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {venueSubtitle(v)}
+                      </p>
+                    </div>
+                    {v.id === activeVenue.id && (
+                      <Check className="h-4 w-4 shrink-0 text-secondary" />
+                    )}
+                  </Link>
+                ))}
+                <Link
+                  href="/manager/venues/new"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm font-semibold text-secondary transition hover:bg-secondary/5"
                 >
-                  <UnitAvatar emoji={u.emoji} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold leading-tight">{u.name}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">
-                      {u.city} · {u.area}
-                    </p>
-                  </div>
-                  {u.id === unitId && <Check className="h-4 w-4 shrink-0 text-secondary" />}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  setCreateOpen(true);
-                }}
-                className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm font-semibold text-secondary transition hover:bg-secondary/5"
-              >
-                <Plus className="h-4 w-4" />
-                Add new unit
-              </button>
-            </div>
-          )}
-        </div>
+                  <Plus className="h-4 w-4" />
+                  Add new unit
+                </Link>
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyUnitTrigger isAuthenticated={!!user} />
+        )}
+      </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 py-3">
-          {NAV.map(({ href, label, Icon, exact, disabled }) => {
-            if (disabled) {
-              return (
-                <div
-                  key={href}
-                  aria-disabled
-                  className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground/50"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{label}</span>
-                  <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Soon
-                  </span>
-                </div>
-              );
-            }
-            const active = exact ? pathname === href : pathname.startsWith(href);
+
+      <nav className="flex-1 overflow-y-auto px-2 py-3">
+        {NAV.map(({ href, label, Icon, exact, disabled }) => {
+          if (disabled) {
             return (
-              <Link
+              <div
                 key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
-                  active
-                    ? "bg-secondary/10 text-secondary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
+                aria-disabled
+                className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-muted-foreground/50"
               >
                 <Icon className="h-4 w-4" />
-                {label}
-              </Link>
+                <span className="flex-1">{label}</span>
+                <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Soon
+                </span>
+              </div>
             );
-          })}
-        </nav>
+          }
+          const active = exact ? pathname === href : pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={navHrefWithUnit(href)}
+              className={cn(
+                "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
+                active
+                  ? "bg-secondary/10 text-secondary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
 
-        <div className="space-y-1 border-t border-border p-3">
-          <SidebarLink Icon={Settings} label="Settings" href="#" />
-          <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
+      <div className="space-y-1 border-t border-border p-3">
+        <SidebarLink Icon={Settings} label="Settings" href="#" />
+        <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
 
-          <Link
-            href="#"
-            className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2 transition hover:bg-muted/40"
-          >
+        {user ? (
+          <div className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-sm font-bold text-white">
-              {CURRENT_MANAGER.name[0].toUpperCase()}
+              {emailInitial(user.email)}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{CURRENT_MANAGER.name}</p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                {CURRENT_MANAGER.role} · {CURRENT_MANAGER.email}
-              </p>
+              <p className="truncate text-sm font-semibold">{accountLabel(user.email)}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{user.email ?? ""}</p>
             </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <SignOutButton
+              redirectTo="/manager/sign-in"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              label=""
+            />
+          </div>
+        ) : (
+          <Link
+            href="/manager/sign-in"
+            className="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-sm font-semibold transition hover:bg-muted"
+          >
+            Sign in or create account
           </Link>
-        </div>
-      </aside>
-
-      {createOpen && <CreateUnitDialog onClose={() => setCreateOpen(false)} />}
-    </>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -185,11 +215,11 @@ function SidebarLink({
 }
 
 function UnitTrigger({
-  unit,
+  venue,
   open,
   onToggle,
 }: {
-  unit: Unit;
+  venue: MyVenue;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -200,14 +230,12 @@ function UnitTrigger({
       aria-expanded={open}
       className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background px-3 py-2.5 text-left transition hover:bg-muted/40"
     >
-      <UnitAvatar emoji={unit.emoji} />
+      <UnitAvatar name={venue.name} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-base font-semibold leading-tight tracking-tight">
-          {unit.name}
+          {venue.name}
         </p>
-        <p className="truncate text-[11px] text-muted-foreground">
-          {unit.city} · {unit.area}
-        </p>
+        <p className="truncate text-[11px] text-muted-foreground">{venueSubtitle(venue)}</p>
       </div>
       <ChevronDown
         className={cn(
@@ -219,10 +247,49 @@ function UnitTrigger({
   );
 }
 
-function UnitAvatar({ emoji }: { emoji: string }) {
+function UnitAvatar({ name }: { name: string }) {
+  const initial = name.trim().slice(0, 1).toUpperCase() || "·";
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-lg shadow-sm">
-      {emoji}
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-base font-bold text-white shadow-sm">
+      {initial}
     </span>
   );
+}
+
+function EmptyUnitTrigger({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const href = isAuthenticated ? "/manager/venues/new" : "/manager/sign-in";
+  return (
+    <Link
+      href={href}
+      className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-background px-3 py-2.5 text-left transition hover:border-foreground/30 hover:bg-muted/40"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Plus className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-display text-base font-semibold leading-tight tracking-tight">
+          No venues yet
+        </p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {isAuthenticated ? "Tap to add your first" : "Sign in to add yours"}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function venueSubtitle(v: MyVenue): string {
+  const parts = [v.vibe, v.category].filter(Boolean) as string[];
+  if (parts.length > 0) return parts.join(" · ");
+  return v.address ?? "—";
+}
+
+function emailInitial(email: string | null): string {
+  return email?.trim().slice(0, 1).toUpperCase() || "?";
+}
+
+function accountLabel(email: string | null): string {
+  if (!email) return "Signed in";
+  const local = email.split("@")[0] ?? email;
+  return local;
 }

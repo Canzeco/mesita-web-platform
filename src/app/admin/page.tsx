@@ -1,42 +1,38 @@
 import Link from "next/link";
-import { CreateVenueForm } from "./CreateVenueForm";
 
 export default function AdminPage() {
-  return (
-    <AppShell badge="Admin · Canzeco internal" title="Mesita Admin">
-      <p className="text-muted-foreground">
-        Venue onboarding and review, guest tier classification, Diamond invitations,
-        transactions, payouts, auto-sourcing pipeline, and enrichment of the Web-Listed catalog.
-      </p>
-      <CreateVenueForm />
-    </AppShell>
-  );
-}
-
-function AppShell({
-  badge,
-  title,
-  children,
-}: {
-  badge: string;
-  title: string;
-  children: React.ReactNode;
-}) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-6">
-          <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
             ← mesita
           </Link>
           <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            {badge}
+            Admin · Canzeco internal
           </span>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-16">
-        <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{title}</h1>
-        <div className="mt-6 max-w-3xl">{children}</div>
+        <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Mesita Admin</h1>
+        <p className="mt-4 max-w-3xl text-muted-foreground">
+          Internal tooling for venue review, guest tier classification, Diamond invitations,
+          payouts, and enrichment of the auto-sourced catalog.
+        </p>
+        <div className="mt-10 rounded-2xl border border-border bg-card p-6">
+          <p className="text-sm font-semibold">Coming online next</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Venue creation moved to the manager console — partners onboard themselves at{" "}
+            <Link href="/manager" className="font-semibold text-foreground hover:underline">
+              /manager
+            </Link>
+            . Admin will gain review queues, payouts, and segmentation here once the manager flow
+            is fully exercised in production.
+          </p>
+        </div>
       </main>
     </div>
   );

@@ -1,0 +1,296 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, Search, Sparkles, MapPin, Check } from "lucide-react";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
+import {
+  apiEnrichCreateVenue,
+  apiPlacesAutocomplete,
+  type EnrichmentReport,
+  type PlacePrediction,
+} from "@/lib/api/venues";
+import { cn } from "@/lib/utils";
+
+const SEARCH_DEBOUNCE_MS = 220;
+
+type Selection = PlacePrediction;
+
+export function CreateVenueForm() {
+  const router = useRouter();
+  const supabase = useSingletonClient();
+
+  // Session token groups autocomplete keystrokes + the eventual details call
+  // into a single Google Places billing session (lower cost).
+  const sessionTokenRef = useRef(newSessionToken());
+
+  const [query, setQuery] = useState("");
+  const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Selection | null>(null);
+
+  const [createPending, startCreate] = useTransition();
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createReport, setCreateReport] = useState<EnrichmentReport | null>(null);
+  const [createStage, setCreateStage] = useState<string | null>(null);
+
+  // Debounced autocomplete. Cleanup of stale predictions happens in the
+  // change handlers (onChange / pick / reset) so this effect only owns the
+  // network round-trip — no synchronous setState on the empty-query path.
+  useEffect(() => {
+    if (selected || query.trim().length < 2) return;
+    let cancelled = false;
+    const handle = window.setTimeout(async () => {
+      setSearching(true);
+      setSearchError(null);
+      try {
+        const results = await apiPlacesAutocomplete(
+          supabase,
+          query,
+          sessionTokenRef.current,
+        );
+        if (!cancelled) setPredictions(results);
+      } catch (err) {
+        if (!cancelled) {
+          setSearchError(err instanceof Error ? err.message : "Search failed.");
+          setPredictions([]);
+        }
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [query, selected, supabase]);
+
+  const pick = (prediction: PlacePrediction) => {
+    setSelected(prediction);
+    setQuery(`${prediction.mainText} · ${prediction.secondaryText}`.trim());
+    setPredictions([]);
+  };
+
+  const reset = () => {
+    setSelected(null);
+    setQuery("");
+    setPredictions([]);
+    setCreateError(null);
+    setCreateReport(null);
+    sessionTokenRef.current = newSessionToken();
+  };
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selected || createPending) return;
+    setCreateError(null);
+    setCreateReport(null);
+    setCreateStage("Fetching Google profile…");
+
+    // Rotate stage text every few seconds while we wait, so the manager sees
+    // something is happening. The Edge Function runs the whole pipeline in
+    // one shot — these labels are best-guess UI affordance, not real events.
+    let stageStep = 0;
+    const stages = [
+      "Fetching Google profile…",
+      "Scanning the venue's website…",
+      "Cross-checking social signals…",
+      "Synthesising the catalog entry…",
+    ];
+    const stageInterval = window.setInterval(() => {
+      stageStep = Math.min(stageStep + 1, stages.length - 1);
+      setCreateStage(stages[stageStep]);
+    }, 6000);
+
+    startCreate(async () => {
+      try {
+        const { venue, enrichment } = await apiEnrichCreateVenue(
+          supabase,
+          selected.placeId,
+        );
+        setCreateReport(enrichment);
+        setCreateStage("Done");
+        window.setTimeout(() => {
+          router.push("/manager");
+          router.refresh();
+        }, 600);
+        void venue;
+      } catch (err) {
+        setCreateError(err instanceof Error ? err.message : "Could not create venue.");
+        setCreateStage(null);
+      } finally {
+        window.clearInterval(stageInterval);
+      }
+    });
+  };
+
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-5">
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <h3 className="font-display text-lg font-semibold tracking-tight">
+          Find your Google business profile
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          We pull the catalog entry straight from Google Places, the venue&apos;s website, and
+          press mentions — you don&apos;t fill anything in.
+        </p>
+
+        <div className="relative mt-4">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              type="text"
+              autoFocus
+              value={query}
+              onChange={(e) => {
+                const next = e.target.value;
+                setQuery(next);
+                if (selected) setSelected(null);
+                if (next.trim().length < 2) setPredictions([]);
+              }}
+              placeholder="Casa Luminar, Polanco…"
+              className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              disabled={createPending}
+            />
+            {selected && !createPending && (
+              <button
+                type="button"
+                onClick={reset}
+                className="text-[11px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+            {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
+          </div>
+
+          {!selected && predictions.length > 0 && (
+            <ul className="absolute inset-x-0 z-10 mt-1 max-h-72 overflow-y-auto rounded-xl border border-border bg-card shadow-elev">
+              {predictions.map((p) => (
+                <li key={p.placeId}>
+                  <button
+                    type="button"
+                    onClick={() => pick(p)}
+                    className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition hover:bg-muted/60"
+                  >
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{p.mainText}</span>
+                      {p.secondaryText && (
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {p.secondaryText}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {searchError && (
+            <p className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {searchError}
+            </p>
+          )}
+        </div>
+
+        {selected && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-foreground/15 bg-background p-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-white">
+              <Check className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{selected.mainText}</p>
+              {selected.secondaryText && (
+                <p className="truncate text-[11px] text-muted-foreground">{selected.secondaryText}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {createPending && createStage && (
+        <ProgressCard stage={createStage} />
+      )}
+
+      {createReport && !createError && (
+        <ReportCard report={createReport} />
+      )}
+
+      {createError && (
+        <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {createError}
+        </p>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={!selected || createPending}
+          className={cn(
+            "flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:opacity-50",
+            "bg-pink-gradient text-white shadow-glow",
+          )}
+        >
+          {createPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {createStage ?? "Creating…"}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Create venue from this profile
+            </>
+          )}
+        </button>
+      </div>
+      <p className="text-center text-[11px] text-muted-foreground">
+        Usually under 30 seconds. We auto-fill name, hours, photos, vibe, and story from Google +
+        your website. You can edit any of it after.
+      </p>
+    </form>
+  );
+}
+
+function ProgressCard({ stage }: { stage: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+      <Loader2 className="h-4 w-4 shrink-0 animate-spin text-secondary" />
+      <p className="text-sm font-medium">{stage}</p>
+    </div>
+  );
+}
+
+function ReportCard({ report }: { report: EnrichmentReport }) {
+  const lines: string[] = [
+    `Google Places: ${report.google ? "✓" : "—"}`,
+    `Photos pulled: ${report.photoCount}`,
+    `Website scrape: ${report.firecrawl ? "✓" : "—"}`,
+    `Web research brief: ${report.perplexity ? "✓" : "—"}`,
+    `AI synthesis: ${report.openai ? "✓" : "fallback"}`,
+  ];
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
+      <p className="mb-2 text-sm font-semibold text-foreground">Enrichment summary</p>
+      <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+        {lines.map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function newSessionToken(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function useSingletonClient() {
+  return useMemo(() => createBrowserSupabase(), []);
+}
