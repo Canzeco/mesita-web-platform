@@ -157,6 +157,12 @@ function SearchStep({
   const trimmed = input.trim();
   const active = trimmed.length >= 2;
 
+  // 2-second pause after the last keystroke before calling Google Places.
+  // Each Place Details call is billed per session, and autocomplete is per
+  // request — burning a call on every keystroke is wasteful. 2s is long
+  // enough that users stop typing first.
+  const AUTOCOMPLETE_DEBOUNCE_MS = 2000;
+
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
@@ -176,7 +182,7 @@ function SearchStep({
         .finally(() => {
           if (!cancelled) setLoading(false);
         });
-    }, 250);
+    }, AUTOCOMPLETE_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       window.clearTimeout(t);
