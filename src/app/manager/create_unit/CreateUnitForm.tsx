@@ -236,10 +236,13 @@ export function CreateUnitForm() {
             "bg-pink-gradient text-white shadow-glow",
           )}
         >
+          {/* Button stays generic while the ProgressCard above shows the
+              rotating stage messages — duplicating both was redundant and
+              the long stage strings wrapped awkwardly inside the button. */}
           {createPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              {createStage ?? "Creating…"}
+              Creating venue…
             </>
           ) : (
             <>
