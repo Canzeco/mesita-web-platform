@@ -52,6 +52,7 @@ export function MyQrClient({
           <button
             type="button"
             onClick={onCopy}
+            aria-label={copied ? "Code copied" : "Copy code"}
             className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-base font-bold tracking-[0.2em] tabular-nums text-foreground transition hover:bg-muted"
           >
             {profile.code}
@@ -137,7 +138,7 @@ function TicketRow({ ticket }: { ticket: GuestTicket }) {
         {venue?.photos?.[0] ? (
           <Image
             src={venue.photos[0]}
-            alt=""
+            alt={venue.name ?? "Venue"}
             width={40}
             height={40}
             className="h-10 w-10 object-cover"
