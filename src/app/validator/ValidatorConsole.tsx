@@ -122,8 +122,9 @@ export function ValidatorConsole({
           <button
             type="button"
             onClick={() => void reload()}
-            aria-label="Reload"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition hover:text-foreground"
+            aria-label="Reload tickets"
+            disabled={loadingTickets}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition hover:text-foreground disabled:opacity-60"
           >
             <RotateCw className={cn("h-3.5 w-3.5", loadingTickets && "animate-spin")} />
           </button>
