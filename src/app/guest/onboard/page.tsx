@@ -175,6 +175,14 @@ export default function OnboardPage() {
               We use these to verify you and personalize recommendations. Your phone is never
               shared with venues.
             </p>
+            <button
+              type="button"
+              onClick={() => router.push("/guest/discover/swipe")}
+              disabled={loading}
+              className="mt-2 block w-full text-center text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-foreground hover:underline"
+            >
+              Skip for now — finish later from Profile
+            </button>
           </div>
         </form>
       </div>
