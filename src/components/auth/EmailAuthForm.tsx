@@ -4,15 +4,19 @@ import { useActionState, useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 import type { AuthFormState } from "@/app/auth/actions";
 import { authSignInWithMagicLink } from "@/app/auth/actions";
+import {
+  ERROR_BOX_CLASS,
+  INFO_BOX_CLASS,
+  INPUT_CLASS,
+  PRIMARY_BUTTON_CLASS,
+} from "@/lib/ui-classes";
+import { cn } from "@/lib/utils";
 import { OAuthButtons } from "./OAuthButtons";
 
 type BoundAction = (
   prev: AuthFormState,
   formData: FormData,
 ) => Promise<AuthFormState>;
-
-const INPUT_CLASS =
-  "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
 
 export function EmailAuthForm({
   action,
@@ -82,12 +86,12 @@ export function EmailAuthForm({
         </label>
 
         {state?.error && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs leading-relaxed text-destructive">
+          <p className={`${ERROR_BOX_CLASS} leading-relaxed`}>
             {state.error}
           </p>
         )}
         {state?.info && (
-          <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+          <p className={INFO_BOX_CLASS}>
             {state.info}
           </p>
         )}
@@ -95,7 +99,7 @@ export function EmailAuthForm({
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-sm font-semibold text-background transition disabled:opacity-60"
+          className={cn(PRIMARY_BUTTON_CLASS, "mt-2")}
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : submitLabel}
         </button>
@@ -125,12 +129,12 @@ export function EmailAuthForm({
             Email me a sign-in link instead
           </button>
           {magicState?.info && (
-            <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+            <p className={INFO_BOX_CLASS}>
               {magicState.info}
             </p>
           )}
           {magicState?.error && (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <p className={ERROR_BOX_CLASS}>
               {magicState.error}
             </p>
           )}

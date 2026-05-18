@@ -18,7 +18,7 @@ type Selection = PlacePrediction;
 
 export function CreateUnitForm() {
   const router = useRouter();
-  const supabase = useSingletonClient();
+  const supabase = useMemo(() => createBrowserSupabase(), []);
 
   // Session token groups autocomplete keystrokes + the eventual details call
   // into a single Google Places billing session (lower cost).
@@ -297,6 +297,3 @@ function newSessionToken(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function useSingletonClient() {
-  return useMemo(() => createBrowserSupabase(), []);
-}

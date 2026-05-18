@@ -6,10 +6,14 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiCreateManagerProfile } from "@/lib/api/manager";
 import { PhoneInputWithCountry } from "@/components/auth/PhoneInputWithCountry";
+import { Field } from "@/components/shared";
 import { COUNTRIES } from "@/lib/guest-data";
-
-const INPUT =
-  "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
+import { cn } from "@/lib/utils";
+import {
+  ERROR_BOX_CLASS,
+  INPUT_CLASS,
+  PRIMARY_BUTTON_CLASS,
+} from "@/lib/ui-classes";
 
 export function ManagerOnboardForm() {
   const router = useRouter();
@@ -54,25 +58,22 @@ export function ManagerOnboardForm() {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          Your name
-        </span>
+      <Field label="Your name" required>
         <input
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           maxLength={120}
           autoComplete="name"
           placeholder="e.g. Iván Solís"
-          className={INPUT}
+          className={INPUT_CLASS}
           required
         />
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          Phone <span className="text-muted-foreground/60">(optional)</span>
-        </span>
+      <Field
+        label="Phone (optional)"
+        hint="Used only for venue verification + payout support. Never shared with guests."
+      >
         <PhoneInputWithCountry
           value={phoneLocal}
           onChange={setPhoneLocal}
@@ -80,22 +81,14 @@ export function ManagerOnboardForm() {
           onCountryChange={setPhoneCountry}
           placeholder="81 1234 5678"
         />
-        <span className="mt-1 block text-[11px] text-muted-foreground/80">
-          Used only for venue verification + payout support. Never shared with
-          guests.
-        </span>
-      </label>
+      </Field>
 
-      {error && (
-        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      )}
+      {error && <p className={ERROR_BOX_CLASS}>{error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-sm font-semibold text-background transition disabled:opacity-60"
+        className={cn(PRIMARY_BUTTON_CLASS, "mt-2")}
       >
         {pending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

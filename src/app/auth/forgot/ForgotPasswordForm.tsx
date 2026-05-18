@@ -3,11 +3,14 @@
 import { useActionState } from "react";
 import { Loader2, Send } from "lucide-react";
 import type { AuthFormState } from "@/app/auth/actions";
+import {
+  ERROR_BOX_CLASS,
+  INPUT_CLASS,
+  PRIMARY_BUTTON_CLASS,
+} from "@/lib/ui-classes";
+import { cn } from "@/lib/utils";
 
 type Action = (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
-
-const INPUT_CLASS =
-  "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
 
 export function ForgotPasswordForm({ action }: { action: Action }) {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(action, null);
@@ -27,19 +30,17 @@ export function ForgotPasswordForm({ action }: { action: Action }) {
         />
       </label>
 
-      {state?.error && (
-        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {state.error}
-        </p>
-      )}
+      {state?.error && <p className={ERROR_BOX_CLASS}>{state.error}</p>}
       {state?.info && (
+        // "Reset link sent" reads as positive — use the brand-secondary
+        // tone (not the muted INFO box) to give it a touch more weight.
         <p className="rounded-lg bg-secondary/10 px-3 py-2 text-xs text-secondary">{state.info}</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-sm font-semibold text-background transition disabled:opacity-60"
+        className={cn(PRIMARY_BUTTON_CLASS, "mt-2")}
       >
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         Send reset link

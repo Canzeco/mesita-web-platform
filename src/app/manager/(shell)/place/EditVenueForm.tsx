@@ -27,13 +27,13 @@ import {
 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type UpdateVenueInput } from "@/lib/api/venues";
+import { Field } from "@/components/shared";
 import { cn } from "@/lib/utils";
 import { isEmail } from "@/lib/validators";
-
-const INPUT =
-  "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
-const TEXTAREA =
-  "min-h-[100px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none transition focus:border-foreground/40";
+import {
+  INPUT_CLASS as INPUT,
+  TEXTAREA_CLASS as TEXTAREA,
+} from "@/lib/ui-classes";
 
 const PRICE_OPTIONS = [
   { value: "", label: "—" },
@@ -710,29 +710,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  required,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </span>
-      {children}
-      {hint && <span className="mt-1 block text-[11px] text-muted-foreground/80">{hint}</span>}
-    </label>
   );
 }
 

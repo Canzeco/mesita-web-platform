@@ -7,24 +7,8 @@ import { COUNTRIES, COUNTRY_BY_NAME } from "@/lib/guest-data";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateGuestProfile } from "@/lib/api/tickets";
 import { PhoneInputWithCountry } from "@/components/auth/PhoneInputWithCountry";
-
-const INPUT =
-  "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
-      {children}
-    </label>
-  );
-}
+import { Field } from "@/components/shared";
+import { ERROR_BOX_CLASS, INPUT_CLASS, PRIMARY_BUTTON_CLASS } from "@/lib/ui-classes";
 
 export function OnboardForm() {
   const router = useRouter();
@@ -97,7 +81,7 @@ export function OnboardForm() {
     <form onSubmit={submit} className="flex flex-1 flex-col gap-3">
       <Field label="Name">
         <input
-          className={INPUT}
+          className={INPUT_CLASS}
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={80}
@@ -109,7 +93,7 @@ export function OnboardForm() {
       <div className="grid grid-cols-2 gap-3">
         <Field label="Sex">
           <select
-            className={INPUT}
+            className={INPUT_CLASS}
             value={sex}
             onChange={(e) => setSex(e.target.value)}
             required
@@ -123,7 +107,7 @@ export function OnboardForm() {
         <Field label="Birthday">
           <input
             type="date"
-            className={INPUT}
+            className={INPUT_CLASS}
             value={birthday}
             onChange={(e) => setBirthday(e.target.value)}
             required
@@ -133,7 +117,7 @@ export function OnboardForm() {
 
       <Field label="Country">
         <select
-          className={INPUT}
+          className={INPUT_CLASS}
           value={country}
           onChange={(e) => handleCountryChange(e.target.value)}
           required
@@ -158,17 +142,13 @@ export function OnboardForm() {
         />
       </Field>
 
-      {error && (
-        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      )}
+      {error && <p className={ERROR_BOX_CLASS}>{error}</p>}
 
       <div className="mt-auto pt-4">
         <button
           type="submit"
           disabled={loading}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-sm font-semibold text-background transition disabled:opacity-60"
+          className={PRIMARY_BUTTON_CLASS}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
