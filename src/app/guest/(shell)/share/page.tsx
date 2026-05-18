@@ -90,11 +90,31 @@ function UrlField({ url }: { url: string }) {
   );
 }
 
-function PrimaryCta({ label }: { label: string }) {
+function PrimaryCta({ label, share }: { label: string; share?: { title: string; text: string; url?: string } }) {
+  const onClick = async () => {
+    if (!share) return;
+    const payload = { title: share.title, text: share.text, url: share.url ?? window.location.origin };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(payload);
+        return;
+      } catch {
+        // User cancelled or the share sheet refused — fall through to copy.
+      }
+    }
+    // Fallback: copy the share text + URL to clipboard.
+    try {
+      await navigator.clipboard.writeText(`${share.text} ${payload.url}`);
+    } catch {
+      // Clipboard unavailable — silent fallback.
+    }
+  };
   return (
     <button
       type="button"
-      className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-semibold text-background transition hover:opacity-90"
+      onClick={onClick}
+      disabled={!share}
+      className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-60"
     >
       {label}
       <ChevronRight className="h-4 w-4" />
@@ -229,7 +249,13 @@ function GuestsTab() {
       </div>
 
       <div className="mt-2">
-        <PrimaryCta label="Send a gift to a friend" />
+        <PrimaryCta
+          label="Send a gift to a friend"
+          share={{
+            title: "Mesita — your first visit is on me",
+            text: `Use my code ${giftCode.replace(/\s+/g, "")} for $100 MXN on your first Mesita visit.`,
+          }}
+        />
       </div>
     </div>
   );
@@ -298,7 +324,14 @@ function VenuesTab() {
         <FeatureCard title="Free to start" sub="Costs nothing until it pays off." />
       </div>
       <UrlField url="www.mesita.ai" />
-      <PrimaryCta label="Send invitation" />
+      <PrimaryCta
+        label="Send invitation"
+        share={{
+          title: "Mesita for venues",
+          text: "I think you'd love Mesita — setup is ~10 min and free to start.",
+          url: "https://www.mesita.ai",
+        }}
+      />
     </div>
   );
 }
@@ -324,7 +357,14 @@ function AgenciesTab() {
         <FeatureCard title="Partner dashboard" sub="Track all client venues in one place." />
       </div>
       <UrlField url="mesita.ai/agencies" />
-      <PrimaryCta label="Become a partner" />
+      <PrimaryCta
+        label="Become a partner"
+        share={{
+          title: "Mesita partner program",
+          text: "Mesita's partner program could fit your agency — recurring revenue + co-branded campaigns.",
+          url: "https://www.mesita.ai/agencies",
+        }}
+      />
     </div>
   );
 }
@@ -350,7 +390,14 @@ function ModelsTab() {
         <FeatureCard title="Revenue share" sub="Earn on every visit your talent generates." />
       </div>
       <UrlField url="mesita.ai/models" />
-      <PrimaryCta label="Activate your roster" />
+      <PrimaryCta
+        label="Activate your roster"
+        share={{
+          title: "Mesita for talent agencies",
+          text: "Get your talent roster Diamond access + revenue share on Mesita.",
+          url: "https://www.mesita.ai/models",
+        }}
+      />
     </div>
   );
 }
