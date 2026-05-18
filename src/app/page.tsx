@@ -358,18 +358,13 @@ function Footer() {
     {
       title: "Company",
       links: [
-        { label: "Manifesto", href: "#" },
         { label: "Contact", href: "mailto:pato@canzeco.com" },
-        { label: "Terms", href: "#" },
-        { label: "Privacy", href: "#" },
       ],
     },
     {
       title: "Support",
       links: [
-        { label: "WhatsApp", href: "#" },
-        { label: "Help center", href: "#" },
-        { label: "System status", href: "#" },
+        { label: "Email support", href: "mailto:pato@canzeco.com" },
       ],
     },
   ];
