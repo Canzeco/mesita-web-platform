@@ -88,11 +88,11 @@ export async function apiFetchPublicVenues(
   client: SupabaseClient,
   limit = 50,
 ): Promise<Venue[]> {
-  const { data, error } = await client.functions.invoke<ListResponse>("venues-list", {
+  const { data, error } = await client.functions.invoke<ListResponse>("guest-list-venues", {
     body: { limit },
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "venues-list failed");
+  if (!data?.ok) throw new Error(data?.error ?? "guest-list-venues failed");
   return data.venues.map(stripInsecurePhotos);
 }
 
@@ -132,7 +132,7 @@ export async function apiPlacesAutocomplete(
   const trimmed = input.trim();
   if (trimmed.length < 2) return [];
   const { data, error } = await client.functions.invoke<AutocompleteResponse>(
-    "places-autocomplete",
+    "manager-suggest-places",
     { body: { input: trimmed, sessionToken } },
   );
   // The Edge Function always responds 200 (even on Google failures) and uses
@@ -154,7 +154,7 @@ export async function apiEnrichCreateVenue(
   enrichment: EnrichmentReport;
 }> {
   const { data, error } = await client.functions.invoke<EnrichCreateResponse>(
-    "venues-enrich-create",
+    "manager-create-unit",
     { body: { placeId } },
   );
   if (error) {
@@ -226,10 +226,10 @@ export async function apiUpdateVenue(
   client: SupabaseClient,
   input: UpdateVenueInput,
 ): Promise<Venue & { phone: string | null; updated_at: string }> {
-  const { data, error } = await client.functions.invoke<UpdateResponse>("venues-update", {
+  const { data, error } = await client.functions.invoke<UpdateResponse>("manager-update-unit", {
     body: input,
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "venues-update failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-update-unit failed");
   return data.venue;
 }

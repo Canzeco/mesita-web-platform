@@ -1,4 +1,4 @@
-// Frontend helper for the unit-overview Edge Function.
+// Frontend helper for the manager-get-overview Edge Function.
 //
 // Wrapped in React.cache so the manager layout and the active page (which
 // both need the bundle) reuse a single Edge Function round trip per render.
@@ -23,11 +23,11 @@ async function fetchUnitOverview(
   activeUnitId: string | null,
   ticketsLimit = 20,
 ): Promise<UnitOverview> {
-  const { data, error } = await client.functions.invoke<Response>("unit-overview", {
+  const { data, error } = await client.functions.invoke<Response>("manager-get-overview", {
     body: { activeUnitId: activeUnitId ?? undefined, ticketsLimit },
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "unit-overview failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-get-overview failed");
   return { user: data.user, venues: data.venues, active: data.active };
 }
 

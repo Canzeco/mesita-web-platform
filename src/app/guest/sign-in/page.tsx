@@ -12,7 +12,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
 // request time.
 export const dynamic = "force-dynamic";
 
-const GUEST_AFTER_AUTH = "/guest/discover/swipe";
+// Route through post-signin so first-time Google sign-ins land on
+// /guest/onboard (full_name=null) while returning users go straight to
+// discover. Direct ?next=... overrides this.
+const GUEST_AFTER_AUTH = "/auth/post-signin?audience=guest";
 
 // Honour ?next= so a guest landing from a venue page returns to that page
 // after signing in. Only same-origin paths are accepted.

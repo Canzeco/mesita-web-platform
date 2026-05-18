@@ -106,7 +106,7 @@ export function ValidatorConsole({
   const [venueId, setVenueId] = useState(activeVenueId);
   const active = venues.find((v) => v.id === venueId) ?? venues[0];
 
-  // Tickets start populated from the server-rendered unit-overview, then we
+  // Tickets start populated from the server-rendered manager-get-overview, then we
   // re-fetch only on venue switch or after mutating actions. No mount-time
   // round-trip.
   const [tickets, setTickets] = useState<VenueTicket[]>(initialTickets);

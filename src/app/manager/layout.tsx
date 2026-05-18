@@ -29,7 +29,7 @@ export default async function ManagerLayout({
     if (overviewResult.status === "fulfilled") {
       overview = overviewResult.value;
     } else {
-      console.error("[manager/layout] unit-overview:", overviewResult.reason);
+      console.error("[manager/layout] manager-get-overview:", overviewResult.reason);
     }
     if (profileResult.status === "fulfilled") {
       manager = profileResult.value;

@@ -8,10 +8,11 @@ import { createServerSupabase } from "@/lib/supabase/server";
 // request time.
 export const dynamic = "force-dynamic";
 
-// New managers go straight into onboard so they tell us their name + phone
-// before they see the dashboard. Onboard then forwards to /manager/create_unit
-// for the venue creation step.
-const MANAGER_AFTER_SIGNUP = "/manager/onboard";
+// Route through post-signin so the onboarded-vs-not check is uniform
+// across email + Google + Apple sign-up paths. post-signin sees the
+// freshly-created profile row with full_name=null and forwards to
+// /manager/onboard.
+const MANAGER_AFTER_SIGNUP = "/auth/post-signin?audience=manager";
 
 export default async function ManagerSignUpPage() {
   const supabase = await createServerSupabase();

@@ -11,9 +11,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
 // request time.
 export const dynamic = "force-dynamic";
 
-// New accounts land on the profiling step. The /onboard form already
-// captures name / birthday / country and currently navigates on its own.
-const GUEST_AFTER_SIGNUP = "/guest/onboard";
+// Route through post-signin so onboarding is consistent across email +
+// Google sign-up. post-signin sees the freshly-created guest row with
+// full_name=null and forwards to /guest/onboard.
+const GUEST_AFTER_SIGNUP = "/auth/post-signin?audience=guest";
 
 export default async function GuestSignUpPage() {
   const supabase = await createServerSupabase();

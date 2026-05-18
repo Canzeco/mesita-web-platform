@@ -234,11 +234,11 @@ type SubmitStoryRes =
 // ─── Reads ───────────────────────────────────────────────────────────────
 
 export async function apiFetchGuestProfile(client: SupabaseClient): Promise<GuestProfile> {
-  const { data, error } = await client.functions.invoke<GuestProfileRes>("guest-profile", {
+  const { data, error } = await client.functions.invoke<GuestProfileRes>("guest-get-profile", {
     body: {},
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-profile failed");
+  if (!data?.ok) throw new Error(data?.error ?? "guest-get-profile failed");
   return data.guest;
 }
 
@@ -246,11 +246,11 @@ export async function apiFetchMyTickets(
   client: SupabaseClient,
   limit = 20,
 ): Promise<GuestTicket[]> {
-  const { data, error } = await client.functions.invoke<MyTicketsRes>("tickets-mine", {
+  const { data, error } = await client.functions.invoke<MyTicketsRes>("guest-list-tickets", {
     body: { limit },
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "tickets-mine failed");
+  if (!data?.ok) throw new Error(data?.error ?? "guest-list-tickets failed");
   return data.tickets;
 }
 
@@ -259,11 +259,11 @@ export async function apiFetchVenueTickets(
   venueId: string,
   limit = 20,
 ): Promise<VenueTicket[]> {
-  const { data, error } = await client.functions.invoke<VenueTicketsRes>("tickets-venue-recent", {
+  const { data, error } = await client.functions.invoke<VenueTicketsRes>("manager-list-tickets", {
     body: { venueId, limit },
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "tickets-venue-recent failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-list-tickets failed");
   return data.tickets;
 }
 
@@ -299,11 +299,11 @@ export async function apiCreateTicket(
   guest: { id: string; code: string; full_name: string | null };
 }> {
   const { data, error } = await client.functions.invoke<CreateTicketRes>(
-    "tickets-venue-create",
+    "manager-create-ticket",
     { body: input },
   );
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "tickets-venue-create failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-create-ticket failed");
   return { ticket: data.ticket, venue: data.venue, guest: data.guest };
 }
 
@@ -318,11 +318,11 @@ export async function apiMarkTicketPaid(
   alreadyPaid: boolean;
   awaitingStory: boolean;
 }> {
-  const { data, error } = await client.functions.invoke<MarkPaidRes>("tickets-mark-paid", {
+  const { data, error } = await client.functions.invoke<MarkPaidRes>("manager-mark-paid", {
     body: { ticketId },
   });
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "tickets-mark-paid failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-mark-paid failed");
   return {
     ticket: data.ticket,
     cashbackCreditedCents: data.cashbackCreditedCents,
@@ -343,11 +343,11 @@ export async function apiLookupGuest(
   cashback_balance_cents: number;
 }> {
   const { data, error } = await client.functions.invoke<LookupGuestRes>(
-    "manager-lookup-guest",
+    "manager-find-guest",
     { body: { code } },
   );
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-lookup-guest failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-find-guest failed");
   return data.guest;
 }
 

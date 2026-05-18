@@ -8,12 +8,16 @@ import { createServerSupabase } from "@/lib/supabase/server";
 // request time.
 export const dynamic = "force-dynamic";
 
-const MANAGER_AFTER_AUTH = "/manager";
+// Default destination after sign-in. /auth/post-signin checks whether
+// the manager has finished onboarding and routes accordingly:
+//   no profile yet → /manager/onboard
+//   profile in place → /manager/console
+const MANAGER_AFTER_AUTH = "/auth/post-signin?audience=manager";
 
-// Honour a ?next= path so deep links land where the user was headed instead
-// of dumping everyone on /manager. Only same-origin paths are accepted —
-// anything that doesn't start with "/" is dropped to avoid open-redirect
-// abuse.
+// Honour a ?next= path so deep links land where the user was headed
+// instead of going through post-signin. Only same-origin paths are
+// accepted — anything that doesn't start with "/" is dropped to avoid
+// open-redirect abuse.
 function safeNext(raw: string | undefined): string {
   if (!raw) return MANAGER_AFTER_AUTH;
   return raw.startsWith("/") && !raw.startsWith("//") ? raw : MANAGER_AFTER_AUTH;
