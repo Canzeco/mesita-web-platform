@@ -493,77 +493,28 @@ function Pricing() {
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-          {plans.map((p) => (
-            <div
-              key={p.id}
-              className={`relative flex h-full flex-col rounded-2xl border p-5 ${
-                p.featured
-                  ? "border-foreground bg-card shadow-elev"
-                  : "border-border bg-background"
-              }`}
-            >
-              {p.featured && (
-                <span className="absolute -top-2.5 right-4 rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
-                  Featured
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <p className="font-display text-lg font-semibold tracking-tight">
-                  {p.name}
-                </p>
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                    p.audience === "formal"
-                      ? "bg-pink-gradient text-white"
-                      : p.audience === "informal"
-                        ? "bg-tier-gold text-black"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {p.audience === "any" ? "Any venue" : p.audience}
-                </span>
-              </div>
-              <p className="mt-3 font-display text-3xl font-bold tabular-nums">
-                {p.price}
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  {p.cadence}
-                </span>
-              </p>
-              <div className="mt-3 flex items-center gap-2 text-[11px]">
-                <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
-                  {p.mechanic}
-                </span>
-                <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
-                  {p.visibility} visibility
-                </span>
-              </div>
-              <p className="mt-3 text-[13px] leading-snug text-muted-foreground">
-                {p.blurb}
-              </p>
-              <ul className="mt-4 flex flex-1 flex-col gap-1.5 text-[12px]">
-                {p.bullets.map((b) => (
-                  <li
-                    key={b}
-                    className="before:mr-1.5 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-foreground/40 before:align-middle"
-                  >
-                    {b}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/manager/sign-up"
-                className={`mt-5 inline-flex h-10 items-center justify-center rounded-full px-4 text-[13px] font-semibold transition ${
-                  p.featured
-                    ? "bg-pink-gradient text-white shadow-glow hover:opacity-90"
-                    : "border border-border bg-background hover:bg-muted"
-                }`}
-              >
-                {p.cta}
-              </Link>
-            </div>
-          ))}
-        </div>
+        {/* Three labeled groups — Free / Formal / Informal — make the
+            structure obvious at first glance. The 5-cards-in-a-row layout
+            was technically correct but read as a spectrum; this layout
+            says "three different products, pick the one that's you." */}
+        <PlanGroup
+          label="Free"
+          sublabel="Any venue — no commitment"
+          tone="neutral"
+          plans={plans.filter((p) => p.audience === "any")}
+        />
+        <PlanGroup
+          label="Formal · Cashback"
+          sublabel="For venues that always invoice. Mesita touches the payment rail; cashback lands in the guest's wallet."
+          tone="formal"
+          plans={plans.filter((p) => p.audience === "formal")}
+        />
+        <PlanGroup
+          label="Informal · Discount"
+          sublabel="For venues that usually don't invoice. Mesita stays out of the payment flow; the discount is revealed and applied at the bill."
+          tone="informal"
+          plans={plans.filter((p) => p.audience === "informal")}
+        />
 
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
           <p>
@@ -593,6 +544,124 @@ function Pricing() {
         </div>
       </div>
     </section>
+  );
+}
+
+type Plan = {
+  id: string;
+  name: string;
+  price: string;
+  cadence: string;
+  mechanic: string;
+  visibility: string;
+  audience: "any" | "formal" | "informal";
+  blurb: string;
+  bullets: string[];
+  cta: string;
+  featured?: boolean;
+};
+
+const TONE_STYLES = {
+  neutral: { label: "text-muted-foreground", accent: "bg-muted-foreground/30" },
+  formal: { label: "text-foreground", accent: "bg-pink-gradient" },
+  informal: { label: "text-foreground", accent: "bg-tier-gold" },
+} as const;
+
+function PlanGroup({
+  label,
+  sublabel,
+  tone,
+  plans,
+}: {
+  label: string;
+  sublabel: string;
+  tone: keyof typeof TONE_STYLES;
+  plans: Plan[];
+}) {
+  const t = TONE_STYLES[tone];
+  // Group header with a coloured accent bar that picks up the tone (pink
+  // gradient for Formal, gold for Informal, muted grey for Free). The
+  // accent + label give the section a "this is a different product line"
+  // signal at first glance.
+  return (
+    <div className="mt-10">
+      <div className="mb-4 flex items-start gap-3">
+        <span className={`mt-1.5 h-3 w-1 shrink-0 rounded-full ${t.accent}`} aria-hidden />
+        <div>
+          <p className={`text-[11px] font-bold uppercase tracking-wider ${t.label}`}>
+            {label}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{sublabel}</p>
+        </div>
+      </div>
+      <div
+        className={`grid grid-cols-1 gap-4 ${
+          plans.length === 1 ? "md:max-w-sm" : "md:grid-cols-2"
+        }`}
+      >
+        {plans.map((p) => (
+          <PlanCard key={p.id} plan={p} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PlanCard({ plan: p }: { plan: Plan }) {
+  return (
+    <div
+      className={`relative flex h-full flex-col rounded-2xl border p-5 ${
+        p.featured
+          ? "border-foreground bg-card shadow-elev"
+          : "border-border bg-background"
+      }`}
+    >
+      {p.featured && (
+        <span className="absolute -top-2.5 right-4 rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
+          Featured
+        </span>
+      )}
+      <p className="font-display text-lg font-semibold tracking-tight">
+        {p.name}
+      </p>
+      <p className="mt-3 font-display text-3xl font-bold tabular-nums">
+        {p.price}
+        <span className="ml-1 text-xs font-normal text-muted-foreground">
+          {p.cadence}
+        </span>
+      </p>
+      <div className="mt-3 flex items-center gap-2 text-[11px]">
+        <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
+          {p.mechanic}
+        </span>
+        <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
+          {p.visibility} visibility
+        </span>
+      </div>
+      <p className="mt-3 text-[13px] leading-snug text-muted-foreground">
+        {p.blurb}
+      </p>
+      <ul className="mt-4 flex flex-1 flex-col gap-1.5 text-[12px]">
+        {p.bullets.map((b) => (
+          <li
+            key={b}
+            className="before:mr-1.5 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-foreground/40 before:align-middle"
+          >
+            {b}
+          </li>
+        ))}
+      </ul>
+      <Link
+        href="/manager/sign-up"
+        className={`mt-5 inline-flex h-10 items-center justify-center rounded-full px-4 text-[13px] font-semibold transition ${
+          p.featured
+            ? "bg-pink-gradient text-white shadow-glow hover:opacity-90"
+            : "border border-border bg-background hover:bg-muted"
+        }`}
+      >
+        {p.cta}
+      </Link>
+    </div>
   );
 }
 
