@@ -59,10 +59,12 @@ type LinksState = {
 function nullableUrl(v: string): string | null {
   const t = v.trim();
   if (t === "") return null;
-  // Auto-upgrade bare protocol-less input ("instagram.com/foo") to https for
-  // the validator on the server. Anything else stays as the user typed it
-  // and the function will reject if it isn't a valid https URL.
-  if (/^https?:\/\//i.test(t)) return t;
+  // Auto-upgrade to https so the server-side validator (which requires
+  // https://) doesn't reject perfectly reasonable input. Covers:
+  //   - "instagram.com/foo"  →  "https://instagram.com/foo"
+  //   - "http://yourplace.mx" → "https://yourplace.mx"
+  if (/^https:\/\//i.test(t)) return t;
+  if (/^http:\/\//i.test(t)) return t.replace(/^http:/i, "https:");
   if (/^[a-z0-9.-]+\.[a-z]{2,}/i.test(t)) return `https://${t}`;
   return t;
 }
