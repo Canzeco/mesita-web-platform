@@ -313,6 +313,10 @@ function PhotoPlaceholder({ name }: { name: string }) {
   );
 }
 
+// 30 days from now in ms — the "New" badge only fires for venues onboarded
+// inside that window so it stays meaningful instead of being on every card.
+const NEW_BADGE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
 function CardOverlay({ venue, hrefInfo }: { venue: Venue; hrefInfo?: string }) {
   const meta = [
     venue.price_level != null ? "$".repeat(venue.price_level) : null,
@@ -320,6 +324,9 @@ function CardOverlay({ venue, hrefInfo }: { venue: Venue; hrefInfo?: string }) {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  const isNew =
+    venue.created_at && Date.now() - Date.parse(venue.created_at) < NEW_BADGE_WINDOW_MS;
 
   return (
     <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-5 pt-24 text-white">
@@ -348,10 +355,12 @@ function CardOverlay({ venue, hrefInfo }: { venue: Venue; hrefInfo?: string }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-sm">
-          <Star className="h-3 w-3" />
-          New
-        </span>
+        {isNew && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground shadow-sm">
+            <Star className="h-3 w-3" />
+            New
+          </span>
+        )}
         {venue.listing_type === "partner" ? (
           <>
             {venue.cashback_percent != null && (
