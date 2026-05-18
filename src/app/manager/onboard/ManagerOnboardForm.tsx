@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiCreateManagerProfile } from "@/lib/api/manager";
+import { PhoneInputWithCountry } from "@/components/auth/PhoneInputWithCountry";
+import { COUNTRIES } from "@/lib/guest-data";
 
 const INPUT =
   "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
@@ -13,7 +15,8 @@ export function ManagerOnboardForm() {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabase(), []);
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("MX");
+  const [phoneLocal, setPhoneLocal] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +28,20 @@ export function ManagerOnboardForm() {
       setError("Tell us your name so we know who's onboarding.");
       return;
     }
+    // Phone stays optional. Only build the combined string if the user
+    // typed something; an empty local number means "skip the phone".
+    let combinedPhone: string | null = null;
+    const localTrim = phoneLocal.trim();
+    if (localTrim) {
+      const dial = COUNTRIES.find((c) => c.code === phoneCountry)?.dial ?? "52";
+      combinedPhone = `+${dial} ${localTrim}`;
+    }
     setPending(true);
     void (async () => {
       try {
         await apiCreateManagerProfile(supabase, {
           full_name: trimmed,
-          phone: phone.trim() || null,
+          phone: combinedPhone,
         });
         router.push("/manager/create_unit");
         router.refresh();
@@ -62,14 +73,12 @@ export function ManagerOnboardForm() {
         <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
           Phone <span className="text-muted-foreground/60">(optional)</span>
         </span>
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          maxLength={32}
-          autoComplete="tel"
-          placeholder="+52 81 1234 5678"
-          className={INPUT}
+        <PhoneInputWithCountry
+          value={phoneLocal}
+          onChange={setPhoneLocal}
+          countryCode={phoneCountry}
+          onCountryChange={setPhoneCountry}
+          placeholder="81 1234 5678"
         />
         <span className="mt-1 block text-[11px] text-muted-foreground/80">
           Used only for venue verification + payout support. Never shared with

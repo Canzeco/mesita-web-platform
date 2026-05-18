@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { COUNTRIES } from "@/lib/guest-data";
+import { COUNTRIES, COUNTRY_BY_NAME } from "@/lib/guest-data";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateGuestProfile } from "@/lib/api/tickets";
+import { PhoneInputWithCountry } from "@/components/auth/PhoneInputWithCountry";
 
 const INPUT =
   "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
@@ -32,14 +33,36 @@ export function OnboardForm() {
   const [sex, setSex] = useState("");
   const [birthday, setBirthday] = useState("");
   const [country, setCountry] = useState("");
-  const [phone, setPhone] = useState("");
+  // Phone is split: dial-code country (ISO) + local subscriber number.
+  // We default the dial-code country to the residence Country dropdown so
+  // a Mexican guest gets +52 prefilled, but the picker is independent so
+  // someone living in Mexico with a US number can still pick +1.
+  const [phoneCountry, setPhoneCountry] = useState("MX");
+  // Tracks whether the user has manually picked a dial code; if so we
+  // stop auto-syncing it from the residence dropdown. React 19's strict
+  // set-state-in-effect rule means we do the sync inline on the residence
+  // change handler instead of in a useEffect.
+  const [phoneCountryTouched, setPhoneCountryTouched] = useState(false);
+  const [phoneLocal, setPhoneLocal] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleCountryChange = (next: string) => {
+    setCountry(next);
+    if (!phoneCountryTouched) {
+      const match = COUNTRY_BY_NAME[next];
+      if (match) setPhoneCountry(match.code);
+    }
+  };
+  const handlePhoneCountryChange = (next: string) => {
+    setPhoneCountry(next);
+    setPhoneCountryTouched(true);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!name.trim() || !sex || !birthday || !country || !phone.trim()) {
+    if (!name.trim() || !sex || !birthday || !country || !phoneLocal.trim()) {
       setError("Please complete all required fields");
       return;
     }
@@ -47,6 +70,10 @@ export function OnboardForm() {
       setError("Pick a sex from the list.");
       return;
     }
+    const dialEntry = COUNTRIES.find((c) => c.code === phoneCountry);
+    const dial = dialEntry?.dial ?? "52";
+    const combinedPhone = `+${dial} ${phoneLocal.trim()}`;
+
     setLoading(true);
     void (async () => {
       try {
@@ -55,7 +82,7 @@ export function OnboardForm() {
           sex,
           birthday,
           country: country.trim(),
-          phone: phone.trim(),
+          phone: combinedPhone,
         });
         router.push("/guest/discover/swipe");
         router.refresh();
@@ -108,7 +135,7 @@ export function OnboardForm() {
         <select
           className={INPUT}
           value={country}
-          onChange={(e) => setCountry(e.target.value)}
+          onChange={(e) => handleCountryChange(e.target.value)}
           required
         >
           <option value="">Select your country</option>
@@ -121,13 +148,12 @@ export function OnboardForm() {
       </Field>
 
       <Field label="Phone number">
-        <input
-          type="tel"
-          className={INPUT}
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+52 81 1234 5678"
-          maxLength={30}
+        <PhoneInputWithCountry
+          value={phoneLocal}
+          onChange={setPhoneLocal}
+          countryCode={phoneCountry}
+          onCountryChange={handlePhoneCountryChange}
+          placeholder="55 1234 5678"
           required
         />
       </Field>
