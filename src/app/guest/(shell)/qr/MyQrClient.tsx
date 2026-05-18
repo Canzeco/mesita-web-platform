@@ -121,6 +121,16 @@ function RecentTickets({ tickets }: { tickets: GuestTicket[] }) {
 
 function TicketRow({ ticket }: { ticket: GuestTicket }) {
   const venue = ticket.venue;
+  const redeemed = ticket.redeem_cents ?? 0;
+  const earned = ticket.cashback_cents ?? 0;
+  const statusLabel =
+    ticket.status === "paid"
+      ? "Settled"
+      : ticket.status === "pending_pay"
+        ? "Awaiting"
+        : ticket.status === "cancelled"
+          ? "Cancelled"
+          : ticket.status;
   return (
     <li className="flex items-center gap-3 px-4 py-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
@@ -147,11 +157,14 @@ function TicketRow({ ticket }: { ticket: GuestTicket }) {
       </div>
       <div className="text-right">
         <p className="text-[10px] font-bold uppercase tracking-wider text-secondary">
-          +{formatCurrency(ticket.cashback_cents)}
+          +{formatCurrency(earned)}
         </p>
-        <p className="text-[11px] text-muted-foreground">
-          {ticket.status === "paid" ? "Settled" : ticket.status === "pending_pay" ? "Awaiting" : ticket.status}
-        </p>
+        {redeemed > 0 && (
+          <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/70">
+            −{formatCurrency(redeemed)}
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground">{statusLabel}</p>
       </div>
     </li>
   );

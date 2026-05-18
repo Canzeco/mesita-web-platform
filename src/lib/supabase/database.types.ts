@@ -162,6 +162,7 @@ export type Database = {
       }
       tickets: {
         Row: {
+          cancel_reason: string | null
           cancelled_at: string | null
           cashback_cents: number | null
           cashback_percent: number
@@ -172,6 +173,7 @@ export type Database = {
           id: string
           opened_by: string
           paid_at: string | null
+          redeem_cents: number | null
           status: Database["public"]["Enums"]["ticket_status"]
           tip_cents: number | null
           total_cents: number | null
@@ -179,6 +181,7 @@ export type Database = {
           venue_id: string
         }
         Insert: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           cashback_cents?: number | null
           cashback_percent: number
@@ -189,6 +192,7 @@ export type Database = {
           id?: string
           opened_by: string
           paid_at?: string | null
+          redeem_cents?: number | null
           status?: Database["public"]["Enums"]["ticket_status"]
           tip_cents?: number | null
           total_cents?: number | null
@@ -196,6 +200,7 @@ export type Database = {
           venue_id: string
         }
         Update: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           cashback_cents?: number | null
           cashback_percent?: number
@@ -206,6 +211,7 @@ export type Database = {
           id?: string
           opened_by?: string
           paid_at?: string | null
+          redeem_cents?: number | null
           status?: Database["public"]["Enums"]["ticket_status"]
           tip_cents?: number | null
           total_cents?: number | null

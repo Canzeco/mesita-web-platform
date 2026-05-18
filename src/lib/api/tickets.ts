@@ -23,9 +23,12 @@ export type Ticket = {
   total_cents: number | null;
   cashback_percent: number;
   cashback_cents: number | null;
+  redeem_cents: number | null;
   currency: string;
   created_at: string;
   paid_at: string | null;
+  cancelled_at: string | null;
+  cancel_reason?: string | null;
 };
 
 export type GuestTicket = Ticket & {
@@ -52,8 +55,19 @@ type MarkPaidRes =
       ok: true;
       ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null };
       cashbackCreditedCents: number;
+      cashbackRedeemedCents: number;
       guestBalanceAfterCents: number;
       alreadyPaid?: boolean;
+    }
+  | { ok: false; error: string; code?: string };
+type LookupGuestRes =
+  | { ok: true; guest: { id: string; code: string; full_name: string | null; cashback_balance_cents: number } }
+  | { ok: false; error: string };
+type CancelTicketRes =
+  | {
+      ok: true;
+      ticket?: { id: string; status: TicketStatus; cancelled_at: string | null; cancel_reason: string | null };
+      alreadyCancelled?: boolean;
     }
   | { ok: false; error: string };
 
@@ -98,6 +112,7 @@ export async function apiCreateTicket(
     guestCode: string;
     checkSubtotalCents: number;
     tipCents: number;
+    redeemCents?: number;
   },
 ): Promise<{
   ticket: Ticket;
@@ -119,6 +134,7 @@ export async function apiMarkTicketPaid(
 ): Promise<{
   ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null };
   cashbackCreditedCents: number;
+  cashbackRedeemedCents: number;
   guestBalanceAfterCents: number;
   alreadyPaid: boolean;
 }> {
@@ -130,9 +146,41 @@ export async function apiMarkTicketPaid(
   return {
     ticket: data.ticket,
     cashbackCreditedCents: data.cashbackCreditedCents,
+    cashbackRedeemedCents: data.cashbackRedeemedCents ?? 0,
     guestBalanceAfterCents: data.guestBalanceAfterCents,
     alreadyPaid: data.alreadyPaid ?? false,
   };
+}
+
+export async function apiLookupGuest(
+  client: SupabaseClient,
+  code: string,
+): Promise<{
+  id: string;
+  code: string;
+  full_name: string | null;
+  cashback_balance_cents: number;
+}> {
+  const { data, error } = await client.functions.invoke<LookupGuestRes>(
+    "manager-lookup-guest",
+    { body: { code } },
+  );
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "manager-lookup-guest failed");
+  return data.guest;
+}
+
+export async function apiCancelTicket(
+  client: SupabaseClient,
+  ticketId: string,
+  reason?: string,
+): Promise<void> {
+  const { data, error } = await client.functions.invoke<CancelTicketRes>(
+    "manager-cancel-ticket",
+    { body: { ticketId, reason } },
+  );
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "manager-cancel-ticket failed");
 }
 
 // ── Display helpers ───────────────────────────────────────────────────────
