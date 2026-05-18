@@ -17,9 +17,16 @@ export default async function ManagerLayout({
   // Sidebar only needs the venue list. Pages call getUnitOverview with the
   // actual ?unit= they care about — React.cache dedupes a same-arg call to
   // a single Edge Function round trip per request.
-  const overview = user
-    ? await getUnitOverview(supabase, null, 0).catch(() => null)
-    : null;
+  let overview: Awaited<ReturnType<typeof getUnitOverview>> | null = null;
+  if (user) {
+    try {
+      overview = await getUnitOverview(supabase, null, 0);
+    } catch (err) {
+      // Don't kill the layout — pages can still render. Log so the breadcrumb
+      // shows up in Vercel logs if the venue list silently disappears.
+      console.error("[manager/layout] unit-overview:", err);
+    }
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
