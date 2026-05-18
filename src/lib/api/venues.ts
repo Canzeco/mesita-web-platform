@@ -128,8 +128,14 @@ export async function apiPlacesAutocomplete(
     "places-autocomplete",
     { body: { input: trimmed, sessionToken } },
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "autocomplete failed");
+  // The Edge Function always responds 200 (even on Google failures) and uses
+  // the body's `ok: false` shape to carry the real error. `error` here would
+  // only fire on a transport-layer problem — surface what we can.
+  if (error) {
+    const inner = await readInvokeError(error);
+    throw new Error(inner ?? error.message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "Couldn't search venues right now.");
   return data.predictions;
 }
 
@@ -144,9 +150,38 @@ export async function apiEnrichCreateVenue(
     "venues-enrich-create",
     { body: { placeId } },
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "venues-enrich-create failed");
+  if (error) {
+    const inner = await readInvokeError(error);
+    throw new Error(inner ?? error.message);
+  }
+  if (!data?.ok) {
+    throw new Error(data?.error ?? "Couldn't create that venue.");
+  }
   return { venue: data.venue, enrichment: data.enrichment };
+}
+
+// supabase-js wraps non-2xx responses in a FunctionsHttpError whose default
+// `.message` is the generic "Edge Function returned a non-2xx status code".
+// The real body (the EF's `{ ok: false, error: "…" }`) lives on
+// `error.context.response`. This helper peels that off so the UI gets a
+// useful message instead of the wrapper text.
+async function readInvokeError(error: unknown): Promise<string | null> {
+  try {
+    const ctx = (error as { context?: { response?: Response } }).context;
+    const res = ctx?.response;
+    if (!res) return null;
+    // Cloning lets the caller still inspect the original response later.
+    const body = await res.clone().json().catch(() => null);
+    if (body && typeof body === "object" && "error" in body) {
+      const msg = (body as { error?: string }).error;
+      if (typeof msg === "string" && msg.length > 0) return msg;
+    }
+    const text = await res.clone().text().catch(() => null);
+    if (text && text.length < 500) return text;
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateVenueInput = {
