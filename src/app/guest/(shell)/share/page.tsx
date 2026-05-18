@@ -63,15 +63,28 @@ function FeatureCard({ title, sub }: { title: string; sub: string }) {
 }
 
 function UrlField({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // Clipboard API can fail on insecure origins or older browsers — fall
+      // back to noop. We could select the text, but the URL is already in
+      // view so the user can long-press to copy on mobile.
+    }
+  };
   return (
     <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-3">
       <span className="flex-1 truncate font-mono text-[13px]">{url}</span>
       <button
         type="button"
-        aria-label="Copy"
+        aria-label={copied ? "Copied" : "Copy"}
+        onClick={onCopy}
         className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
       >
-        <Copy className="h-3.5 w-3.5" />
+        {copied ? <Check className="h-3.5 w-3.5 text-secondary" /> : <Copy className="h-3.5 w-3.5" />}
       </button>
     </div>
   );
@@ -90,6 +103,17 @@ function PrimaryCta({ label }: { label: string }) {
 }
 
 function GuestsTab() {
+  const giftCode = "8F2K — 9XQ7";
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(giftCode.replace(/\s+/g, ""));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // Clipboard unavailable — silent.
+    }
+  };
   const treated = [
     { initials: "CV", name: "Camila", date: "May 2" },
     { initials: "MF", name: "Mateo", date: "May 5" },
@@ -145,14 +169,15 @@ function GuestsTab() {
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   Code
                 </p>
-                <p className="mt-0.5 font-mono text-sm font-semibold">8F2K — 9XQ7</p>
+                <p className="mt-0.5 font-mono text-sm font-semibold">{giftCode}</p>
               </div>
               <button
                 type="button"
-                aria-label="Copy code"
+                aria-label={copied ? "Copied" : "Copy code"}
+                onClick={onCopy}
                 className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                <Copy className="h-3.5 w-3.5" />
+                {copied ? <Check className="h-3.5 w-3.5 text-secondary" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
