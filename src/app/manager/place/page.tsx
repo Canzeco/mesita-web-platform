@@ -22,7 +22,38 @@ export default async function ManagerPlacePage({
   const params = await searchParams;
   const requestedUnit = params.unit?.toString() ?? null;
 
-  const overview = await getUnitOverview(supabase, requestedUnit, 0).catch(() => null);
+  let overview: Awaited<ReturnType<typeof getUnitOverview>> | null = null;
+  let overviewError: string | null = null;
+  try {
+    overview = await getUnitOverview(supabase, requestedUnit, 0);
+  } catch (err) {
+    overviewError = err instanceof Error ? err.message : "Could not load your venues.";
+  }
+  if (overviewError) {
+    return (
+      <>
+        <Topbar title="Place" subtitle="Edit the venue this unit is for." />
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
+            <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-10 text-center">
+              <h2 className="font-display text-xl font-semibold tracking-tight text-destructive">
+                Couldn&apos;t load your place
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                {overviewError}
+              </p>
+              <Link
+                href="/manager/place"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+              >
+                Try again
+              </Link>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (!overview || overview.venues.length === 0) {
     return (
