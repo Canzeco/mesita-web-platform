@@ -42,8 +42,14 @@ export async function authSignUpWithEmail(
   if (!email || !password) {
     return { error: "Email and password are required." };
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "That doesn't look like a valid email." };
+  }
   if (password.length < 6) {
     return { error: "Password must be at least 6 characters." };
+  }
+  if (password.length > 72) {
+    return { error: "Password is too long — keep it under 72 characters." };
   }
 
   const supabase = await createServerSupabase();
