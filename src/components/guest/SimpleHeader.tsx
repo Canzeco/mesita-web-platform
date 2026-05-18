@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CURRENT_USER, tierBadgeClass } from "@/lib/guest-data";
 
 export function SimpleHeader({
   title,
@@ -26,13 +25,6 @@ export function SimpleHeader({
             {eyebrow}
           </p>
         )}
-      </div>
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-[10px] font-bold uppercase ${tierBadgeClass(
-          CURRENT_USER.tier,
-        )}`}
-      >
-        {CURRENT_USER.tier}
       </div>
     </header>
   );
