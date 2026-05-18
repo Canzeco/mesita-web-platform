@@ -113,6 +113,10 @@ export default function PromosPage() {
       <Topbar title="Promos" subtitle={subtitle} />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-6">
+          <div className="rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary">
+            Preview — your changes here don&apos;t persist yet. The promo + segment model lands
+            after the next migration.
+          </div>
           <MasterToggle
             active={promosActive}
             onToggle={() => setPromosActive((v) => !v)}
