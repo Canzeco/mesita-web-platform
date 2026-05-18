@@ -450,7 +450,9 @@ function Pricing() {
           </div>
           <p className="max-w-sm text-sm text-muted-foreground">
             The mechanic — cashback or instant discount — is pinned by whether
-            you invoice. The plan only sets price and visibility.
+            you invoice. The plan only sets price and visibility, and is billed
+            <strong className="text-foreground"> per venue</strong>: multi-unit
+            operators pick a plan for each location.
           </p>
         </div>
 
@@ -563,7 +565,14 @@ function Pricing() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
+        <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            <span className="font-semibold text-foreground">Per-venue billing.</span>{" "}
+            One subscription per location. If you operate three venues, you
+            pick a plan for each — different plans per venue are fine
+            (one Pro, two Free). Manager accounts are free; only the venues
+            themselves are billed.
+          </p>
           <p>
             <span className="font-semibold text-foreground">Payment rail rule.</span>{" "}
             Cashback is only valid when the guest pays by card through Mesita.
