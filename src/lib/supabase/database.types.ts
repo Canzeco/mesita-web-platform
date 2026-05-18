@@ -169,12 +169,29 @@ export type Database = {
           check_subtotal_cents: number | null
           created_at: string
           currency: string
+          discount_cents: number | null
+          discount_percent: number | null
           guest_id: string
           id: string
+          kind: Database["public"]["Enums"]["ticket_kind"]
           opened_by: string
           paid_at: string | null
           redeem_cents: number | null
+          reservation_at: string | null
+          reservation_channel: string | null
+          reservation_notes: string | null
+          reservation_party_size: number | null
+          reservation_status:
+            | Database["public"]["Enums"]["reservation_status"]
+            | null
+          revealed_at: string | null
           status: Database["public"]["Enums"]["ticket_status"]
+          story_reject_reason: string | null
+          story_screenshot_url: string | null
+          story_status: Database["public"]["Enums"]["story_status"]
+          story_submitted_at: string | null
+          story_verified_at: string | null
+          story_verified_by: string | null
           tip_cents: number | null
           total_cents: number | null
           updated_at: string
@@ -188,12 +205,29 @@ export type Database = {
           check_subtotal_cents?: number | null
           created_at?: string
           currency?: string
+          discount_cents?: number | null
+          discount_percent?: number | null
           guest_id: string
           id?: string
+          kind?: Database["public"]["Enums"]["ticket_kind"]
           opened_by: string
           paid_at?: string | null
           redeem_cents?: number | null
+          reservation_at?: string | null
+          reservation_channel?: string | null
+          reservation_notes?: string | null
+          reservation_party_size?: number | null
+          reservation_status?:
+            | Database["public"]["Enums"]["reservation_status"]
+            | null
+          revealed_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          story_reject_reason?: string | null
+          story_screenshot_url?: string | null
+          story_status?: Database["public"]["Enums"]["story_status"]
+          story_submitted_at?: string | null
+          story_verified_at?: string | null
+          story_verified_by?: string | null
           tip_cents?: number | null
           total_cents?: number | null
           updated_at?: string
@@ -207,12 +241,29 @@ export type Database = {
           check_subtotal_cents?: number | null
           created_at?: string
           currency?: string
+          discount_cents?: number | null
+          discount_percent?: number | null
           guest_id?: string
           id?: string
+          kind?: Database["public"]["Enums"]["ticket_kind"]
           opened_by?: string
           paid_at?: string | null
           redeem_cents?: number | null
+          reservation_at?: string | null
+          reservation_channel?: string | null
+          reservation_notes?: string | null
+          reservation_party_size?: number | null
+          reservation_status?:
+            | Database["public"]["Enums"]["reservation_status"]
+            | null
+          revealed_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          story_reject_reason?: string | null
+          story_screenshot_url?: string | null
+          story_status?: Database["public"]["Enums"]["story_status"]
+          story_submitted_at?: string | null
+          story_verified_at?: string | null
+          story_verified_by?: string | null
           tip_cents?: number | null
           total_cents?: number | null
           updated_at?: string
@@ -229,6 +280,13 @@ export type Database = {
           {
             foreignKeyName: "tickets_opened_by_fkey"
             columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_story_verified_by_fkey"
+            columns: ["story_verified_by"]
             isOneToOne: false
             referencedRelation: "managers"
             referencedColumns: ["id"]
@@ -289,6 +347,7 @@ export type Database = {
           closes_at: string | null
           created_at: string
           facebook_url: string | null
+          fiscal_type: Database["public"]["Enums"]["venue_fiscal_type"]
           google_place_id: string | null
           id: string
           instagram_url: string | null
@@ -321,6 +380,7 @@ export type Database = {
           closes_at?: string | null
           created_at?: string
           facebook_url?: string | null
+          fiscal_type?: Database["public"]["Enums"]["venue_fiscal_type"]
           google_place_id?: string | null
           id?: string
           instagram_url?: string | null
@@ -353,6 +413,7 @@ export type Database = {
           closes_at?: string | null
           created_at?: string
           facebook_url?: string | null
+          fiscal_type?: Database["public"]["Enums"]["venue_fiscal_type"]
           google_place_id?: string | null
           id?: string
           instagram_url?: string | null
@@ -391,7 +452,38 @@ export type Database = {
       cashback_kind: "earn" | "redeem" | "expire" | "adjust"
       listing_type: "partner" | "web"
       member_role: "owner" | "manager" | "staff"
-      ticket_status: "open" | "pending_pay" | "paid" | "cancelled"
+      reservation_status:
+        | "pending"
+        | "confirmed"
+        | "declined"
+        | "no_show"
+        | "cancelled"
+      story_status:
+        | "not_required"
+        | "pending"
+        | "submitted"
+        | "ai_verified"
+        | "ai_rejected"
+        | "waiter_verified"
+        | "waiter_rejected"
+      ticket_kind:
+        | "none"
+        | "p_c"
+        | "s_p_sf_c"
+        | "r_p_c"
+        | "r_s_p_sf_c"
+        | "dp"
+        | "s_dp_sf"
+        | "r_dp"
+        | "r_s_dp_sf"
+      ticket_status:
+        | "open"
+        | "pending_pay"
+        | "paid"
+        | "cancelled"
+        | "revealed"
+        | "awaiting_story"
+      venue_fiscal_type: "formal" | "informal"
       venue_status: "lead" | "active" | "paused" | "archived"
     }
     CompositeTypes: {
@@ -526,7 +618,42 @@ export const Constants = {
       cashback_kind: ["earn", "redeem", "expire", "adjust"],
       listing_type: ["partner", "web"],
       member_role: ["owner", "manager", "staff"],
-      ticket_status: ["open", "pending_pay", "paid", "cancelled"],
+      reservation_status: [
+        "pending",
+        "confirmed",
+        "declined",
+        "no_show",
+        "cancelled",
+      ],
+      story_status: [
+        "not_required",
+        "pending",
+        "submitted",
+        "ai_verified",
+        "ai_rejected",
+        "waiter_verified",
+        "waiter_rejected",
+      ],
+      ticket_kind: [
+        "none",
+        "p_c",
+        "s_p_sf_c",
+        "r_p_c",
+        "r_s_p_sf_c",
+        "dp",
+        "s_dp_sf",
+        "r_dp",
+        "r_s_dp_sf",
+      ],
+      ticket_status: [
+        "open",
+        "pending_pay",
+        "paid",
+        "cancelled",
+        "revealed",
+        "awaiting_story",
+      ],
+      venue_fiscal_type: ["formal", "informal"],
       venue_status: ["lead", "active", "paused", "archived"],
     },
   },

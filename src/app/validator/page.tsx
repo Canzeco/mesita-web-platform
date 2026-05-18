@@ -81,6 +81,7 @@ export default async function ValidatorPage({
           id: v.id,
           name: v.name,
           cashback_percent: v.cashback_percent,
+          fiscal_type: (v as { fiscal_type?: "formal" | "informal" }).fiscal_type ?? "formal",
         }))}
         activeVenueId={overview.active?.venue.id ?? overview.venues[0].id}
         initialTickets={overview.active?.recentTickets ?? []}

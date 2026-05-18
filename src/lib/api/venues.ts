@@ -11,6 +11,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type VenueListingType = "partner" | "web";
 export type VenueStatus = "lead" | "active" | "paused" | "archived";
 
+export type FiscalType = "formal" | "informal";
+
 export type Venue = {
   id: string;
   slug: string;
@@ -20,6 +22,7 @@ export type Venue = {
   price_level: number | null;
   listing_type: VenueListingType;
   status: VenueStatus;
+  fiscal_type: FiscalType;
   lat: number | null;
   lng: number | null;
   address: string | null;
@@ -153,6 +156,7 @@ export type UpdateVenueInput = {
   vibe?: string | null;
   price_level?: number | null;
   status?: "active" | "paused" | "archived";
+  fiscal_type?: FiscalType;
   address?: string | null;
   closes_at?: string | null;
   phone?: string | null;
