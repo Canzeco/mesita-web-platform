@@ -72,9 +72,13 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
   const supabase = useMemo(() => createBrowserSupabase(), []);
 
   const [name, setName] = useState(venue.name);
-  const [status, setStatus] = useState<Status>(
-    venue.status === "lead" ? "active" : (venue.status as Status),
-  );
+  const [status, setStatus] = useState<Status>(() => {
+    // Lead venues haven't been promoted yet — surface them as Active in the
+    // form so a Save promotes them; ditto for anything unrecognised so the
+    // form never crashes on a status the schema added later than this UI.
+    const valid: Status[] = ["active", "paused", "archived"];
+    return valid.includes(venue.status as Status) ? (venue.status as Status) : "active";
+  });
   const [category, setCategory] = useState(venue.category ?? "");
   const [vibe, setVibe] = useState(venue.vibe ?? "");
   const [priceLevel, setPriceLevel] = useState(
@@ -123,6 +127,11 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
     const cashbackNum = cashbackPercent === "" ? null : Number(cashbackPercent);
     if (cashbackNum != null && (!Number.isFinite(cashbackNum) || cashbackNum < 0 || cashbackNum > 100)) {
       setError("Cashback must be between 0 and 100.");
+      return;
+    }
+    const closesAtTrim = closesAt.trim();
+    if (closesAtTrim && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(closesAtTrim)) {
+      setError("Closing time must be 24h HH:MM (e.g. 02:00).");
       return;
     }
 
