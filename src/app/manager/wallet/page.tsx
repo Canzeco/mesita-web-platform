@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -10,8 +11,17 @@ import {
 import { Topbar } from "@/components/manager/Topbar";
 import { WALLET, TRANSACTIONS } from "@/lib/manager-data";
 import { cn } from "@/lib/utils";
+import { createServerSupabase } from "@/lib/supabase/server";
 
-export default function WalletPage() {
+export const dynamic = "force-dynamic";
+
+export default async function WalletPage() {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/manager/sign-in?next=/manager/wallet");
+
   return (
     <>
       <Topbar
@@ -20,6 +30,10 @@ export default function WalletPage() {
       />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl px-6 py-6 flex flex-col gap-6">
+          <div className="rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary">
+            Preview — wallet numbers below are illustrative. Real payouts + ledger ship once
+            Stripe Connect is wired up.
+          </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="overflow-hidden rounded-2xl bg-peacock p-6 text-white shadow-glow lg:col-span-2">
               <div className="flex items-start justify-between gap-3">
