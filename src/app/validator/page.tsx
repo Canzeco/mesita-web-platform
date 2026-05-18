@@ -21,7 +21,36 @@ export default async function ValidatorPage({
 
   const params = await searchParams;
   const requestedVenue = params.venue?.toString() ?? null;
-  const overview = await getUnitOverview(supabase, requestedVenue, 30).catch(() => null);
+
+  // Distinguish "the overview call blew up" from "you have no venues" — the
+  // first case is something we want to retry, the second is an onboarding
+  // funnel. Swallowing both into the same empty-state hid real outages.
+  let overview: Awaited<ReturnType<typeof getUnitOverview>> | null = null;
+  let overviewError: string | null = null;
+  try {
+    overview = await getUnitOverview(supabase, requestedVenue, 30);
+  } catch (err) {
+    overviewError = err instanceof Error ? err.message : "Could not load your venues.";
+  }
+
+  if (overviewError) {
+    return (
+      <Shell>
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-10 text-center">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-destructive">
+            Couldn&apos;t load the console
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{overviewError}</p>
+          <Link
+            href="/validator"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+          >
+            Try again
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
 
   if (!overview || overview.venues.length === 0) {
     return (
