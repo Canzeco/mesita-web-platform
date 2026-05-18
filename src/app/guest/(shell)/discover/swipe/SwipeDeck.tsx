@@ -291,7 +291,7 @@ function VenueBackground({ venue }: { venue: Venue }) {
       <div className="absolute inset-0 bg-muted">
         <Image
           src={venue.photos[0]}
-          alt=""
+          alt={venue.name}
           fill
           sizes="(max-width: 768px) 100vw, 420px"
           className="object-cover"
