@@ -10,6 +10,7 @@ import type { Database } from "./database.types";
 const PROTECTED_PREFIXES: Array<{ prefix: string; signIn: string }> = [
   { prefix: "/manager", signIn: "/manager/sign-in" },
   { prefix: "/validator", signIn: "/manager/sign-in" },
+  { prefix: "/admin", signIn: "/manager/sign-in" },
 ];
 
 // Within a protected prefix, these subpaths stay public (sign-in / sign-up
