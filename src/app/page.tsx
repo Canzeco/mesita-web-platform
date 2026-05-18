@@ -567,6 +567,16 @@ function Pricing() {
 
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
           <p>
+            <span className="font-semibold text-foreground">Guests come pre-loaded.</span>{" "}
+            Every guest who&apos;s ever paid by card at a Formal venue carries a
+            Mesita wallet balance — and they can redeem it at <em>any</em> Formal
+            partner. The moment you flip to Pro you join that network, and
+            wallet-holding guests start showing up looking to spend what they
+            already have. Visibility brings new faces; the wallet brings
+            customers with money in pocket — pull that&apos;s independent of which
+            tier you pick.
+          </p>
+          <p>
             <span className="font-semibold text-foreground">Per-venue billing.</span>{" "}
             One subscription per location. If you operate three venues, you
             pick a plan for each — different plans per venue are fine
