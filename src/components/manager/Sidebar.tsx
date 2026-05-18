@@ -234,8 +234,8 @@ export function Sidebar({
         </nav>
 
         <div className="space-y-1 border-t border-border p-3">
-          <SidebarLink Icon={Settings} label="Settings" href="#" />
-          <SidebarLink Icon={LifeBuoy} label="Help & docs" href="#" />
+          <SidebarDisabled Icon={Settings} label="Settings" />
+          <SidebarDisabled Icon={LifeBuoy} label="Help & docs" />
 
           {user ? (
             <div className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2">
@@ -266,23 +266,24 @@ export function Sidebar({
   );
 }
 
-function SidebarLink({
+function SidebarDisabled({
   Icon,
   label,
-  href,
 }: {
   Icon: React.ComponentType<{ className?: string }>;
   label: string;
-  href: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+    <div
+      aria-disabled
+      className="flex cursor-not-allowed items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-muted-foreground/50"
     >
       <Icon className="h-4 w-4" />
-      {label}
-    </Link>
+      <span className="flex-1">{label}</span>
+      <span className="rounded-full bg-muted px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+        Soon
+      </span>
+    </div>
   );
 }
 
