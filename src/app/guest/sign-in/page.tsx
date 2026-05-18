@@ -65,6 +65,12 @@ export default async function GuestSignInPage({
             Create an account
           </Link>
         </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Forgot your password?{" "}
+          <Link href="/auth/forgot" className="font-semibold text-foreground hover:underline">
+            Reset it
+          </Link>
+        </p>
       </div>
     </MobileFrame>
   );

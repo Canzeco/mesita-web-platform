@@ -74,3 +74,20 @@ export async function authSignOut(redirectTo: string, _formData: FormData) {
   revalidatePath("/", "layout");
   redirect(redirectTo);
 }
+
+// Send a password-reset email. We always return the same friendly info string
+// (no "user not found" leak) so an attacker can't enumerate accounts.
+export async function authResetPassword(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) {
+    return { error: "Enter the email on your account." };
+  }
+  const supabase = await createServerSupabase();
+  await supabase.auth.resetPasswordForEmail(email);
+  return {
+    info: "If that email is on a Mesita account, we just sent a reset link. Check your inbox.",
+  };
+}
