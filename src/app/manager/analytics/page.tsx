@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { TrendingUp, AlertTriangle, MessageCircle } from "lucide-react";
 import { Topbar } from "@/components/manager/Topbar";
 import {
@@ -10,8 +11,17 @@ import {
 } from "@/lib/manager-data";
 import { tierBadgeClass } from "@/lib/guest-data";
 import { cn } from "@/lib/utils";
+import { createServerSupabase } from "@/lib/supabase/server";
 
-export default function AnalyticsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AnalyticsPage() {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/manager/sign-in?next=/manager/analytics");
+
   const maxFunnel = FUNNEL[0].value;
   const selected = VALIDATOR_FEED[0];
 
@@ -23,6 +33,10 @@ export default function AnalyticsPage() {
       />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col gap-6">
+          <div className="rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary">
+            Preview — these analytics are mock values. Real KPIs ship once the audit log + the
+            manager-get-analytics Edge Function are in place.
+          </div>
           {/* ---------- Top KPIs ---------- */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {ANALYTICS_KPIS.map((k) => (
