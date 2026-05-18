@@ -34,6 +34,10 @@ export default function CopilotPage() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-6 py-6">
+            <div className="mb-4 rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary">
+              Preview — Copilot replies are scripted today. Real LLM calls plug in after the
+              analytics tables land.
+            </div>
             <div className="mb-6 rounded-2xl bg-peacock p-5 text-white shadow-glow">
               <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] opacity-80">
                 <Sparkles className="h-3.5 w-3.5" />
