@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminPage() {
   return (
     <div className="flex min-h-screen flex-col">
