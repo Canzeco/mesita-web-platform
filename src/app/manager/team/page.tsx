@@ -1,14 +1,28 @@
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Plus, Phone, MessageCircle, Crown, ChevronRight } from "lucide-react";
 import { Topbar } from "@/components/manager/Topbar";
 import { TEAM, VALIDATORS } from "@/lib/manager-data";
+import { createServerSupabase } from "@/lib/supabase/server";
 
-export default function TeamPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TeamPage() {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/manager/sign-in?next=/manager/team");
+
   return (
     <>
       <Topbar title="Team" subtitle="Managers and WhatsApp validators" />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-6 py-6 flex flex-col gap-6">
+          <div className="rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary">
+            Preview — the team data below is a sketch. Real member + validator management lands
+            after the manager-list-team Edge Function is wired up.
+          </div>
           <section className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center justify-between">
               <div>
