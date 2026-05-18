@@ -449,10 +449,46 @@ function Pricing() {
             </h2>
           </div>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Mechanic is pinned by your fiscal type — Formal venues run
-            cashback, Informal venues run instant discount. The plan only sets
-            price and visibility.
+            The mechanic — cashback or instant discount — is pinned by whether
+            you invoice. The plan only sets price and visibility.
           </p>
+        </div>
+
+        {/* Self-identification block. Two side-by-side cards lay out the
+            exact criterion (do you issue an invoice on every ticket?) so a
+            venue reading the page can immediately point to the side they
+            belong on. The mechanic + plan tail then makes sense at a
+            glance. */}
+        <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
+                Formal
+              </span>
+              <p className="text-sm font-semibold">You always issue an invoice.</p>
+            </div>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Every ticket is invoiced; you charge VAT, you report to SAT. Cashback
+              fits cleanly here — it goes on your books as marketing spend, runs
+              through Mesita&apos;s card flow, and the wallet locks the guest into
+              a return visit. <strong className="text-foreground">Your mechanic is cashback.</strong>
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-tier-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                Informal
+              </span>
+              <p className="text-sm font-semibold">You usually don&apos;t invoice.</p>
+            </div>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Most tickets are paid in cash and never invoiced. Cashback would
+              force you to invoice + charge 16% VAT, which kills the deal for
+              the guest (pay 16% more upfront to recover 10% later). So instead
+              the discount is revealed and applied directly at the bill — Mesita
+              stays out of the payment flow. <strong className="text-foreground">Your mechanic is instant discount.</strong>
+            </p>
+          </div>
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
