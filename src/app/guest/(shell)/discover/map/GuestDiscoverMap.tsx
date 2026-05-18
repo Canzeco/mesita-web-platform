@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
-import { Compass, MapPin as MapPinIcon, Sparkles, Globe, Crosshair, Info } from "lucide-react";
+import { Compass, MapPin as MapPinIcon, Sparkles, Globe, Crosshair } from "lucide-react";
 import type { Venue } from "@/lib/api/venues";
-import { cn } from "@/lib/utils";
 
 // Default map centre — Monterrey, since that's the city the project is
 // shipping in first. If the geolocation permission lands we re-centre on
@@ -103,6 +102,7 @@ export function GuestDiscoverMap({
 }
 
 function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number }) {
+  const router = useRouter();
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   // Lazy init lets us reason about geolocation support up-front, before any
   // effect runs. Once mounted we move to "asking" inside the effect.
@@ -111,7 +111,6 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
   >(() =>
     typeof navigator === "undefined" || !navigator.geolocation ? "unsupported" : "idle",
   );
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 
   // Auto-request once on mount. Wrapped in an async IIFE so the setState
   // calls run via Promise microtask rather than synchronously inside the
@@ -168,7 +167,7 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
             position={{ lat: v.lat as number, lng: v.lng as number }}
             title={v.name}
             icon={venueIcon(v.listing_type === "partner")}
-            onClick={() => setSelectedVenue(v)}
+            onClick={() => router.push(`/guest/venue/${v.id}`)}
           />
         ))}
         <Recentre target={userLocation} />
@@ -200,17 +199,7 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
       )}
 
       {/* Recentre button bottom-right (visible once we have a fix) */}
-      {userLocation && (
-        <RecentreButton target={userLocation} />
-      )}
-
-      {/* Selected-venue card slides up from the bottom */}
-      {selectedVenue && (
-        <VenuePreview
-          venue={selectedVenue}
-          onClose={() => setSelectedVenue(null)}
-        />
-      )}
+      {userLocation && <RecentreButton target={userLocation} />}
     </div>
   );
 }
@@ -242,65 +231,6 @@ function RecentreButton({ target }: { target: LatLng }) {
     >
       <Crosshair className="h-4 w-4" />
     </button>
-  );
-}
-
-function VenuePreview({ venue, onClose }: { venue: Venue; onClose: () => void }) {
-  const tag =
-    venue.listing_type === "partner"
-      ? { Icon: Sparkles, label: "Partner", className: "bg-pink-gradient text-white" }
-      : { Icon: Globe, label: "Web listing", className: "bg-muted text-muted-foreground" };
-  return (
-    <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-20 overflow-hidden rounded-2xl border border-border bg-card shadow-elev">
-      <div className="relative flex items-stretch gap-3 p-3">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-2 top-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
-        >
-          Close
-        </button>
-        {venue.photos[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={venue.photos[0]}
-            alt=""
-            className="h-16 w-16 shrink-0 rounded-xl object-cover"
-          />
-        ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-pink-gradient text-white">
-            {venue.name.trim().slice(0, 1).toUpperCase() || "·"}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-semibold tracking-tight">
-            {venue.name}
-          </p>
-          <p className="truncate text-[11px] text-muted-foreground">
-            {[venue.vibe, venue.category].filter(Boolean).join(" · ") || "—"}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">
-            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold uppercase tracking-wider", tag.className)}>
-              <tag.Icon className="h-2.5 w-2.5" />
-              {tag.label}
-            </span>
-            {venue.cashback_percent != null && (
-              <span className="rounded-full bg-secondary/10 px-2 py-0.5 font-semibold text-secondary">
-                {venue.cashback_percent}% cashback
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      <Link
-        href={`/guest/venue/${venue.id}`}
-        className="flex items-center justify-center gap-2 border-t border-border bg-background py-2.5 text-xs font-semibold transition hover:bg-muted"
-      >
-        <Info className="h-3.5 w-3.5" />
-        View details
-      </Link>
-    </div>
   );
 }
 
