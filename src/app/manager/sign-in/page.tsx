@@ -10,14 +10,28 @@ export const dynamic = "force-dynamic";
 
 const MANAGER_AFTER_AUTH = "/manager";
 
-export default async function ManagerSignInPage() {
+// Honour a ?next= path so deep links land where the user was headed instead
+// of dumping everyone on /manager. Only same-origin paths are accepted —
+// anything that doesn't start with "/" is dropped to avoid open-redirect
+// abuse.
+function safeNext(raw: string | undefined): string {
+  if (!raw) return MANAGER_AFTER_AUTH;
+  return raw.startsWith("/") && !raw.startsWith("//") ? raw : MANAGER_AFTER_AUTH;
+}
+
+export default async function ManagerSignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect(MANAGER_AFTER_AUTH);
+  const next = safeNext((await searchParams).next);
+  if (user) redirect(next);
 
-  const action = authSignInWithEmail.bind(null, MANAGER_AFTER_AUTH);
+  const action = authSignInWithEmail.bind(null, next);
 
   return (
     <div className="flex h-full w-full items-center justify-center p-6">
@@ -41,7 +55,7 @@ export default async function ManagerSignInPage() {
           action={action}
           submitLabel="Sign in"
           passwordAutoComplete="current-password"
-          redirectAfter={MANAGER_AFTER_AUTH}
+          redirectAfter={next}
         />
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
