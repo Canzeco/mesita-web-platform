@@ -12,6 +12,12 @@ export type VenueListingType = "partner" | "web";
 export type VenueStatus = "lead" | "active" | "paused" | "archived";
 
 export type FiscalType = "formal" | "informal";
+export type VenuePlan =
+  | "free"
+  | "formal_pro"
+  | "formal_ultra"
+  | "informal_pro"
+  | "informal_ultra";
 
 export type Venue = {
   id: string;
@@ -23,6 +29,7 @@ export type Venue = {
   listing_type: VenueListingType;
   status: VenueStatus;
   fiscal_type: FiscalType;
+  plan: VenuePlan;
   lat: number | null;
   lng: number | null;
   address: string | null;
@@ -192,6 +199,7 @@ export type UpdateVenueInput = {
   price_level?: number | null;
   status?: "active" | "paused" | "archived";
   fiscal_type?: FiscalType;
+  plan?: VenuePlan;
   address?: string | null;
   closes_at?: string | null;
   phone?: string | null;

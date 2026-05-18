@@ -446,6 +446,13 @@ function NewTicketCard({
         </span>
       </div>
 
+      {isFormal && (
+        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-[11px] font-medium text-destructive">
+          <AlertTriangle className="h-3 w-3" />
+          Cashback only lands if the guest pays by card via Mesita. Cash at the
+          table = no cashback.
+        </p>
+      )}
       {hasReservation && (
         <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-medium text-secondary">
           <Calendar className="h-3 w-3" />

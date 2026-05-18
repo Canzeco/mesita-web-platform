@@ -36,7 +36,7 @@ const NAV: NavItem[] = [
   // it's an abstract over the rest. Place is the active workspace for now.
   { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true, disabled: true },
   { href: "/manager/place", label: "Place", Icon: Store },
-  { href: "/manager/promos", label: "Promos", Icon: Megaphone, disabled: true },
+  { href: "/manager/promos", label: "Promos", Icon: Megaphone },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
   { href: "/manager/wallet", label: "Wallet", Icon: Wallet, disabled: true },
   { href: "/manager/team", label: "Team", Icon: Users, disabled: true },
