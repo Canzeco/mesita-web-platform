@@ -2,8 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
-import { Compass, MapPin as MapPinIcon, Sparkles, Globe, Crosshair } from "lucide-react";
+import {
+  Compass,
+  MapPin as MapPinIcon,
+  Sparkles,
+  Globe,
+  Crosshair,
+  X,
+  ChevronRight,
+} from "lucide-react";
 import type { Venue } from "@/lib/api/venues";
 
 // Default map centre — Monterrey, since that's the city the project is
@@ -104,6 +113,9 @@ export function GuestDiscoverMap({
 function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number }) {
   const router = useRouter();
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  // Tapped marker — drives the bottom preview card. Clicking the card
+  // navigates to /guest/venue/[id]; tapping the close pill clears it.
+  const [selected, setSelected] = useState<Venue | null>(null);
   // Lazy init lets us reason about geolocation support up-front, before any
   // effect runs. Once mounted we move to "asking" inside the effect.
   const [locationStatus, setLocationStatus] = useState<
@@ -167,10 +179,15 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
             position={{ lat: v.lat as number, lng: v.lng as number }}
             title={v.name}
             icon={venueIcon(v.listing_type === "partner")}
-            onClick={() => router.push(`/guest/venue/${v.id}`)}
+            onClick={() => setSelected(v)}
           />
         ))}
         <Recentre target={userLocation} />
+        {selected && (
+          <PanToSelected
+            target={{ lat: selected.lat as number, lng: selected.lng as number }}
+          />
+        )}
       </Map>
 
       {/* Top overlay: counts + legend */}
@@ -198,8 +215,128 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
         </div>
       )}
 
-      {/* Recentre button bottom-right (visible once we have a fix) */}
-      {userLocation && <RecentreButton target={userLocation} />}
+      {/* Recentre button bottom-right — pushed up when a preview card is open
+          so they don't collide. */}
+      {userLocation && <RecentreButton target={userLocation} raised={!!selected} />}
+
+      {/* Bottom preview card. Tap the card to open the full venue page, or
+          the X to dismiss. */}
+      {selected && (
+        <VenuePreview
+          venue={selected}
+          onDismiss={() => setSelected(null)}
+          onOpen={() => router.push(`/guest/venue/${selected.id}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+function PanToSelected({ target }: { target: LatLng }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    // Bias the pan so the marker sits roughly above the preview card.
+    map.panTo(target);
+    if ((map.getZoom() ?? DEFAULT_ZOOM) < USER_ZOOM) {
+      map.setZoom(USER_ZOOM);
+    }
+  }, [map, target]);
+  return null;
+}
+
+function VenuePreview({
+  venue,
+  onDismiss,
+  onOpen,
+}: {
+  venue: Venue;
+  onDismiss: () => void;
+  onOpen: () => void;
+}) {
+  const photo = venue.photos[0];
+  const subtitle = [venue.vibe, venue.category]
+    .filter(Boolean)
+    .join(" · ")
+    .toLowerCase();
+  const meta = [
+    venue.price_level != null ? "$".repeat(venue.price_level) : null,
+    venue.closes_at ? `until ${venue.closes_at}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <div className="pointer-events-none absolute inset-x-3 bottom-4 z-20">
+      <div className="pointer-events-auto relative flex items-stretch gap-3 overflow-hidden rounded-2xl border border-border bg-card shadow-elev">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex flex-1 items-center gap-3 p-2 text-left transition active:opacity-80"
+        >
+          <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+            {photo ? (
+              <Image
+                src={photo}
+                alt={venue.name}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            ) : (
+              <span className="absolute inset-0 flex items-center justify-center bg-pink-gradient text-base font-bold text-white">
+                {venue.name[0]?.toUpperCase() ?? "·"}
+              </span>
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5">
+              <span className="truncate font-display text-[15px] font-semibold leading-tight tracking-tight">
+                {venue.name}
+              </span>
+              {venue.listing_type === "partner" ? (
+                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-tier-gold/95 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-black">
+                  <Sparkles className="h-2 w-2" />
+                  Verified
+                </span>
+              ) : (
+                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Globe className="h-2 w-2" />
+                  Web
+                </span>
+              )}
+            </span>
+            {subtitle && (
+              <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                {subtitle}
+              </span>
+            )}
+            {(meta ||
+              (venue.listing_type === "partner" &&
+                venue.cashback_percent != null &&
+                venue.cashback_percent > 0)) && (
+              <span className="mt-0.5 flex items-center gap-2 text-[11px]">
+                {meta && <span className="text-muted-foreground">{meta}</span>}
+                {venue.listing_type === "partner" &&
+                  venue.cashback_percent != null &&
+                  venue.cashback_percent > 0 && (
+                    <span className="rounded-full bg-pink-gradient px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                      {venue.cashback_percent}% back
+                    </span>
+                  )}
+              </span>
+            )}
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Close preview"
+          className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground transition hover:text-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -216,7 +353,7 @@ function Recentre({ target }: { target: LatLng | null }) {
   return null;
 }
 
-function RecentreButton({ target }: { target: LatLng }) {
+function RecentreButton({ target, raised = false }: { target: LatLng; raised?: boolean }) {
   const map = useMap();
   return (
     <button
@@ -227,7 +364,9 @@ function RecentreButton({ target }: { target: LatLng }) {
         map.setZoom(USER_ZOOM);
       }}
       aria-label="Centre map on me"
-      className="absolute bottom-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-card text-foreground shadow-elev transition hover:bg-muted"
+      className={`absolute right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-card text-foreground shadow-elev transition hover:bg-muted ${
+        raised ? "bottom-28" : "bottom-4"
+      }`}
     >
       <Crosshair className="h-4 w-4" />
     </button>
