@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  APIProvider,
-  Map,
-  AdvancedMarker,
-  Pin,
-  useMap,
-} from "@vis.gl/react-google-maps";
+import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
 import { Compass, MapPin as MapPinIcon, Sparkles, Globe, Crosshair, Info } from "lucide-react";
 import type { Venue } from "@/lib/api/venues";
 import { cn } from "@/lib/utils";
@@ -20,11 +14,52 @@ const DEFAULT_CENTER = { lat: 25.6714, lng: -100.3094 };
 const DEFAULT_ZOOM = 13;
 const USER_ZOOM = 14;
 
-// Pin colours — the visual gate between Mesita partners and scraped web
-// listings. Tied to the design tokens via raw hex so Google Maps can use
-// them; close enough to the brand palette.
-const PARTNER_PIN = { background: "#E91E63", glyphColor: "#ffffff", borderColor: "#9c1148" };
-const WEB_PIN = { background: "#9ca3af", glyphColor: "#ffffff", borderColor: "#4b5563" };
+// Marker colours — the visual gate between Mesita partners and scraped web
+// listings. Close enough to the brand palette.
+const PARTNER_COLOR = "#E91E63";
+const WEB_COLOR = "#9ca3af";
+
+// Minimalist map styling — turns off every POI Google would otherwise draw
+// (restaurants, hospitals, schools, transit stops…) so our own venue pins
+// are the only things on the canvas. Roads + locality labels stay so the
+// map is still navigable. Inline styles work because we don't pass a
+// mapId; switching to a cloud-based Map Style would override these.
+const MINIMAL_STYLES = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { featureType: "road.local", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "water", stylers: [{ color: "#e9f1f7" }] },
+  { featureType: "landscape", stylers: [{ color: "#f7f2ec" }] },
+  { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
+  { featureType: "administrative.neighborhood", stylers: [{ visibility: "off" }] },
+] as const;
+
+// SVG circle path. Both venue markers + the user dot use this; we just
+// swap fill colour. Path-symbols don't need google.maps.Size/Point so we
+// can declare them up-front instead of waiting for the SDK to load.
+const CIRCLE_PATH =
+  "M -12 0 A 12 12 0 1 0 12 0 A 12 12 0 1 0 -12 0";
+
+function venueIcon(isPartner: boolean) {
+  return {
+    path: CIRCLE_PATH,
+    fillColor: isPartner ? PARTNER_COLOR : WEB_COLOR,
+    fillOpacity: 1,
+    strokeColor: "#ffffff",
+    strokeWeight: 2.5,
+    scale: 1,
+  };
+}
+
+const USER_ICON = {
+  path: "M -6 0 A 6 6 0 1 0 6 0 A 6 6 0 1 0 -6 0",
+  fillColor: "#2563eb",
+  fillOpacity: 1,
+  strokeColor: "#ffffff",
+  strokeWeight: 3,
+  scale: 1,
+};
 
 type LatLng = { lat: number; lng: number };
 
@@ -61,7 +96,7 @@ export function GuestDiscoverMap({
   }
 
   return (
-    <APIProvider apiKey={apiKey} libraries={["marker"]}>
+    <APIProvider apiKey={apiKey}>
       <MapView venues={venues} totalVenues={totalVenues} />
     </APIProvider>
   );
@@ -114,7 +149,6 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
   return (
     <div className="relative flex h-full flex-col">
       <Map
-        mapId="mesita-guest-discover"
         defaultCenter={center}
         defaultZoom={zoom}
         gestureHandling="greedy"
@@ -123,24 +157,19 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
         reuseMaps
         className="absolute inset-0 h-full w-full"
         colorScheme="LIGHT"
+        styles={MINIMAL_STYLES as unknown as Parameters<typeof Map>[0]["styles"]}
       >
         {userLocation && (
-          <AdvancedMarker position={userLocation} title="You're here">
-            <span className="relative flex h-4 w-4 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500/60" />
-              <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-blue-500" />
-            </span>
-          </AdvancedMarker>
+          <Marker position={userLocation} title="You're here" icon={USER_ICON} clickable={false} />
         )}
         {venues.map((v) => (
-          <AdvancedMarker
+          <Marker
             key={v.id}
             position={{ lat: v.lat as number, lng: v.lng as number }}
             title={v.name}
+            icon={venueIcon(v.listing_type === "partner")}
             onClick={() => setSelectedVenue(v)}
-          >
-            <Pin {...(v.listing_type === "partner" ? PARTNER_PIN : WEB_PIN)} />
-          </AdvancedMarker>
+          />
         ))}
         <Recentre target={userLocation} />
       </Map>
@@ -152,10 +181,10 @@ function MapView({ venues, totalVenues }: { venues: Venue[]; totalVenues: number
           {venues.length} of {totalVenues} near here
         </div>
         <div className="pointer-events-auto flex flex-col gap-1 rounded-2xl bg-card/95 p-2 text-[10px] font-semibold text-foreground shadow-sm backdrop-blur">
-          <LegendDot color={PARTNER_PIN.background} icon={<Sparkles className="h-2.5 w-2.5" />}>
+          <LegendDot color={PARTNER_COLOR} icon={<Sparkles className="h-2.5 w-2.5" />}>
             Partner
           </LegendDot>
-          <LegendDot color={WEB_PIN.background} icon={<Globe className="h-2.5 w-2.5" />}>
+          <LegendDot color={WEB_COLOR} icon={<Globe className="h-2.5 w-2.5" />}>
             Web listing
           </LegendDot>
         </div>
