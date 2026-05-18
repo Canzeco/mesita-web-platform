@@ -406,7 +406,7 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
               <li key={`${src}-${idx}`} className="group relative overflow-hidden rounded-xl border border-border bg-muted">
                 <div className="aspect-[4/3] w-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt={`${name || "Venue"} photo ${idx + 1}`} className="h-full w-full object-cover" />
                 </div>
                 {idx === 0 && (
                   <span className="absolute left-2 top-2 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background">
