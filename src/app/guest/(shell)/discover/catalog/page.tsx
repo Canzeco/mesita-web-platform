@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Globe } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { apiFetchPublicVenues, type Venue } from "@/lib/api/venues";
+import { PartnerBadge } from "@/components/shared/PartnerBadge";
+import { RatePill } from "@/components/shared/RatePill";
 
 export const dynamic = "force-dynamic";
 
@@ -114,24 +115,15 @@ function CatalogCard({ venue }: { venue: Venue }) {
           </div>
         )}
         <div className="absolute left-2 top-2 flex items-center gap-1.5">
-          {venue.listing_type === "partner" ? (
-            <>
-              <span className="inline-flex items-center gap-1 rounded-full bg-tier-gold/95 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-black shadow-sm">
-                <Sparkles className="h-2.5 w-2.5" />
-                Verified
-              </span>
-              {venue.cashback_percent != null && venue.cashback_percent > 0 && (
-                <span className="rounded-full bg-pink-gradient px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
-                  {venue.cashback_percent}% back
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm">
-              <Globe className="h-2.5 w-2.5" />
-              Web
-            </span>
-          )}
+          <PartnerBadge listingType={venue.listing_type} />
+          {venue.listing_type === "partner" &&
+            venue.cashback_percent != null &&
+            venue.cashback_percent > 0 && (
+              <RatePill
+                percent={venue.cashback_percent}
+                mechanic={venue.fiscal_type === "informal" ? "discount" : "cashback"}
+              />
+            )}
         </div>
       </div>
       <div className="p-3.5">

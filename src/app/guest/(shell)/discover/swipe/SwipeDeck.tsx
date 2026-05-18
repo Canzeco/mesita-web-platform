@@ -7,14 +7,15 @@ import {
   Info,
   X,
   Ticket,
-  Sparkles,
   Heart,
-  Globe,
   Calendar,
   Star,
+  Sparkles,
   Compass,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/guest/ImageCarousel";
+import { PartnerBadge } from "@/components/shared/PartnerBadge";
+import { RatePill } from "@/components/shared/RatePill";
 import { cn } from "@/lib/utils";
 import type { Venue } from "@/lib/api/venues";
 
@@ -371,26 +372,13 @@ function CardOverlay({ venue, hrefInfo }: { venue: Venue; hrefInfo?: string }) {
             New
           </span>
         )}
-        {venue.listing_type === "partner" ? (
-          <>
-            {venue.cashback_percent != null && (
-              <span className="rounded-full bg-pink-gradient px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm">
-                {venue.cashback_percent}% cashback
-              </span>
-            )}
-            <span
-              className="inline-flex items-center gap-1 rounded-full bg-tier-gold/95 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-sm"
-              aria-label="Verified partner"
-            >
-              <Sparkles className="h-3 w-3" />
-              Verified
-            </span>
-          </>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
-            <Globe className="h-3 w-3" />
-            Web listing
-          </span>
+        <PartnerBadge listingType={venue.listing_type} size="md" />
+        {venue.listing_type === "partner" && venue.cashback_percent != null && venue.cashback_percent > 0 && (
+          <RatePill
+            percent={venue.cashback_percent}
+            mechanic={venue.fiscal_type === "informal" ? "discount" : "cashback"}
+            size="md"
+          />
         )}
       </div>
     </div>
