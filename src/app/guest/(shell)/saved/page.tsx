@@ -22,6 +22,13 @@ export default function SavedPage() {
     <div className="relative flex h-full flex-col">
       <SimpleHeader title="Mesita" eyebrow="Reservations & Coupons" />
 
+      <div className="px-4 pt-3">
+        <p className="rounded-xl bg-secondary/10 px-3 py-2 text-[11px] text-secondary">
+          Preview — reservations and coupons aren&apos;t connected to the backend yet. The flow
+          below is a sketch of what&apos;s coming.
+        </p>
+      </div>
+
       <div className="px-4 pt-4">
         <div className="flex rounded-full border border-border bg-card p-1">
           <TabButton
