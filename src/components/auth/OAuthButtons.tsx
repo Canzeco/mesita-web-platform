@@ -23,7 +23,13 @@ export function OAuthButtons({ redirectAfter }: { redirectAfter: string }) {
           options: { redirectTo },
         });
         if (oauthError) {
-          setError(`${oauthError.message} (enable ${provider} in Supabase → Auth → Providers)`);
+          // Most common failure today is "provider not enabled" — translate
+          // to something a guest can actually act on (email instead) rather
+          // than leaking Supabase admin paths.
+          const friendly = /not enabled|provider/i.test(oauthError.message)
+            ? `${provider === "google" ? "Google" : "Apple"} sign-in isn't available right now. Use email and password below.`
+            : oauthError.message;
+          setError(friendly);
           setActiveProvider(null);
         }
         // On success the browser is redirected to the provider; no further work here.
