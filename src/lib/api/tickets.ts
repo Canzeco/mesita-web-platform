@@ -11,6 +11,9 @@ export type GuestProfile = {
   id: string;
   code: string;
   full_name: string | null;
+  sex: string | null;
+  birthday: string | null;
+  country: string | null;
   phone: string | null;
   cashback_balance_cents: number;
 };

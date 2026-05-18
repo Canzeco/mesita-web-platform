@@ -48,7 +48,7 @@ export function Sidebar({
   user,
 }: {
   venues: MyVenue[];
-  user: { email: string | null } | null;
+  user: { email: string | null; fullName: string | null } | null;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -240,10 +240,12 @@ export function Sidebar({
           {user ? (
             <div className="mt-1 flex items-center gap-3 rounded-2xl px-2 py-2">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-gradient text-sm font-bold text-white">
-                {emailInitial(user.email)}
+                {personInitial(user.fullName, user.email)}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{accountLabel(user.email)}</p>
+                <p className="truncate text-sm font-semibold">
+                  {user.fullName ?? accountLabel(user.email)}
+                </p>
                 <p className="truncate text-[11px] text-muted-foreground">{user.email ?? ""}</p>
               </div>
               <SignOutButton
@@ -357,8 +359,11 @@ function venueSubtitle(v: MyVenue): string {
   return v.address ?? "—";
 }
 
-function emailInitial(email: string | null): string {
-  return email?.trim().slice(0, 1).toUpperCase() || "?";
+// Prefer the manager's own name over the email local-part for the avatar
+// initial — once they've onboarded, their initial should match their face.
+function personInitial(fullName: string | null, email: string | null): string {
+  const source = (fullName ?? email ?? "").trim();
+  return source.slice(0, 1).toUpperCase() || "?";
 }
 
 function accountLabel(email: string | null): string {
