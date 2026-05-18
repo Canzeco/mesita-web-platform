@@ -24,6 +24,7 @@ export type Venue = {
   lng: number | null;
   address: string | null;
   closes_at: string | null;
+  phone: string | null;
   pitch: string | null;
   story: string | null;
   cashback_percent: number | null;
@@ -41,7 +42,6 @@ export type Venue = {
 };
 
 export type MyVenue = Venue & {
-  phone: string | null;
   my_role: "owner" | "manager" | "staff";
   updated_at?: string;
 };
@@ -62,6 +62,7 @@ export type EnrichmentReport = {
 };
 
 type ListResponse = { ok: true; venues: Venue[] } | { ok: false; error: string };
+type GetResponse = { ok: true; venue: Venue } | { ok: false; error: string };
 type AutocompleteResponse =
   | { ok: true; predictions: PlacePrediction[] }
   | { ok: false; error: string };
@@ -83,6 +84,27 @@ export async function apiFetchPublicVenues(
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error(data?.error ?? "venues-list failed");
   return data.venues.map(stripInsecurePhotos);
+}
+
+export async function apiGetVenue(
+  client: SupabaseClient,
+  idOrSlug: string,
+): Promise<Venue | null> {
+  const { data, error } = await client.functions.invoke<GetResponse>("guest-get-venue", {
+    body: looksLikeUuid(idOrSlug) ? { id: idOrSlug } : { slug: idOrSlug },
+  });
+  if (error) {
+    // 404 surfaces here as a FunctionsHttpError; treat as "not found" rather
+    // than throwing so the page can show a friendly empty state.
+    if (/404/.test(error.message)) return null;
+    throw new Error(error.message);
+  }
+  if (!data?.ok) return null;
+  return stripInsecurePhotos(data.venue);
+}
+
+function looksLikeUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 // Older venue rows may contain http:// photos (e.g. an old website scrape).
