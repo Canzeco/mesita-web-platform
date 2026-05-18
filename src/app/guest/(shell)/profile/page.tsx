@@ -51,6 +51,13 @@ export default function ProfilePage() {
     <div className="flex h-full flex-col">
       <SimpleHeader title="Mesita" eyebrow="Profile" />
 
+      <div className="px-5 pt-3">
+        <p className="rounded-xl bg-secondary/10 px-3 py-2 text-[11px] text-secondary">
+          Preview — tier, communities, achievements and the transactions feed below are mock
+          values. Your real cashback balance lives on /qr.
+        </p>
+      </div>
+
       <div className="px-5 pt-5">
         <div className="flex items-center gap-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-card">
