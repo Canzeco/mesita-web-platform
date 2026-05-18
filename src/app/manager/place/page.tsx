@@ -72,7 +72,7 @@ export default async function ManagerPlacePage({
                 Create your first venue, then come back here to fine-tune it.
               </p>
               <Link
-                href="/manager/venues/new"
+                href="/manager/create_unit"
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />

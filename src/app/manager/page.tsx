@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 
-// The dashboard view is intentionally not built yet — it's the "abstract"
-// summary that depends on every other surface having shipped first. Until
-// then, hitting /manager forwards to the active workspace (Place).
+// /manager is the bare entry; the actual dashboard lives at
+// /manager/console. Forwarding here means deep links to /manager and
+// /manager?unit=<id> both end up at the console (the unit param
+// survives the bounce).
 export const dynamic = "force-dynamic";
 
 export default async function ManagerIndexPage({
@@ -12,5 +13,5 @@ export default async function ManagerIndexPage({
 }) {
   const params = await searchParams;
   const unit = params.unit?.toString();
-  redirect(unit ? `/manager/place?unit=${unit}` : "/manager/place");
+  redirect(unit ? `/manager/console?unit=${unit}` : "/manager/console");
 }

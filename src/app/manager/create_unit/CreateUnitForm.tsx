@@ -16,7 +16,7 @@ const SEARCH_DEBOUNCE_MS = 220;
 
 type Selection = PlacePrediction;
 
-export function CreateVenueForm() {
+export function CreateUnitForm() {
   const router = useRouter();
   const supabase = useSingletonClient();
 
@@ -115,7 +115,7 @@ export function CreateVenueForm() {
         // just created — without ?unit= they'd be dropped on the first venue
         // alphabetically, which is confusing when they have several.
         window.setTimeout(() => {
-          router.push(`/manager/place?unit=${venue.id}`);
+          router.push(`/manager/console?unit=${venue.id}`);
           router.refresh();
         }, 600);
       } catch (err) {

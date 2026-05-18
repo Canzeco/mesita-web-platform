@@ -17,27 +17,27 @@ type ProfileRes =
   | { ok: true; manager: ManagerProfile }
   | { ok: false; error: string };
 
-export async function apiFetchManagerProfile(
+export async function apiGetManagerProfile(
   client: SupabaseClient,
 ): Promise<ManagerProfile> {
   const { data, error } = await client.functions.invoke<ProfileRes>(
-    "manager-profile",
+    "manager-get-profile",
     { body: {} },
   );
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-profile failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-get-profile failed");
   return data.manager;
 }
 
-export async function apiUpdateManagerProfile(
+export async function apiCreateManagerProfile(
   client: SupabaseClient,
   input: { full_name?: string | null; phone?: string | null },
 ): Promise<ManagerProfile> {
   const { data, error } = await client.functions.invoke<ProfileRes>(
-    "manager-update-profile",
+    "manager-create-profile",
     { body: input },
   );
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-update-profile failed");
+  if (!data?.ok) throw new Error(data?.error ?? "manager-create-profile failed");
   return data.manager;
 }

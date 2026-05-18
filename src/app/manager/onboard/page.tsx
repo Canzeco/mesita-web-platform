@@ -5,7 +5,7 @@ import { ManagerOnboardForm } from "./ManagerOnboardForm";
 
 // Manager onboarding — captures the manager's own name + phone after
 // signup. Distinct from venue creation; this is about the *person*, the
-// venue gets its own wizard step at /manager/venues/new.
+// venue gets its own wizard step at /manager/create_unit.
 //
 // Auth gate already runs in middleware; we still grab the email so the
 // onboard form can show "Hi, you@…" while the user fills in the rest.

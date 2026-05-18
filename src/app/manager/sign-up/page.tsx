@@ -9,7 +9,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 // New managers go straight into onboard so they tell us their name + phone
-// before they see the dashboard. Onboard then forwards to /manager/venues/new
+// before they see the dashboard. Onboard then forwards to /manager/create_unit
 // for the venue creation step.
 const MANAGER_AFTER_SIGNUP = "/manager/onboard";
 

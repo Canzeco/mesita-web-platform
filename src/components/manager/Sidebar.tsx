@@ -32,9 +32,9 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  // Dashboard is intentionally disabled until the underlying surfaces ship —
-  // it's an abstract over the rest. Place is the active workspace for now.
-  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true, disabled: true },
+  // Console is the dashboard root. Branches by venue count (0 / 1 / N)
+  // and links into Place / Promos / Validator for the deep work.
+  { href: "/manager/console", label: "Console", Icon: LayoutDashboard },
   { href: "/manager/place", label: "Place", Icon: Store },
   { href: "/manager/promos", label: "Promos", Icon: Megaphone },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
@@ -178,7 +178,7 @@ export function Sidebar({
                     </Link>
                   ))}
                   <Link
-                    href="/manager/venues/new"
+                    href="/manager/create_unit"
                     onClick={() => {
                       setUnitPickerOpen(false);
                       closeDrawer();
@@ -332,7 +332,7 @@ function UnitAvatar({ name }: { name: string }) {
 }
 
 function EmptyUnitTrigger({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const href = isAuthenticated ? "/manager/venues/new" : "/manager/sign-in";
+  const href = isAuthenticated ? "/manager/create_unit" : "/manager/sign-in";
   return (
     <Link
       href={href}

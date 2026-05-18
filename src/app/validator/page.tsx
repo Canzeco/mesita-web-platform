@@ -64,7 +64,7 @@ export default async function ValidatorPage({
             come back to open tickets.
           </p>
           <Link
-            href="/manager/venues/new"
+            href="/manager/create_unit"
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
           >
             Onboard your venue

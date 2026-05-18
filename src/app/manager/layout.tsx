@@ -1,7 +1,7 @@
 import { Sidebar } from "@/components/manager/Sidebar";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getUnitOverview } from "@/lib/api/unit";
-import { apiFetchManagerProfile, type ManagerProfile } from "@/lib/api/manager";
+import { apiGetManagerProfile, type ManagerProfile } from "@/lib/api/manager";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function ManagerLayout({
   if (user) {
     const [overviewResult, profileResult] = await Promise.allSettled([
       getUnitOverview(supabase, null, 0),
-      apiFetchManagerProfile(supabase),
+      apiGetManagerProfile(supabase),
     ]);
     if (overviewResult.status === "fulfilled") {
       overview = overviewResult.value;
