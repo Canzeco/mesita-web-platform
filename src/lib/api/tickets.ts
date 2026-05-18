@@ -13,6 +13,37 @@ export type GuestProfile = {
   cashback_balance_cents: number;
 };
 
+export type GuestOnboardingInput = {
+  full_name: string;
+  sex: "male" | "female" | "other";
+  birthday: string; // YYYY-MM-DD
+  country: string;
+  phone: string;
+};
+
+export type GuestFullProfile = GuestProfile & {
+  sex: string | null;
+  birthday: string | null;
+  country: string | null;
+};
+
+type UpdateGuestProfileRes =
+  | { ok: true; guest: GuestFullProfile }
+  | { ok: false; error: string; code?: string };
+
+export async function apiUpdateGuestProfile(
+  client: SupabaseClient,
+  input: GuestOnboardingInput,
+): Promise<GuestFullProfile> {
+  const { data, error } = await client.functions.invoke<UpdateGuestProfileRes>(
+    "guest-update-profile",
+    { body: input },
+  );
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "guest-update-profile failed");
+  return data.guest;
+}
+
 export type TicketStatus = "open" | "pending_pay" | "paid" | "cancelled";
 
 export type Ticket = {

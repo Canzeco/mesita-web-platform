@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { MobileFrame } from "@/components/guest/MobileFrame";
 import { StatusBar } from "@/components/guest/StatusBar";
 import { AppSwitcher } from "@/components/AppSwitcher";
 import { COUNTRIES } from "@/lib/guest-data";
+import { createBrowserSupabase } from "@/lib/supabase/browser";
+import { apiUpdateGuestProfile } from "@/lib/api/tickets";
 
 const INPUT =
   "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
@@ -28,6 +30,7 @@ function Field({
 
 export default function OnboardPage() {
   const router = useRouter();
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const [name, setName] = useState("");
   const [sex, setSex] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -43,10 +46,27 @@ export default function OnboardPage() {
       setError("Please complete all required fields");
       return;
     }
+    if (sex !== "male" && sex !== "female" && sex !== "other") {
+      setError("Pick a sex from the list.");
+      return;
+    }
     setLoading(true);
-    window.setTimeout(() => {
-      router.push("/guest/discover/swipe");
-    }, 500);
+    void (async () => {
+      try {
+        await apiUpdateGuestProfile(supabase, {
+          full_name: name.trim(),
+          sex,
+          birthday,
+          country: country.trim(),
+          phone: phone.trim(),
+        });
+        router.push("/guest/discover/swipe");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Couldn't save. Try again.");
+        setLoading(false);
+      }
+    })();
   };
 
   return (
