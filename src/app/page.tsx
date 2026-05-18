@@ -69,6 +69,9 @@ function Hero() {
         <p className="max-w-2xl text-lg text-muted-foreground md:text-xl">
           Mesita brings together every bar, café, restaurant, and club in your city, recommends where to go tonight, books for you with an AI agent, and pays you cashback when you pay through the app.
         </p>
+        <p className="max-w-xl font-display text-base italic tracking-tight text-foreground md:text-lg">
+          Some guests are part of the product.
+        </p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/guest"
