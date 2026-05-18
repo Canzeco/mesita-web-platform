@@ -22,5 +22,8 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : "/"}`);
+  // Same-origin only. `//host/path` is a protocol-relative redirect — let
+  // anyone craft a callback URL that bounces the freshly-authed user offsite.
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return NextResponse.redirect(`${origin}${safeNext}`);
 }
