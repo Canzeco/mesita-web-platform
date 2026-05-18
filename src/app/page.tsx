@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Flame, LayoutDashboard, ScanLine, ShieldCheck } from "lucide-react";
 
@@ -58,7 +59,7 @@ function Nav() {
 function Hero() {
   return (
     <section className="border-b border-border">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-24 text-center md:py-32">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 pb-12 pt-20 text-center md:pb-16 md:pt-28">
         <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
           Smart hospitality · Made in Monterrey
         </span>
@@ -85,6 +86,18 @@ function Hero() {
         <p className="text-xs text-muted-foreground">
           No hardware. No POS. Setup in ~10 minutes.
         </p>
+
+        <figure className="mt-8 w-full overflow-hidden rounded-3xl border border-border shadow-elev md:mt-12">
+          <Image
+            src="/landing-hero.jpg"
+            alt="Tacos and a mesita-branded drink on a rooftop with the Cerro de la Silla and Monterrey skyline behind"
+            width={1540}
+            height={1021}
+            priority
+            sizes="(max-width: 1024px) 100vw, 1100px"
+            className="h-auto w-full"
+          />
+        </figure>
       </div>
     </section>
   );
