@@ -185,10 +185,19 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
   const addPhoto = () => {
     const url = newPhotoUrl.trim();
     if (!url) return;
+    let parsed: URL;
     try {
-      new URL(url);
+      parsed = new URL(url);
     } catch {
       setError("Photo URL must be a valid https:// link.");
+      return;
+    }
+    if (parsed.protocol !== "https:") {
+      setError("Photo URL must use https:// (Next.js Image refuses http://).");
+      return;
+    }
+    if (photos.includes(url)) {
+      setError("That photo is already in the list.");
       return;
     }
     setError(null);
