@@ -192,8 +192,14 @@ function Deck({ venues }: { venues: Venue[] }) {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onLostPointerCapture={onLostPointerCapture}
+          // Block the browser's default HTML5 drag (image ghost, link drag).
+          // Even with draggable={false} on the <Image> inside, vertical
+          // pointer movement on mouse devices can still kick off a native
+          // drag from descendant elements. Cancelling at the swipe card
+          // root catches everything.
+          onDragStart={(e) => e.preventDefault()}
           className={cn(
-            "absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card shadow-elev select-none touch-none",
+            "absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card shadow-elev select-none touch-none [-webkit-user-drag:none] [-webkit-touch-callout:none]",
             !dragging && "transition-[transform,opacity] duration-300 ease-out",
             isSwiping && "cursor-grabbing",
             exiting && "pointer-events-none",
@@ -294,7 +300,8 @@ function VenueBackground({ venue }: { venue: Venue }) {
           alt={venue.name}
           fill
           sizes="(max-width: 768px) 100vw, 420px"
-          className="object-cover"
+          draggable={false}
+          className="object-cover select-none [-webkit-user-drag:none]"
         />
       </div>
     );

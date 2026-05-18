@@ -137,7 +137,8 @@ export function ImageCarousel({
                 fill
                 sizes={sizes}
                 priority={priority && i === 0}
-                className="object-cover"
+                draggable={false}
+                className="object-cover select-none [-webkit-user-drag:none]"
               />
             )}
           </div>
