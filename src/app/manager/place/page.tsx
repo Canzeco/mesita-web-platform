@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Plus, Store } from "lucide-react";
 import { Topbar } from "@/components/manager/Topbar";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { apiFetchMyVenues } from "@/lib/api/venues";
+import { getUnitOverview } from "@/lib/api/unit";
 import { EditVenueForm } from "./EditVenueForm";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +19,12 @@ export default async function ManagerPlacePage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/manager/sign-in?next=/manager/place");
 
-  const venues = await apiFetchMyVenues(supabase).catch(() => []);
+  const params = await searchParams;
+  const requestedUnit = params.unit?.toString() ?? null;
 
-  if (venues.length === 0) {
+  const overview = await getUnitOverview(supabase, requestedUnit, 0).catch(() => null);
+
+  if (!overview || overview.venues.length === 0) {
     return (
       <>
         <Topbar title="Place" subtitle="Edit the venue this unit is for." />
@@ -51,11 +54,7 @@ export default async function ManagerPlacePage({
     );
   }
 
-  const params = await searchParams;
-  const requestedUnit = params.unit?.toString();
-  const active = requestedUnit
-    ? venues.find((v) => v.id === requestedUnit) ?? venues[0]
-    : venues[0];
+  const active = overview.active?.venue ?? overview.venues[0];
 
   return (
     <>

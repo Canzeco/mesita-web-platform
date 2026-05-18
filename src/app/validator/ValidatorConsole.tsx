@@ -27,33 +27,42 @@ type VenueOption = { id: string; name: string; cashback_percent: number | null }
 export function ValidatorConsole({
   venues,
   activeVenueId,
+  initialTickets,
 }: {
   venues: VenueOption[];
   activeVenueId: string;
+  initialTickets: VenueTicket[];
 }) {
   const supabase = useMemo(() => createBrowserSupabase(), []);
   const [venueId, setVenueId] = useState(activeVenueId);
   const active = venues.find((v) => v.id === venueId) ?? venues[0];
 
-  const [tickets, setTickets] = useState<VenueTicket[]>([]);
-  const [loadingTickets, setLoadingTickets] = useState(true);
+  // Tickets start populated from the server-rendered unit-overview, then we
+  // re-fetch only on venue switch or after mutating actions. No mount-time
+  // round-trip.
+  const [tickets, setTickets] = useState<VenueTicket[]>(initialTickets);
+  const [loadingTickets, setLoadingTickets] = useState(false);
   const [ticketsError, setTicketsError] = useState<string | null>(null);
-  // Bumped after each mutation so the load effect re-runs.
+  const [loadedVenueId, setLoadedVenueId] = useState<string>(activeVenueId);
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), []);
 
-  // Loads tickets on first mount, on venue change, and on every reload bump.
-  // All setState lives inside the async IIFE so it never runs synchronously
-  // inside the effect body (React 19's lint rule).
+  // Re-fetch when the active venue changes or a mutation bumps reloadKey.
+  // Skip the very first mount (server already gave us tickets for the
+  // initial venue) by comparing loadedVenueId.
   useEffect(() => {
+    if (reloadKey === 0 && venueId === loadedVenueId) return;
     let cancelled = false;
     void (async () => {
       setLoadingTickets(true);
       setTicketsError(null);
       try {
         const rows = await apiFetchVenueTickets(supabase, venueId, 30);
-        if (!cancelled) setTickets(rows);
+        if (!cancelled) {
+          setTickets(rows);
+          setLoadedVenueId(venueId);
+        }
       } catch (err) {
         if (!cancelled) {
           setTicketsError(err instanceof Error ? err.message : "Couldn't load tickets.");
@@ -65,7 +74,7 @@ export function ValidatorConsole({
     return () => {
       cancelled = true;
     };
-  }, [supabase, venueId, reloadKey]);
+  }, [supabase, venueId, reloadKey, loadedVenueId]);
 
   return (
     <div className="flex flex-col gap-6">

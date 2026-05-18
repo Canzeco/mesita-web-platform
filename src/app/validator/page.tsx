@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { apiFetchMyVenues } from "@/lib/api/venues";
+import { getUnitOverview } from "@/lib/api/unit";
 import { ValidatorConsole } from "./ValidatorConsole";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +19,11 @@ export default async function ValidatorPage({
     redirect("/manager/sign-in?next=/validator");
   }
 
-  const venues = await apiFetchMyVenues(supabase).catch(() => []);
+  const params = await searchParams;
+  const requestedVenue = params.venue?.toString() ?? null;
+  const overview = await getUnitOverview(supabase, requestedVenue, 30).catch(() => null);
 
-  if (venues.length === 0) {
+  if (!overview || overview.venues.length === 0) {
     return (
       <Shell>
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
@@ -43,15 +45,16 @@ export default async function ValidatorPage({
     );
   }
 
-  const params = await searchParams;
-  const requested = params.venue?.toString();
-  const active = requested ? venues.find((v) => v.id === requested) ?? venues[0] : venues[0];
-
   return (
     <Shell>
       <ValidatorConsole
-        venues={venues.map((v) => ({ id: v.id, name: v.name, cashback_percent: v.cashback_percent }))}
-        activeVenueId={active.id}
+        venues={overview.venues.map((v) => ({
+          id: v.id,
+          name: v.name,
+          cashback_percent: v.cashback_percent,
+        }))}
+        activeVenueId={overview.active?.venue.id ?? overview.venues[0].id}
+        initialTickets={overview.active?.recentTickets ?? []}
       />
     </Shell>
   );

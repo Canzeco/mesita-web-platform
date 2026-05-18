@@ -1,6 +1,6 @@
 import { Sidebar } from "@/components/manager/Sidebar";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { apiFetchMyVenues, type MyVenue } from "@/lib/api/venues";
+import { getUnitOverview } from "@/lib/api/unit";
 
 export const dynamic = "force-dynamic";
 
@@ -14,19 +14,19 @@ export default async function ManagerLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let venues: MyVenue[] = [];
-  if (user) {
-    try {
-      venues = await apiFetchMyVenues(supabase);
-    } catch {
-      // Sidebar renders with empty venues — the dashboard page will surface
-      // the actual error to the user.
-    }
-  }
+  // Sidebar only needs the venue list. Pages call getUnitOverview with the
+  // actual ?unit= they care about — React.cache dedupes a same-arg call to
+  // a single Edge Function round trip per request.
+  const overview = user
+    ? await getUnitOverview(supabase, null, 0).catch(() => null)
+    : null;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
-      <Sidebar venues={venues} user={user ? { email: user.email ?? null } : null} />
+      <Sidebar
+        venues={overview?.venues ?? []}
+        user={user ? { email: user.email ?? null } : null}
+      />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
     </div>
   );

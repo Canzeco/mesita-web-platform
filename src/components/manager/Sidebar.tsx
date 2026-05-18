@@ -32,7 +32,9 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true },
+  // Dashboard is intentionally disabled until the underlying surfaces ship —
+  // it's an abstract over the rest. Place is the active workspace for now.
+  { href: "/manager", label: "Dashboard", Icon: LayoutDashboard, exact: true, disabled: true },
   { href: "/manager/place", label: "Place", Icon: Store },
   { href: "/manager/promos", label: "Promos", Icon: Megaphone, disabled: true },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },

@@ -53,7 +53,6 @@ export type EnrichmentReport = {
 };
 
 type ListResponse = { ok: true; venues: Venue[] } | { ok: false; error: string };
-type MineResponse = { ok: true; venues: MyVenue[] } | { ok: false; error: string };
 type AutocompleteResponse =
   | { ok: true; predictions: PlacePrediction[] }
   | { ok: false; error: string };
@@ -74,15 +73,6 @@ export async function apiFetchPublicVenues(
   });
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error(data?.error ?? "venues-list failed");
-  return data.venues.map(stripInsecurePhotos);
-}
-
-export async function apiFetchMyVenues(client: SupabaseClient): Promise<MyVenue[]> {
-  const { data, error } = await client.functions.invoke<MineResponse>("venues-mine", {
-    body: {},
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "venues-mine failed");
   return data.venues.map(stripInsecurePhotos);
 }
 
