@@ -212,6 +212,7 @@ function Deck({ venues }: { venues: Venue[] }) {
                 aspect="h-full"
                 priority
                 mutePosition="top-right"
+                noNativeScroll
               />
             ) : (
               <PhotoPlaceholder name={v.name} />

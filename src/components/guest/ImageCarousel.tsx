@@ -18,6 +18,7 @@ export function ImageCarousel({
   priority = false,
   sizes = "(max-width: 768px) 100vw, 420px",
   mutePosition = "bottom-right",
+  noNativeScroll = false,
 }: {
   photos: string[];
   media?: MediaItem[];
@@ -27,6 +28,14 @@ export function ImageCarousel({
   priority?: boolean;
   sizes?: string;
   mutePosition?: "bottom-right" | "top-right";
+  /**
+   * When true, the inner track uses CSS transform paging instead of
+   * native overflow-x scrolling. Required when this carousel sits inside
+   * another horizontal-gesture handler (e.g. the SwipeDeck) — otherwise
+   * the browser claims the touch for native scroll and the outer swipe
+   * never fires. Side-tap zones still page photos.
+   */
+  noNativeScroll?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -41,6 +50,10 @@ export function ImageCarousel({
   const hasVideo = items.some((m) => m.type === "video");
 
   const goTo = (i: number) => {
+    if (noNativeScroll) {
+      setIdx(i);
+      return;
+    }
     const el = ref.current;
     if (!el) return;
     el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
@@ -77,12 +90,26 @@ export function ImageCarousel({
     <div className={cn("relative w-full overflow-hidden", aspect, rounded)}>
       <div
         ref={ref}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          const i = Math.round(el.scrollLeft / el.clientWidth);
-          if (i !== idx) setIdx(i);
-        }}
-        className="flex h-full w-full snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+        onScroll={
+          noNativeScroll
+            ? undefined
+            : (e) => {
+                const el = e.currentTarget;
+                const i = Math.round(el.scrollLeft / el.clientWidth);
+                if (i !== idx) setIdx(i);
+              }
+        }
+        className={cn(
+          "flex h-full w-full",
+          noNativeScroll
+            ? "overflow-hidden transition-transform duration-300 ease-out"
+            : "snap-x snap-mandatory overflow-x-auto scrollbar-hide",
+        )}
+        style={
+          noNativeScroll
+            ? { transform: `translateX(${-idx * 100}%)` }
+            : undefined
+        }
       >
         {items.map((m, i) => (
           <div
