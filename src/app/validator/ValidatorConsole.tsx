@@ -33,6 +33,18 @@ type GuestPreview = {
 const INPUT =
   "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
 
+// Sanitise a decimal input: strip non-numerics, collapse multiple decimal points
+// to the first one, and cap the fractional part to two digits. Keeps trailing
+// "." or "1." while typing so the user can keep editing.
+function sanitiseAmount(raw: string): string {
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot === -1) return cleaned;
+  const intPart = cleaned.slice(0, firstDot);
+  const fracPart = cleaned.slice(firstDot + 1).replace(/\./g, "");
+  return `${intPart}.${fracPart.slice(0, 2)}`;
+}
+
 type VenueOption = { id: string; name: string; cashback_percent: number | null };
 
 export function ValidatorConsole({
@@ -347,7 +359,7 @@ function NewTicketCard({
           <Field label="Check subtotal" hint="Whole pesos.">
             <input
               value={subtotal}
-              onChange={(e) => setSubtotal(e.target.value.replace(/[^\d.]/g, ""))}
+              onChange={(e) => setSubtotal(sanitiseAmount(e.target.value))}
               inputMode="decimal"
               className={INPUT}
               placeholder="500"
@@ -357,7 +369,7 @@ function NewTicketCard({
           <Field label="Tip" hint="Optional.">
             <input
               value={tip}
-              onChange={(e) => setTip(e.target.value.replace(/[^\d.]/g, ""))}
+              onChange={(e) => setTip(sanitiseAmount(e.target.value))}
               inputMode="decimal"
               className={INPUT}
               placeholder="50"
@@ -377,7 +389,7 @@ function NewTicketCard({
           <div className="flex items-stretch gap-2">
             <input
               value={redeem}
-              onChange={(e) => setRedeem(e.target.value.replace(/[^\d.]/g, ""))}
+              onChange={(e) => setRedeem(sanitiseAmount(e.target.value))}
               inputMode="decimal"
               className={INPUT}
               placeholder="0"
