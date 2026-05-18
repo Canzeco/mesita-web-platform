@@ -28,6 +28,15 @@ export type Venue = {
   story: string | null;
   cashback_percent: number | null;
   photos: string[];
+  website_url: string | null;
+  instagram_url: string | null;
+  tiktok_url: string | null;
+  facebook_url: string | null;
+  whatsapp_url: string | null;
+  opentable_url: string | null;
+  resy_url: string | null;
+  uber_eats_url: string | null;
+  rappi_url: string | null;
   created_at: string;
 };
 
@@ -129,6 +138,15 @@ export type UpdateVenueInput = {
   story?: string | null;
   cashback_percent?: number | null;
   photos?: string[];
+  website_url?: string | null;
+  instagram_url?: string | null;
+  tiktok_url?: string | null;
+  facebook_url?: string | null;
+  whatsapp_url?: string | null;
+  opentable_url?: string | null;
+  resy_url?: string | null;
+  uber_eats_url?: string | null;
+  rappi_url?: string | null;
 };
 
 type UpdateResponse =

@@ -12,6 +12,12 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Instagram,
+  Facebook,
+  MessageCircle,
+  Music2,
+  CalendarCheck,
+  Bike,
 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type UpdateVenueInput } from "@/lib/api/venues";
@@ -38,6 +44,29 @@ const STATUS_OPTIONS: { value: "active" | "paused" | "archived"; label: string }
 
 type Status = "active" | "paused" | "archived";
 
+type LinksState = {
+  website_url: string;
+  instagram_url: string;
+  tiktok_url: string;
+  facebook_url: string;
+  whatsapp_url: string;
+  opentable_url: string;
+  resy_url: string;
+  uber_eats_url: string;
+  rappi_url: string;
+};
+
+function nullableUrl(v: string): string | null {
+  const t = v.trim();
+  if (t === "") return null;
+  // Auto-upgrade bare protocol-less input ("instagram.com/foo") to https for
+  // the validator on the server. Anything else stays as the user typed it
+  // and the function will reject if it isn't a valid https URL.
+  if (/^https?:\/\//i.test(t)) return t;
+  if (/^[a-z0-9.-]+\.[a-z]{2,}/i.test(t)) return `https://${t}`;
+  return t;
+}
+
 export function EditVenueForm({ venue }: { venue: MyVenue }) {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabase(), []);
@@ -61,6 +90,19 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
   const [story, setStory] = useState(venue.story ?? "");
   const [photos, setPhotos] = useState<string[]>(venue.photos ?? []);
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
+  const [links, setLinks] = useState<LinksState>({
+    website_url: venue.website_url ?? "",
+    instagram_url: venue.instagram_url ?? "",
+    tiktok_url: venue.tiktok_url ?? "",
+    facebook_url: venue.facebook_url ?? "",
+    whatsapp_url: venue.whatsapp_url ?? "",
+    opentable_url: venue.opentable_url ?? "",
+    resy_url: venue.resy_url ?? "",
+    uber_eats_url: venue.uber_eats_url ?? "",
+    rappi_url: venue.rappi_url ?? "",
+  });
+  const setLink = (key: keyof LinksState, value: string) =>
+    setLinks((prev) => ({ ...prev, [key]: value }));
 
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +140,15 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
       pitch: nullable(pitch),
       story: nullable(story),
       photos,
+      website_url: nullableUrl(links.website_url),
+      instagram_url: nullableUrl(links.instagram_url),
+      tiktok_url: nullableUrl(links.tiktok_url),
+      facebook_url: nullableUrl(links.facebook_url),
+      whatsapp_url: nullableUrl(links.whatsapp_url),
+      opentable_url: nullableUrl(links.opentable_url),
+      resy_url: nullableUrl(links.resy_url),
+      uber_eats_url: nullableUrl(links.uber_eats_url),
+      rappi_url: nullableUrl(links.rappi_url),
     };
 
     startTransition(async () => {
@@ -238,6 +289,85 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             className={TEXTAREA}
           />
         </Field>
+      </Section>
+
+      <Section
+        title="Channels"
+        subtitle="Website + socials the guest sees on the venue page. Leave blank if you don't have one."
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <UrlField
+            label="Website"
+            icon={<Globe className="h-4 w-4" />}
+            placeholder="https://yourplace.com"
+            value={links.website_url}
+            onChange={(v) => setLink("website_url", v)}
+          />
+          <UrlField
+            label="WhatsApp"
+            icon={<MessageCircle className="h-4 w-4" />}
+            placeholder="https://wa.me/52..."
+            value={links.whatsapp_url}
+            onChange={(v) => setLink("whatsapp_url", v)}
+          />
+          <UrlField
+            label="Instagram"
+            icon={<Instagram className="h-4 w-4" />}
+            placeholder="https://instagram.com/yourplace"
+            value={links.instagram_url}
+            onChange={(v) => setLink("instagram_url", v)}
+          />
+          <UrlField
+            label="TikTok"
+            icon={<Music2 className="h-4 w-4" />}
+            placeholder="https://tiktok.com/@yourplace"
+            value={links.tiktok_url}
+            onChange={(v) => setLink("tiktok_url", v)}
+          />
+          <UrlField
+            label="Facebook"
+            icon={<Facebook className="h-4 w-4" />}
+            placeholder="https://facebook.com/yourplace"
+            value={links.facebook_url}
+            onChange={(v) => setLink("facebook_url", v)}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Reservations &amp; delivery"
+        subtitle="Booking + food-delivery deep-links. Surfaced as quick actions on the guest venue page."
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <UrlField
+            label="OpenTable"
+            icon={<CalendarCheck className="h-4 w-4" />}
+            placeholder="https://opentable.com/r/yourplace"
+            value={links.opentable_url}
+            onChange={(v) => setLink("opentable_url", v)}
+          />
+          <UrlField
+            label="Resy"
+            icon={<CalendarCheck className="h-4 w-4" />}
+            placeholder="https://resy.com/cities/.../yourplace"
+            value={links.resy_url}
+            onChange={(v) => setLink("resy_url", v)}
+          />
+          <UrlField
+            label="Uber Eats"
+            icon={<Bike className="h-4 w-4" />}
+            placeholder="https://ubereats.com/store/..."
+            value={links.uber_eats_url}
+            onChange={(v) => setLink("uber_eats_url", v)}
+          />
+          <UrlField
+            label="Rappi"
+            icon={<Bike className="h-4 w-4" />}
+            placeholder="https://www.rappi.com.mx/restaurantes/..."
+            value={links.rappi_url}
+            onChange={(v) => setLink("rappi_url", v)}
+          />
+        </div>
       </Section>
 
       <Section title="Rewards">
@@ -428,4 +558,37 @@ function Field({
 function nullable(v: string): string | null {
   const t = v.trim();
   return t === "" ? null : t;
+}
+
+function UrlField({
+  label,
+  icon,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <span className="text-foreground/70">{icon}</span>
+        {label}
+      </span>
+      <input
+        type="url"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        inputMode="url"
+        autoCapitalize="none"
+        spellCheck={false}
+        className={INPUT}
+      />
+    </label>
+  );
 }

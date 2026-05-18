@@ -282,22 +282,31 @@ export type Database = {
           category: string | null
           closes_at: string | null
           created_at: string
+          facebook_url: string | null
           google_place_id: string | null
           id: string
+          instagram_url: string | null
           lat: number | null
           listing_type: Database["public"]["Enums"]["listing_type"]
           lng: number | null
           name: string
+          opentable_url: string | null
           phone: string | null
           photos: string[]
           pitch: string | null
           price_level: number | null
+          rappi_url: string | null
+          resy_url: string | null
           slug: string
           status: Database["public"]["Enums"]["venue_status"]
           story: string | null
+          tiktok_url: string | null
           timezone: string | null
+          uber_eats_url: string | null
           updated_at: string
           vibe: string | null
+          website_url: string | null
+          whatsapp_url: string | null
         }
         Insert: {
           address?: string | null
@@ -305,22 +314,31 @@ export type Database = {
           category?: string | null
           closes_at?: string | null
           created_at?: string
+          facebook_url?: string | null
           google_place_id?: string | null
           id?: string
+          instagram_url?: string | null
           lat?: number | null
           listing_type?: Database["public"]["Enums"]["listing_type"]
           lng?: number | null
           name: string
+          opentable_url?: string | null
           phone?: string | null
           photos?: string[]
           pitch?: string | null
           price_level?: number | null
+          rappi_url?: string | null
+          resy_url?: string | null
           slug: string
           status?: Database["public"]["Enums"]["venue_status"]
           story?: string | null
+          tiktok_url?: string | null
           timezone?: string | null
+          uber_eats_url?: string | null
           updated_at?: string
           vibe?: string | null
+          website_url?: string | null
+          whatsapp_url?: string | null
         }
         Update: {
           address?: string | null
@@ -328,22 +346,31 @@ export type Database = {
           category?: string | null
           closes_at?: string | null
           created_at?: string
+          facebook_url?: string | null
           google_place_id?: string | null
           id?: string
+          instagram_url?: string | null
           lat?: number | null
           listing_type?: Database["public"]["Enums"]["listing_type"]
           lng?: number | null
           name?: string
+          opentable_url?: string | null
           phone?: string | null
           photos?: string[]
           pitch?: string | null
           price_level?: number | null
+          rappi_url?: string | null
+          resy_url?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["venue_status"]
           story?: string | null
+          tiktok_url?: string | null
           timezone?: string | null
+          uber_eats_url?: string | null
           updated_at?: string
           vibe?: string | null
+          website_url?: string | null
+          whatsapp_url?: string | null
         }
         Relationships: []
       }
