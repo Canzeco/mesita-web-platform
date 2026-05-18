@@ -39,10 +39,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      cashback_ledger: {
+        Row: {
+          balance_after_cents: number
+          created_at: string
+          delta_cents: number
+          guest_id: string
+          id: string
+          kind: Database["public"]["Enums"]["cashback_kind"]
+          notes: string | null
+          ticket_id: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          balance_after_cents: number
+          created_at?: string
+          delta_cents: number
+          guest_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["cashback_kind"]
+          notes?: string | null
+          ticket_id?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          balance_after_cents?: number
+          created_at?: string
+          delta_cents?: number
+          guest_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["cashback_kind"]
+          notes?: string | null
+          ticket_id?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashback_ledger_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashback_ledger_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashback_ledger_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           avatar_url: string | null
           birthday: string | null
+          cashback_balance_cents: number
+          code: string | null
           country: string | null
           created_at: string
           full_name: string | null
@@ -53,6 +113,8 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birthday?: string | null
+          cashback_balance_cents?: number
+          code?: string | null
           country?: string | null
           created_at?: string
           full_name?: string | null
@@ -63,6 +125,8 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birthday?: string | null
+          cashback_balance_cents?: number
+          code?: string | null
           country?: string | null
           created_at?: string
           full_name?: string | null
@@ -95,6 +159,82 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      tickets: {
+        Row: {
+          cancelled_at: string | null
+          cashback_cents: number | null
+          cashback_percent: number
+          check_subtotal_cents: number | null
+          created_at: string
+          currency: string
+          guest_id: string
+          id: string
+          opened_by: string
+          paid_at: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          tip_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cashback_cents?: number | null
+          cashback_percent: number
+          check_subtotal_cents?: number | null
+          created_at?: string
+          currency?: string
+          guest_id: string
+          id?: string
+          opened_by: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          tip_cents?: number | null
+          total_cents?: number | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cashback_cents?: number | null
+          cashback_percent?: number
+          check_subtotal_cents?: number | null
+          created_at?: string
+          currency?: string
+          guest_id?: string
+          id?: string
+          opened_by?: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          tip_cents?: number | null
+          total_cents?: number | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_opened_by_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue_members: {
         Row: {
@@ -212,11 +352,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_guest_code: { Args: never; Returns: string }
     }
     Enums: {
+      cashback_kind: "earn" | "redeem" | "expire" | "adjust"
       listing_type: "partner" | "web"
       member_role: "owner" | "manager" | "staff"
+      ticket_status: "open" | "pending_pay" | "paid" | "cancelled"
       venue_status: "lead" | "active" | "paused" | "archived"
     }
     CompositeTypes: {
@@ -348,8 +490,10 @@ export const Constants = {
   },
   public: {
     Enums: {
+      cashback_kind: ["earn", "redeem", "expire", "adjust"],
       listing_type: ["partner", "web"],
       member_role: ["owner", "manager", "staff"],
+      ticket_status: ["open", "pending_pay", "paid", "cancelled"],
       venue_status: ["lead", "active", "paused", "archived"],
     },
   },

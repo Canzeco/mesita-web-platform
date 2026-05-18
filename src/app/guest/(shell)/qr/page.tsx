@@ -1,89 +1,48 @@
-"use client";
-
-import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SimpleHeader } from "@/components/guest/SimpleHeader";
-import { FakeQR } from "@/components/guest/FakeQR";
-import { CURRENT_USER } from "@/lib/guest-data";
-import { cn } from "@/lib/utils";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { apiFetchGuestProfile, apiFetchMyTickets } from "@/lib/api/tickets";
+import { MyQrClient } from "./MyQrClient";
 
-const FAQ = [
-  {
-    q: "Why show my QR?",
-    a: "It opens your check at any Mesita partner venue. The waiter scans it, captures total and tip, then sends you a Stripe link to pay from your phone. Cashback lands automatically.",
-  },
-  {
-    q: "How much cashback do I earn?",
-    a: "Cashback varies by tier and venue. As a Gold member you earn between 5% and 20% at partners — plus higher rates on welcome offers and tier drops.",
-  },
-  {
-    q: "When do I get my cashback?",
-    a: "Right when you pay. It hits your Mesita balance instantly. It redeems automatically on your next partner visit.",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function QrPage() {
-  const [open, setOpen] = useState<number | null>(null);
+export default async function GuestQrPage() {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/guest/sign-in?next=/guest/qr");
 
-  return (
-    <div className="flex h-full flex-col">
-      <SimpleHeader title="Mesita" eyebrow="Your QR" />
-
-      <div className="flex-1 overflow-y-auto px-5 pb-8 pt-6 scrollbar-hide">
-        <div className="text-center">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">
-            Show this QR to the waiter
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Earn cashback at any Mesita venue — even without a saved coupon.
+  let profile;
+  try {
+    profile = await apiFetchGuestProfile(supabase);
+  } catch (err) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <SimpleHeader title="My QR" />
+        <div className="flex-1 px-4 py-6">
+          <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {err instanceof Error ? err.message : "Couldn't load your profile."}
           </p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="mx-auto mt-6 aspect-square w-full max-w-[280px] rounded-3xl border border-border bg-card p-5 shadow-elev">
-          <div className="relative h-full w-full">
-            <FakeQR seed={CURRENT_USER.qrCode} size={21} />
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card ring-4 ring-card">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-peacock text-base shadow-glow">
-                  🦚
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  const tickets = await apiFetchMyTickets(supabase, 10).catch(() => []);
 
-        <div className="mt-6 flex flex-col gap-2">
-          {FAQ.map((f, i) => {
-            const isOpen = open === i;
-            return (
-              <div
-                key={f.q}
-                className="overflow-hidden rounded-full border border-border bg-card"
-                style={isOpen ? { borderRadius: "1.5rem" } : undefined}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left"
-                >
-                  <HelpCircle className="h-4 w-4 shrink-0 text-secondary" />
-                  <span className="flex-1 text-sm font-semibold">{f.q}</span>
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 text-muted-foreground transition-transform",
-                      isOpen && "rotate-180",
-                    )}
-                  />
-                </button>
-                {isOpen && (
-                  <p className="px-4 pb-4 pt-0 text-[13px] leading-relaxed text-muted-foreground">
-                    {f.a}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <SimpleHeader title="My QR" />
+      <div className="flex-1 overflow-y-auto">
+        <MyQrClient profile={profile} tickets={tickets} />
+        <p className="px-6 pb-8 text-center text-[11px] text-muted-foreground">
+          Need help?{" "}
+          <Link href="/guest/profile" className="font-semibold text-foreground hover:underline">
+            Account &amp; balance
+          </Link>
+        </p>
       </div>
     </div>
   );

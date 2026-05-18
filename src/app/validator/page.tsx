@@ -1,62 +1,80 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { apiFetchMyVenues } from "@/lib/api/venues";
+import { ValidatorConsole } from "./ValidatorConsole";
 
-export default function ValidatorPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ValidatorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ venue?: string }>;
+}) {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/manager/sign-in?next=/validator");
+  }
+
+  const venues = await apiFetchMyVenues(supabase).catch(() => []);
+
+  if (venues.length === 0) {
+    return (
+      <Shell>
+        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            No venues linked yet
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            The validator console is gated by venue membership. Onboard your venue first, then
+            come back to open tickets.
+          </p>
+          <Link
+            href="/manager/venues/new"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+          >
+            Onboard your venue
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
+
+  const params = await searchParams;
+  const requested = params.venue?.toString();
+  const active = requested ? venues.find((v) => v.id === requested) ?? venues[0] : venues[0];
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-6">
-          <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-            ← mesita
+    <Shell>
+      <ValidatorConsole
+        venues={venues.map((v) => ({ id: v.id, name: v.name, cashback_percent: v.cashback_percent }))}
+        activeVenueId={active.id}
+      />
+    </Shell>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-dvh flex-col bg-background">
+      <header className="border-b border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-4 md:px-6">
+          <Link href="/" className="inline-flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-peacock text-sm shadow-glow">
+              🦚
+            </span>
+            <span className="font-display text-base font-semibold tracking-tight">mesita.</span>
           </Link>
           <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            Validator · Waiter
+            Validator
           </span>
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          For waiters and hosts of Verified Partners
-        </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-          Scan the guest&apos;s QR.
-        </h1>
-        <p className="mt-4 max-w-xl text-muted-foreground">
-          Web equivalent of the WhatsApp bot. Ideal for shared tablets at the host stand or
-          desktops at the POS terminal. Same flow: scan → validate → check + tip → Stripe
-          link → close ticket.
-        </p>
-
-        <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
-          <button className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
-            Open camera · scan QR
-          </button>
-          <button className="rounded-full border border-border px-6 py-3 text-sm font-medium hover:bg-muted">
-            Sign in as validator
-          </button>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Prefer your phone? Use the WhatsApp bot.
-          </p>
-        </div>
-
-        <ol className="mt-12 grid w-full max-w-2xl grid-cols-1 gap-3 text-left md:grid-cols-5">
-          {[
-            "Scan QR",
-            "Validate guest",
-            "Check + tip",
-            "Stripe payment",
-            "Confirm",
-          ].map((step, i) => (
-            <li
-              key={step}
-              className="rounded-xl border border-border bg-card p-4 text-card-foreground"
-            >
-              <p className="text-xs font-medium text-muted-foreground">
-                Step {String(i + 1).padStart(2, "0")}
-              </p>
-              <p className="mt-1 text-sm font-medium">{step}</p>
-            </li>
-          ))}
-        </ol>
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-10">
+        {children}
       </main>
     </div>
   );

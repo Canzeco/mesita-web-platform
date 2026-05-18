@@ -1,0 +1,152 @@
+// Frontend API surface for ticket / cashback Edge Functions.
+//
+// Same constraints as api/venues.ts: clients call exactly one Edge Function
+// per helper; helpers never compose multiple Edge Functions.
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type GuestProfile = {
+  id: string;
+  code: string;
+  full_name: string | null;
+  phone: string | null;
+  cashback_balance_cents: number;
+};
+
+export type TicketStatus = "open" | "pending_pay" | "paid" | "cancelled";
+
+export type Ticket = {
+  id: string;
+  status: TicketStatus;
+  check_subtotal_cents: number | null;
+  tip_cents: number | null;
+  total_cents: number | null;
+  cashback_percent: number;
+  cashback_cents: number | null;
+  currency: string;
+  created_at: string;
+  paid_at: string | null;
+};
+
+export type GuestTicket = Ticket & {
+  venue: { id: string; name: string; slug: string; photos: string[] } | null;
+};
+
+export type VenueTicket = Ticket & {
+  guest: { id: string; code: string; full_name: string | null } | null;
+};
+
+type GuestProfileRes = { ok: true; guest: GuestProfile } | { ok: false; error: string };
+type MyTicketsRes = { ok: true; tickets: GuestTicket[] } | { ok: false; error: string };
+type VenueTicketsRes = { ok: true; tickets: VenueTicket[] } | { ok: false; error: string };
+type CreateTicketRes =
+  | {
+      ok: true;
+      ticket: Ticket;
+      venue: { id: string; name: string };
+      guest: { id: string; code: string; full_name: string | null };
+    }
+  | { ok: false; error: string };
+type MarkPaidRes =
+  | {
+      ok: true;
+      ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null };
+      cashbackCreditedCents: number;
+      guestBalanceAfterCents: number;
+      alreadyPaid?: boolean;
+    }
+  | { ok: false; error: string };
+
+export async function apiFetchGuestProfile(client: SupabaseClient): Promise<GuestProfile> {
+  const { data, error } = await client.functions.invoke<GuestProfileRes>("guest-profile", {
+    body: {},
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "guest-profile failed");
+  return data.guest;
+}
+
+export async function apiFetchMyTickets(
+  client: SupabaseClient,
+  limit = 20,
+): Promise<GuestTicket[]> {
+  const { data, error } = await client.functions.invoke<MyTicketsRes>("tickets-mine", {
+    body: { limit },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "tickets-mine failed");
+  return data.tickets;
+}
+
+export async function apiFetchVenueTickets(
+  client: SupabaseClient,
+  venueId: string,
+  limit = 20,
+): Promise<VenueTicket[]> {
+  const { data, error } = await client.functions.invoke<VenueTicketsRes>("tickets-venue-recent", {
+    body: { venueId, limit },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "tickets-venue-recent failed");
+  return data.tickets;
+}
+
+export async function apiCreateTicket(
+  client: SupabaseClient,
+  input: {
+    venueId: string;
+    guestCode: string;
+    checkSubtotalCents: number;
+    tipCents: number;
+  },
+): Promise<{
+  ticket: Ticket;
+  venue: { id: string; name: string };
+  guest: { id: string; code: string; full_name: string | null };
+}> {
+  const { data, error } = await client.functions.invoke<CreateTicketRes>(
+    "tickets-venue-create",
+    { body: input },
+  );
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "tickets-venue-create failed");
+  return { ticket: data.ticket, venue: data.venue, guest: data.guest };
+}
+
+export async function apiMarkTicketPaid(
+  client: SupabaseClient,
+  ticketId: string,
+): Promise<{
+  ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null };
+  cashbackCreditedCents: number;
+  guestBalanceAfterCents: number;
+  alreadyPaid: boolean;
+}> {
+  const { data, error } = await client.functions.invoke<MarkPaidRes>("tickets-mark-paid", {
+    body: { ticketId },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.ok) throw new Error(data?.error ?? "tickets-mark-paid failed");
+  return {
+    ticket: data.ticket,
+    cashbackCreditedCents: data.cashbackCreditedCents,
+    guestBalanceAfterCents: data.guestBalanceAfterCents,
+    alreadyPaid: data.alreadyPaid ?? false,
+  };
+}
+
+// ── Display helpers ───────────────────────────────────────────────────────
+
+export function formatCurrency(cents: number | null | undefined, currency = "MXN"): string {
+  if (cents == null) return "—";
+  const value = cents / 100;
+  try {
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `$${value.toFixed(0)} ${currency}`;
+  }
+}
