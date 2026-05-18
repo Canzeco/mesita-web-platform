@@ -16,6 +16,8 @@ export function SignOutButton({
     <form action={authSignOut.bind(null, redirectTo)} className="contents">
       <button
         type="submit"
+        aria-label={label || "Sign out"}
+        title={label || "Sign out"}
         className={
           className ??
           "flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card py-4 text-sm font-semibold transition hover:bg-muted"
