@@ -16,5 +16,14 @@ export default async function SwipePage() {
     fetchError = err instanceof Error ? err.message : "Failed to load venues.";
   }
 
-  return <SwipeDeck venues={venues} fetchError={fetchError} />;
+  // Partners earn cashback and have richer rows, so they belong up front in
+  // the swipe deck. Stable: keep the API's created_at desc order within each
+  // bucket so newer venues still get visibility.
+  const sorted = [...venues].sort((a, b) => {
+    const aRank = a.listing_type === "partner" ? 0 : 1;
+    const bRank = b.listing_type === "partner" ? 0 : 1;
+    return aRank - bRank;
+  });
+
+  return <SwipeDeck venues={sorted} fetchError={fetchError} />;
 }
