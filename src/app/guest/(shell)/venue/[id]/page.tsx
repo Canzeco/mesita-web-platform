@@ -27,7 +27,32 @@ export default async function VenueDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createServerSupabase();
-  const venue = await apiGetVenue(supabase, id).catch(() => null);
+
+  // apiGetVenue returns null on 404 and throws on real errors. Distinguish so
+  // a transient backend hiccup doesn't render as "this venue doesn't exist."
+  let venue: Awaited<ReturnType<typeof apiGetVenue>> = null;
+  let fetchError: string | null = null;
+  try {
+    venue = await apiGetVenue(supabase, id);
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Couldn't load this venue.";
+  }
+  if (fetchError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-destructive">
+          Couldn&apos;t load this venue
+        </h2>
+        <p className="max-w-sm text-sm text-muted-foreground">{fetchError}</p>
+        <Link
+          href="/guest/discover/swipe"
+          className="mt-3 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
+        >
+          Back to discover
+        </Link>
+      </div>
+    );
+  }
   if (!venue) notFound();
 
   return (
