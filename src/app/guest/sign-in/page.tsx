@@ -14,14 +14,26 @@ export const dynamic = "force-dynamic";
 
 const GUEST_AFTER_AUTH = "/guest/discover/swipe";
 
-export default async function GuestSignInPage() {
+// Honour ?next= so a guest landing from a venue page returns to that page
+// after signing in. Only same-origin paths are accepted.
+function safeNext(raw: string | undefined): string {
+  if (!raw) return GUEST_AFTER_AUTH;
+  return raw.startsWith("/") && !raw.startsWith("//") ? raw : GUEST_AFTER_AUTH;
+}
+
+export default async function GuestSignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect(GUEST_AFTER_AUTH);
+  const next = safeNext((await searchParams).next);
+  if (user) redirect(next);
 
-  const action = authSignInWithEmail.bind(null, GUEST_AFTER_AUTH);
+  const action = authSignInWithEmail.bind(null, next);
 
   return (
     <MobileFrame>
@@ -44,7 +56,7 @@ export default async function GuestSignInPage() {
           action={action}
           submitLabel="Sign in"
           passwordAutoComplete="current-password"
-          redirectAfter={GUEST_AFTER_AUTH}
+          redirectAfter={next}
         />
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
