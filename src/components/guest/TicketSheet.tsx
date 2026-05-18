@@ -20,6 +20,10 @@ const ACTION_META: Record<
 
 type StoryStatus = "idle" | "verifying" | "verified";
 
+// Cap the story screenshot at 5 MB. The verifier doesn't need a hi-res
+// original and unconstrained file URLs can ruin the page on weak phones.
+const MAX_STORY_BYTES = 5 * 1024 * 1024;
+
 export function TicketSheet({ item, onClose }: { item: SavedItem; onClose: () => void }) {
   const v = venueById(item.venueId);
   const [doneDots, setDoneDots] = useState(item.doneDots);
@@ -27,6 +31,7 @@ export function TicketSheet({ item, onClose }: { item: SavedItem; onClose: () =>
   const [storyUrl, setStoryUrl] = useState<string | null>(null);
   const [storyStatus, setStoryStatus] = useState<StoryStatus>("idle");
   const [storyFileName, setStoryFileName] = useState<string | null>(null);
+  const [storyError, setStoryError] = useState<string | null>(null);
   const verifyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -52,6 +57,17 @@ export function TicketSheet({ item, onClose }: { item: SavedItem; onClose: () =>
   };
 
   const handleFile = (file: File) => {
+    if (file.size > MAX_STORY_BYTES) {
+      setStoryError(
+        `That screenshot is ${(file.size / 1024 / 1024).toFixed(1)} MB — please pick one under 5 MB.`,
+      );
+      return;
+    }
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+      setStoryError("Use a PNG, JPG, or WEBP screenshot.");
+      return;
+    }
+    setStoryError(null);
     if (storyUrl) URL.revokeObjectURL(storyUrl);
     const url = URL.createObjectURL(file);
     setStoryUrl(url);
@@ -199,10 +215,15 @@ export function TicketSheet({ item, onClose }: { item: SavedItem; onClose: () =>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/png,image/jpeg"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   onChange={onFileChange}
                 />
+                {storyError && (
+                  <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
+                    {storyError}
+                  </p>
+                )}
 
                 {storyUrl ? (
                   <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-muted">
