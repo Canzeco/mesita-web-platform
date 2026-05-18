@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { isEmail } from "@/lib/validators";
 
 export type AuthFormState = {
   error?: string;
@@ -58,7 +59,7 @@ export async function authSignInWithMagicLink(
 ): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return { error: "Enter the email on your account." };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!isEmail(email)) {
     return { error: "That doesn't look like a valid email." };
   }
   const supabase = await createServerSupabase();
@@ -102,7 +103,7 @@ export async function authSignUpWithEmail(
   if (!email || !password) {
     return { error: "Email and password are required." };
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!isEmail(email)) {
     return { error: "That doesn't look like a valid email." };
   }
   if (password.length < 6) {

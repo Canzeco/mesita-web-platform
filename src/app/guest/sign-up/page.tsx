@@ -30,8 +30,6 @@ export default async function GuestSignUpPage() {
   return (
     <MobileFrame>
       <StatusBar />
-      {/* AppSwitcher removed: a guest who is about to sign up doesn't
-          benefit from seeing the manager / validator / admin tabs. */}
       <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-8 pt-6">
         <div className="mb-6">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-peacock text-xl shadow-glow">

@@ -40,10 +40,6 @@ export default async function GuestSignInPage({
   return (
     <MobileFrame>
       <StatusBar />
-      {/* No AppSwitcher on the sign-in screen on purpose. A guest who's
-          about to authenticate shouldn't see hooks into the manager /
-          validator / admin worlds — those are operator surfaces and the
-          tab strip just adds doubt at exactly the wrong moment. */}
       <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-8 pt-6">
         <div className="mb-6">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-peacock text-xl shadow-glow">

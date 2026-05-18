@@ -28,6 +28,7 @@ import {
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type UpdateVenueInput } from "@/lib/api/venues";
 import { cn } from "@/lib/utils";
+import { isEmail } from "@/lib/validators";
 
 const INPUT =
   "h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none transition focus:border-foreground/40";
@@ -183,7 +184,7 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
     }
 
     const trimmedEmail = email.trim();
-    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (trimmedEmail && !isEmail(trimmedEmail)) {
       setError("Email must look like name@domain.tld.");
       return;
     }

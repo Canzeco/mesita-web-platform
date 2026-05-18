@@ -58,28 +58,28 @@ export function PhoneInputWithCountry({
   }, [country.dial, value]);
 
   return (
-    <div className="flex h-11 w-full items-stretch overflow-hidden rounded-xl border border-border bg-card transition focus-within:border-foreground/40">
-      {/* Country picker — visible chip + invisible native select on top. */}
-      <div className="relative flex shrink-0 items-center gap-1.5 border-r border-border pl-3 pr-2">
+    <div className="relative flex h-11 w-full items-stretch overflow-hidden rounded-xl border border-border bg-card transition focus-within:border-foreground/40">
+      {/* Country picker chip + transparent native select overlaying just
+          the chip width. The select is absolutely positioned to the left
+          half of the row so the phone input on the right stays clickable. */}
+      <div className="flex shrink-0 items-center gap-1.5 border-r border-border pl-3 pr-2">
         <span className="text-base leading-none" aria-hidden>{country.flag}</span>
         <span className="text-sm font-medium tabular-nums">+{country.dial}</span>
         <ChevronDown className="h-3 w-3 text-muted-foreground" aria-hidden />
-        <select
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          aria-label="Country dial code"
-          className="absolute inset-0 cursor-pointer appearance-none bg-transparent text-transparent opacity-0"
-        >
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.flag}  +{c.dial}  {c.name}
-            </option>
-          ))}
-        </select>
       </div>
+      <select
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        aria-label="Country dial code"
+        className="absolute inset-y-0 left-0 w-[5.5rem] cursor-pointer appearance-none bg-transparent text-transparent opacity-0"
+      >
+        {COUNTRIES.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.flag}  +{c.dial}  {c.name}
+          </option>
+        ))}
+      </select>
 
-      {/* Local subscriber number. We allow digits + spaces + dashes only;
-          the EF normalises further on its side. */}
       <input
         type="tel"
         inputMode="tel"
@@ -91,7 +91,6 @@ export function PhoneInputWithCountry({
         className="h-11 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
       />
 
-      {/* Hidden combined value for plain <form action> submissions. */}
       {formName && <input type="hidden" name={formName} value={combined} />}
     </div>
   );
