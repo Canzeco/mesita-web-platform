@@ -1,20 +1,41 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { apiFetchPublicVenues, type Venue } from "@/lib/api/venues";
+import {
+  apiBuildCatalog,
+  apiFetchPublicVenues,
+  type CatalogCategory,
+  type Venue,
+} from "@/lib/api/venues";
 import { PartnerBadge, RatePill } from "@/components/shared";
 
 export const dynamic = "force-dynamic";
 
+// Catalog is driven by guest-build-catalog: an LLM proposes up to 10
+// category rows specific to THIS user's pool, time, and (when wired) past
+// taste. Each row is then RAG-ranked against an intent_query. If the EF
+// isn't deployed yet (or fails), we degrade gracefully to a hard-coded
+// trio: "Best cashback" / "New on Mesita" / "Other places nearby".
 export default async function CatalogPage() {
   const supabase = await createServerSupabase();
 
-  let venues: Venue[] = [];
+  let categories: CatalogCategory[] = [];
+  let fallback: Venue[] = [];
   let fetchError: string | null = null;
+
   try {
-    venues = await apiFetchPublicVenues(supabase, 60);
+    const result = await apiBuildCatalog(supabase, {
+      maxCategories: 10,
+      perCategory: 10,
+    });
+    categories = result.categories;
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Couldn't load the catalog.";
+    console.warn("[catalog] guest-build-catalog failed, falling back:", err);
+    try {
+      fallback = await apiFetchPublicVenues(supabase, 60);
+    } catch (err2) {
+      fetchError = err2 instanceof Error ? err2.message : "Couldn't load the catalog.";
+    }
   }
 
   if (fetchError) {
@@ -27,7 +48,7 @@ export default async function CatalogPage() {
     );
   }
 
-  if (venues.length === 0) {
+  if (categories.length === 0 && fallback.length === 0) {
     return (
       <div className="px-4 pb-6 pt-6 text-center">
         <h2 className="font-display text-xl font-semibold tracking-tight">No venues yet</h2>
@@ -38,13 +59,30 @@ export default async function CatalogPage() {
     );
   }
 
-  const partners = venues.filter((v) => v.listing_type === "partner");
+  // Curated path — the EF gave us proper rows.
+  if (categories.length > 0) {
+    return (
+      <div className="pb-6">
+        {categories.map((c) => (
+          <Row
+            key={c.key}
+            title={`${c.emoji} ${c.label}`}
+            subtitle={c.description}
+            venues={c.venues}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback path — derive the three legacy rows from the flat list.
+  const partners = fallback.filter((v) => v.listing_type === "partner");
   const cashbackTop = [...partners]
     .filter((v) => (v.cashback_percent ?? 0) > 0)
     .sort((a, b) => (b.cashback_percent ?? 0) - (a.cashback_percent ?? 0))
     .slice(0, 12);
-  const newest = [...venues].slice(0, 12);
-  const webListings = venues.filter((v) => v.listing_type === "web").slice(0, 12);
+  const newest = [...fallback].slice(0, 12);
+  const webListings = fallback.filter((v) => v.listing_type === "web").slice(0, 12);
 
   return (
     <div className="pb-6">

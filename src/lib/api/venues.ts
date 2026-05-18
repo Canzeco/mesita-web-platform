@@ -84,6 +84,54 @@ export type EnrichmentReport = {
 
 type ListResponse = { ok: true; venues: Venue[] } | { ok: false; error: string };
 type GetResponse = { ok: true; venue: Venue } | { ok: false; error: string };
+
+// Discover surfaces (swipe + catalog) — both go through dedicated EFs
+// that do bounding-box prefiltering + lazy embedding + RAG ranking. The
+// helpers below are thin invokers; all the curation logic lives in the
+// EFs so we can iterate on it without redeploying the web app.
+export type BuildDeckInput = {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  limit?: number;
+};
+export type BuildDeckResponse = {
+  deck: Venue[];
+  summary: {
+    candidates: number;
+    embedded: number;
+    intent?: string;
+  };
+};
+type BuildDeckResult =
+  | { ok: true; deck: Venue[]; summary: BuildDeckResponse["summary"] }
+  | { ok: false; error: string };
+
+export type CatalogCategory = {
+  key: string;
+  label: string;
+  description: string;
+  emoji: string;
+  venues: Venue[];
+};
+export type BuildCatalogInput = {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  maxCategories?: number;
+  perCategory?: number;
+};
+export type BuildCatalogResponse = {
+  categories: CatalogCategory[];
+  summary: {
+    candidates: number;
+    embedded?: number;
+    categoryCount: number;
+  };
+};
+type BuildCatalogResult =
+  | { ok: true; categories: CatalogCategory[]; summary: BuildCatalogResponse["summary"] }
+  | { ok: false; error: string };
 type AutocompleteResponse =
   | { ok: true; predictions: PlacePrediction[] }
   | { ok: false; error: string };
@@ -133,6 +181,52 @@ function looksLikeUuid(s: string): boolean {
 // filter to https here so legacy rows don't kill the surface.
 function stripInsecurePhotos<T extends { photos: string[] }>(v: T): T {
   return { ...v, photos: v.photos.filter((p) => p.startsWith("https://")) };
+}
+
+// guest-build-deck — returns a RAG-ranked, diversity-trimmed 20-card deck
+// for the swipe view. All curation lives in the EF; this helper just
+// invokes it and strips insecure photos for Next.js Image safety.
+export async function apiBuildDeck(
+  client: SupabaseClient,
+  input: BuildDeckInput = {},
+): Promise<BuildDeckResponse> {
+  const { data, error } = await client.functions.invoke<BuildDeckResult>("guest-build-deck", {
+    body: input,
+  });
+  if (error) {
+    const inner = await readInvokeError(error);
+    throw new Error(inner ?? error.message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "guest-build-deck failed");
+  return {
+    deck: data.deck.map(stripInsecurePhotos),
+    summary: data.summary,
+  };
+}
+
+// guest-build-catalog — returns up to 10 dynamically-proposed category
+// rows (label / description / emoji / venues[]). Each venue is already
+// embedded and ranked by cosine similarity to the row's intent_query.
+export async function apiBuildCatalog(
+  client: SupabaseClient,
+  input: BuildCatalogInput = {},
+): Promise<BuildCatalogResponse> {
+  const { data, error } = await client.functions.invoke<BuildCatalogResult>(
+    "guest-build-catalog",
+    { body: input },
+  );
+  if (error) {
+    const inner = await readInvokeError(error);
+    throw new Error(inner ?? error.message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "guest-build-catalog failed");
+  return {
+    categories: data.categories.map((c) => ({
+      ...c,
+      venues: c.venues.map(stripInsecurePhotos),
+    })),
+    summary: data.summary,
+  };
 }
 
 export async function apiPlacesAutocomplete(
