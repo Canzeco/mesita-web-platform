@@ -27,6 +27,7 @@ export default async function GuestProfilePage() {
     email: user.email ?? null,
     country: null,
     birthday: null,
+    sex: null,
   };
 
   try {
@@ -36,6 +37,7 @@ export default async function GuestProfilePage() {
       email: user.email ?? null,
       country: profile.country,
       birthday: profile.birthday,
+      sex: profile.sex,
     };
   } catch (err) {
     // Profile fetch failure shouldn't blow up the page — the user can

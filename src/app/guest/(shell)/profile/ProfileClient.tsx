@@ -42,14 +42,15 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 // The identity bits that survive real onboarding — name, email, country,
-// birthday — flow in from the server page. Everything else on this page
-// (tier ladder, communities, achievements, transactions) is still mock
-// until the corresponding schema columns + Edge Functions ship.
+// birthday, sex — flow in from the server page. Everything else on this
+// page (tier ladder, communities, achievements, transactions) is still
+// mock until the corresponding schema columns + Edge Functions ship.
 export type RealIdentity = {
   fullName: string | null;
   email: string | null;
   country: string | null;
   birthday: string | null;
+  sex: string | null;
 };
 
 export function ProfileClient({ identity }: { identity: RealIdentity }) {
@@ -57,14 +58,30 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
 
+  // Display name: prefer the onboard-supplied full_name; otherwise the
+  // email local-part as a fallback. Never the mock CURRENT_USER.name.
   const displayName =
     identity.fullName ??
     (identity.email ? identity.email.split("@")[0] : null) ??
-    CURRENT_USER.name;
+    "Guest";
   const initial = displayName.trim().slice(0, 1).toUpperCase() || "?";
+
+  // Identity facts shown next to the avatar — only the ones the guest
+  // actually filled. No mock fallbacks.
   const age = identity.birthday ? yearsSince(identity.birthday) : null;
-  const subtitleParts = [identity.country ?? CURRENT_USER.city];
-  if (age != null) subtitleParts.push(String(age));
+  const subtitleParts: string[] = [];
+  if (identity.country) subtitleParts.push(identity.country);
+  if (age != null) subtitleParts.push(`${age}`);
+  if (identity.sex) subtitleParts.push(prettySex(identity.sex));
+
+  // True when the guest hasn't completed any of the onboard fields. We
+  // surface a "Complete your profile" banner pointing at /guest/onboard
+  // so they can fill it in.
+  const incomplete =
+    !identity.fullName ||
+    !identity.country ||
+    !identity.birthday ||
+    !identity.sex;
 
   return (
     <div className="flex h-full flex-col">
@@ -73,7 +90,7 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
       <div className="px-5 pt-3">
         <p className="rounded-xl bg-secondary/10 px-3 py-2 text-[11px] text-secondary">
           Preview — tier, communities, achievements and the transactions feed below are mock
-          values. Your name and email are real. Your cashback balance lives on /qr.
+          values. Your name, email, country, age and sex are real. Your cashback balance lives on /qr.
         </p>
       </div>
 
@@ -92,9 +109,15 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
                 {CURRENT_USER.tier}
               </span>
             </div>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {subtitleParts.join(" · ")}
-            </p>
+            {subtitleParts.length > 0 ? (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {subtitleParts.join(" · ")}
+              </p>
+            ) : (
+              <p className="mt-0.5 text-sm italic text-muted-foreground/70">
+                No country / age / sex yet.
+              </p>
+            )}
             {identity.email && (
               <p className="mt-0.5 truncate text-[11px] text-muted-foreground/80">
                 {identity.email}
@@ -102,6 +125,19 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
             )}
           </div>
         </div>
+
+        {incomplete && (
+          <Link
+            href="/guest/onboard"
+            className="mt-4 flex items-center justify-between rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary transition hover:bg-secondary/10"
+          >
+            <span>
+              <span className="font-semibold">Complete your guest profile.</span>{" "}
+              <span className="text-secondary/80">Adds your name, country, age, and sex.</span>
+            </span>
+            <span aria-hidden className="text-base">→</span>
+          </Link>
+        )}
       </div>
 
       <div className="px-4 pt-4">
@@ -727,4 +763,12 @@ function yearsSince(birthday: string): number | null {
   if (m < 0 || (m === 0 && now.getUTCDate() < parsed.getUTCDate())) age -= 1;
   if (age < 0 || age > 130) return null;
   return age;
+}
+
+// Display the sex string as a Title-Cased label. The DB stores raw values
+// (male/female/other); the header shows "Female", "Male", "Other".
+function prettySex(sex: string): string {
+  const lower = sex.trim().toLowerCase();
+  if (!lower) return "";
+  return lower[0].toUpperCase() + lower.slice(1);
 }
