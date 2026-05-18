@@ -7,6 +7,7 @@
 //   multiple Edge Functions (composition belongs inside the function).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { invokeEF } from "./_invoke";
 
 export type VenueListingType = "partner" | "web";
 export type VenueStatus = "lead" | "active" | "paused" | "archived";
@@ -82,8 +83,6 @@ export type EnrichmentReport = {
   channelCount?: number;
 };
 
-type ListResponse = { ok: true; venues: Venue[] } | { ok: false; error: string };
-type GetResponse = { ok: true; venue: Venue } | { ok: false; error: string };
 
 // Discover surfaces (swipe + catalog) — both go through dedicated EFs
 // that do bounding-box prefiltering + lazy embedding + RAG ranking. The
@@ -103,10 +102,6 @@ export type BuildDeckResponse = {
     intent?: string;
   };
 };
-type BuildDeckResult =
-  | { ok: true; deck: Venue[]; summary: BuildDeckResponse["summary"] }
-  | { ok: false; error: string };
-
 export type CatalogCategory = {
   key: string;
   label: string;
@@ -129,97 +124,71 @@ export type BuildCatalogResponse = {
     categoryCount: number;
   };
 };
-type BuildCatalogResult =
-  | { ok: true; categories: CatalogCategory[]; summary: BuildCatalogResponse["summary"] }
-  | { ok: false; error: string };
-type AutocompleteResponse =
-  | { ok: true; predictions: PlacePrediction[] }
-  | { ok: false; error: string };
-type EnrichCreateResponse =
-  | {
-      ok: true;
-      venue: { id: string; slug: string; name: string; status: VenueStatus };
-      enrichment: EnrichmentReport;
-    }
-  | { ok: false; error: string; code?: string | null };
 
 export async function apiFetchPublicVenues(
   client: SupabaseClient,
   limit = 50,
 ): Promise<Venue[]> {
-  const { data, error } = await client.functions.invoke<ListResponse>("guest-list-venues", {
-    body: { limit },
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-list-venues failed");
-  return data.venues.map(stripInsecurePhotos);
+  const { venues } = await invokeEF<{ venues: Venue[] }>(
+    client,
+    "guest-list-venues",
+    { limit },
+  );
+  return venues.map(stripInsecurePhotos);
 }
 
 export async function apiGetVenue(
   client: SupabaseClient,
   idOrSlug: string,
 ): Promise<Venue | null> {
-  const { data, error } = await client.functions.invoke<GetResponse>("guest-get-venue", {
-    body: looksLikeUuid(idOrSlug) ? { id: idOrSlug } : { slug: idOrSlug },
-  });
-  if (error) {
-    // 404 surfaces here as a FunctionsHttpError; treat as "not found" rather
-    // than throwing so the page can show a friendly empty state.
-    if (/404/.test(error.message)) return null;
-    throw new Error(error.message);
+  try {
+    const { venue } = await invokeEF<{ venue: Venue }>(
+      client,
+      "guest-get-venue",
+      looksLikeUuid(idOrSlug) ? { id: idOrSlug } : { slug: idOrSlug },
+    );
+    return stripInsecurePhotos(venue);
+  } catch (err) {
+    // 404 → friendly empty state instead of a thrown error.
+    if (err instanceof Error && /404/.test(err.message)) return null;
+    throw err;
   }
-  if (!data?.ok) return null;
-  return stripInsecurePhotos(data.venue);
 }
 
 function looksLikeUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
-// Older venue rows may contain http:// photos (e.g. an old website scrape).
-// Next.js Image throws on insecure URLs and would break the entire page —
-// filter to https here so legacy rows don't kill the surface.
+// Legacy rows may carry http:// photos. Next.js Image rejects them and
+// would crash the whole page; filter to https before render.
 function stripInsecurePhotos<T extends { photos: string[] }>(v: T): T {
   return { ...v, photos: v.photos.filter((p) => p.startsWith("https://")) };
 }
 
-// guest-build-deck — returns a RAG-ranked, diversity-trimmed 20-card deck
-// for the swipe view. All curation lives in the EF; this helper just
-// invokes it and strips insecure photos for Next.js Image safety.
 export async function apiBuildDeck(
   client: SupabaseClient,
   input: BuildDeckInput = {},
 ): Promise<BuildDeckResponse> {
-  const { data, error } = await client.functions.invoke<BuildDeckResult>("guest-build-deck", {
-    body: input,
-  });
-  if (error) {
-    const inner = await readInvokeError(error);
-    throw new Error(inner ?? error.message);
-  }
-  if (!data?.ok) throw new Error(data?.error ?? "guest-build-deck failed");
+  const data = await invokeEF<BuildDeckResponse>(
+    client,
+    "guest-build-deck",
+    input,
+  );
   return {
     deck: data.deck.map(stripInsecurePhotos),
     summary: data.summary,
   };
 }
 
-// guest-build-catalog — returns up to 10 dynamically-proposed category
-// rows (label / description / emoji / venues[]). Each venue is already
-// embedded and ranked by cosine similarity to the row's intent_query.
 export async function apiBuildCatalog(
   client: SupabaseClient,
   input: BuildCatalogInput = {},
 ): Promise<BuildCatalogResponse> {
-  const { data, error } = await client.functions.invoke<BuildCatalogResult>(
+  const data = await invokeEF<BuildCatalogResponse>(
+    client,
     "guest-build-catalog",
-    { body: input },
+    input,
   );
-  if (error) {
-    const inner = await readInvokeError(error);
-    throw new Error(inner ?? error.message);
-  }
-  if (!data?.ok) throw new Error(data?.error ?? "guest-build-catalog failed");
   return {
     categories: data.categories.map((c) => ({
       ...c,
@@ -236,19 +205,13 @@ export async function apiPlacesAutocomplete(
 ): Promise<PlacePrediction[]> {
   const trimmed = input.trim();
   if (trimmed.length < 2) return [];
-  const { data, error } = await client.functions.invoke<AutocompleteResponse>(
+  const { predictions } = await invokeEF<{ predictions: PlacePrediction[] }>(
+    client,
     "manager-suggest-places",
-    { body: { input: trimmed, sessionToken } },
+    { input: trimmed, sessionToken },
+    "Couldn't search venues right now.",
   );
-  // The Edge Function always responds 200 (even on Google failures) and uses
-  // the body's `ok: false` shape to carry the real error. `error` here would
-  // only fire on a transport-layer problem — surface what we can.
-  if (error) {
-    const inner = await readInvokeError(error);
-    throw new Error(inner ?? error.message);
-  }
-  if (!data?.ok) throw new Error(data?.error ?? "Couldn't search venues right now.");
-  return data.predictions;
+  return predictions;
 }
 
 export async function apiEnrichCreateVenue(
@@ -258,42 +221,10 @@ export async function apiEnrichCreateVenue(
   venue: { id: string; slug: string; name: string; status: VenueStatus };
   enrichment: EnrichmentReport;
 }> {
-  const { data, error } = await client.functions.invoke<EnrichCreateResponse>(
-    "manager-create-unit",
-    { body: { placeId } },
-  );
-  if (error) {
-    const inner = await readInvokeError(error);
-    throw new Error(inner ?? error.message);
-  }
-  if (!data?.ok) {
-    throw new Error(data?.error ?? "Couldn't create that venue.");
-  }
-  return { venue: data.venue, enrichment: data.enrichment };
-}
-
-// supabase-js wraps non-2xx responses in a FunctionsHttpError whose default
-// `.message` is the generic "Edge Function returned a non-2xx status code".
-// The real body (the EF's `{ ok: false, error: "…" }`) lives on
-// `error.context.response`. This helper peels that off so the UI gets a
-// useful message instead of the wrapper text.
-async function readInvokeError(error: unknown): Promise<string | null> {
-  try {
-    const ctx = (error as { context?: { response?: Response } }).context;
-    const res = ctx?.response;
-    if (!res) return null;
-    // Cloning lets the caller still inspect the original response later.
-    const body = await res.clone().json().catch(() => null);
-    if (body && typeof body === "object" && "error" in body) {
-      const msg = (body as { error?: string }).error;
-      if (typeof msg === "string" && msg.length > 0) return msg;
-    }
-    const text = await res.clone().text().catch(() => null);
-    if (text && text.length < 500) return text;
-    return null;
-  } catch {
-    return null;
-  }
+  return invokeEF<{
+    venue: { id: string; slug: string; name: string; status: VenueStatus };
+    enrichment: EnrichmentReport;
+  }>(client, "manager-create-unit", { placeId }, "Couldn't create that venue.");
 }
 
 export type UpdateVenueInput = {
@@ -331,18 +262,12 @@ export type UpdateVenueInput = {
   email?: string | null;
 };
 
-type UpdateResponse =
-  | { ok: true; venue: Venue & { phone: string | null; updated_at: string } }
-  | { ok: false; error: string; code?: string | null };
-
 export async function apiUpdateVenue(
   client: SupabaseClient,
   input: UpdateVenueInput,
 ): Promise<Venue & { phone: string | null; updated_at: string }> {
-  const { data, error } = await client.functions.invoke<UpdateResponse>("manager-update-unit", {
-    body: input,
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-update-unit failed");
-  return data.venue;
+  const { venue } = await invokeEF<{
+    venue: Venue & { phone: string | null; updated_at: string };
+  }>(client, "manager-update-unit", input);
+  return venue;
 }

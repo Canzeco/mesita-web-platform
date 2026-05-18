@@ -4,6 +4,7 @@
 // per helper; helpers never compose multiple Edge Functions.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { invokeEF } from "./_invoke";
 
 // ─── Guest profile ───────────────────────────────────────────────────────
 
@@ -32,21 +33,16 @@ export type GuestFullProfile = GuestProfile & {
   country: string | null;
 };
 
-type UpdateGuestProfileRes =
-  | { ok: true; guest: GuestFullProfile }
-  | { ok: false; error: string; code?: string };
-
 export async function apiUpdateGuestProfile(
   client: SupabaseClient,
   input: GuestOnboardingInput,
 ): Promise<GuestFullProfile> {
-  const { data, error } = await client.functions.invoke<UpdateGuestProfileRes>(
+  const { guest } = await invokeEF<{ guest: GuestFullProfile }>(
+    client,
     "guest-update-profile",
-    { body: input },
+    input,
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-update-profile failed");
-  return data.guest;
+  return guest;
 }
 
 // ─── Ticket taxonomy ─────────────────────────────────────────────────────
@@ -179,79 +175,27 @@ export type VenueTicket = Ticket & {
   guest: { id: string; code: string; full_name: string | null } | null;
 };
 
-// ─── Response shapes ─────────────────────────────────────────────────────
-
-type GuestProfileRes = { ok: true; guest: GuestProfile } | { ok: false; error: string };
-type MyTicketsRes = { ok: true; tickets: GuestTicket[] } | { ok: false; error: string };
-type VenueTicketsRes = { ok: true; tickets: VenueTicket[] } | { ok: false; error: string };
-type CreateTicketRes =
-  | {
-      ok: true;
-      ticket: Ticket;
-      venue: { id: string; name: string; fiscal_type: FiscalType };
-      guest: { id: string; code: string; full_name: string | null };
-    }
-  | { ok: false; error: string; code?: string };
-type MarkPaidRes =
-  | {
-      ok: true;
-      ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null; story_status?: StoryStatus };
-      cashbackCreditedCents: number;
-      cashbackRedeemedCents: number;
-      guestBalanceAfterCents: number | null;
-      alreadyPaid?: boolean;
-      awaitingStory?: boolean;
-    }
-  | { ok: false; error: string; code?: string };
-type LookupGuestRes =
-  | { ok: true; guest: { id: string; code: string; full_name: string | null; cashback_balance_cents: number } }
-  | { ok: false; error: string };
-type CancelTicketRes =
-  | {
-      ok: true;
-      ticket?: { id: string; status: TicketStatus; cancelled_at: string | null; cancel_reason: string | null };
-      alreadyCancelled?: boolean;
-    }
-  | { ok: false; error: string };
-type VerifyStoryRes =
-  | {
-      ok: true;
-      ticket: Ticket;
-      cashbackCreditedCents: number;
-      cashbackRedeemedCents: number;
-      guestBalanceAfterCents: number | null;
-      alreadyDecided?: boolean;
-    }
-  | { ok: false; error: string; code?: string };
-type SubmitStoryRes =
-  | {
-      ok: true;
-      ticket: Ticket;
-      alreadyVerified?: boolean;
-    }
-  | { ok: false; error: string };
-
 // ─── Reads ───────────────────────────────────────────────────────────────
 
 export async function apiFetchGuestProfile(client: SupabaseClient): Promise<GuestProfile> {
-  const { data, error } = await client.functions.invoke<GuestProfileRes>("guest-get-profile", {
-    body: {},
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-get-profile failed");
-  return data.guest;
+  const { guest } = await invokeEF<{ guest: GuestProfile }>(
+    client,
+    "guest-get-profile",
+    {},
+  );
+  return guest;
 }
 
 export async function apiFetchMyTickets(
   client: SupabaseClient,
   limit = 20,
 ): Promise<GuestTicket[]> {
-  const { data, error } = await client.functions.invoke<MyTicketsRes>("guest-list-tickets", {
-    body: { limit },
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-list-tickets failed");
-  return data.tickets;
+  const { tickets } = await invokeEF<{ tickets: GuestTicket[] }>(
+    client,
+    "guest-list-tickets",
+    { limit },
+  );
+  return tickets;
 }
 
 export async function apiFetchVenueTickets(
@@ -259,12 +203,12 @@ export async function apiFetchVenueTickets(
   venueId: string,
   limit = 20,
 ): Promise<VenueTicket[]> {
-  const { data, error } = await client.functions.invoke<VenueTicketsRes>("manager-list-tickets", {
-    body: { venueId, limit },
-  });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-list-tickets failed");
-  return data.tickets;
+  const { tickets } = await invokeEF<{ tickets: VenueTicket[] }>(
+    client,
+    "manager-list-tickets",
+    { venueId, limit },
+  );
+  return tickets;
 }
 
 // ─── Writes ──────────────────────────────────────────────────────────────
@@ -290,39 +234,48 @@ export type CreateTicketInput = {
   reservationNotes?: string;
 };
 
-export async function apiCreateTicket(
-  client: SupabaseClient,
-  input: CreateTicketInput,
-): Promise<{
+type CreateTicketPayload = {
   ticket: Ticket;
   venue: { id: string; name: string; fiscal_type: FiscalType };
   guest: { id: string; code: string; full_name: string | null };
-}> {
-  const { data, error } = await client.functions.invoke<CreateTicketRes>(
-    "manager-create-ticket",
-    { body: input },
-  );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-create-ticket failed");
-  return { ticket: data.ticket, venue: data.venue, guest: data.guest };
+};
+
+export async function apiCreateTicket(
+  client: SupabaseClient,
+  input: CreateTicketInput,
+): Promise<CreateTicketPayload> {
+  return invokeEF<CreateTicketPayload>(client, "manager-create-ticket", input);
 }
+
+type MarkPaidPayload = {
+  ticket: {
+    id: string;
+    status: TicketStatus;
+    paid_at: string | null;
+    cashback_cents: number | null;
+    story_status?: StoryStatus;
+  };
+  cashbackCreditedCents: number;
+  cashbackRedeemedCents?: number;
+  guestBalanceAfterCents: number | null;
+  alreadyPaid?: boolean;
+  awaitingStory?: boolean;
+};
 
 export async function apiMarkTicketPaid(
   client: SupabaseClient,
   ticketId: string,
 ): Promise<{
-  ticket: { id: string; status: TicketStatus; paid_at: string | null; cashback_cents: number | null; story_status?: StoryStatus };
+  ticket: MarkPaidPayload["ticket"];
   cashbackCreditedCents: number;
   cashbackRedeemedCents: number;
   guestBalanceAfterCents: number | null;
   alreadyPaid: boolean;
   awaitingStory: boolean;
 }> {
-  const { data, error } = await client.functions.invoke<MarkPaidRes>("manager-mark-paid", {
-    body: { ticketId },
+  const data = await invokeEF<MarkPaidPayload>(client, "manager-mark-paid", {
+    ticketId,
   });
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-mark-paid failed");
   return {
     ticket: data.ticket,
     cashbackCreditedCents: data.cashbackCreditedCents,
@@ -342,13 +295,10 @@ export async function apiLookupGuest(
   full_name: string | null;
   cashback_balance_cents: number;
 }> {
-  const { data, error } = await client.functions.invoke<LookupGuestRes>(
-    "manager-find-guest",
-    { body: { code } },
-  );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-find-guest failed");
-  return data.guest;
+  const { guest } = await invokeEF<{
+    guest: { id: string; code: string; full_name: string | null; cashback_balance_cents: number };
+  }>(client, "manager-find-guest", { code });
+  return guest;
 }
 
 export async function apiCancelTicket(
@@ -356,12 +306,7 @@ export async function apiCancelTicket(
   ticketId: string,
   reason?: string,
 ): Promise<void> {
-  const { data, error } = await client.functions.invoke<CancelTicketRes>(
-    "manager-cancel-ticket",
-    { body: { ticketId, reason } },
-  );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-cancel-ticket failed");
+  await invokeEF(client, "manager-cancel-ticket", { ticketId, reason });
 }
 
 export async function apiVerifyStory(
@@ -373,12 +318,13 @@ export async function apiVerifyStory(
   cashbackRedeemedCents: number;
   guestBalanceAfterCents: number | null;
 }> {
-  const { data, error } = await client.functions.invoke<VerifyStoryRes>(
-    "manager-verify-story",
-    { body: input },
-  );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-verify-story failed");
+  const data = await invokeEF<{
+    ticket: Ticket;
+    cashbackCreditedCents: number;
+    cashbackRedeemedCents: number;
+    guestBalanceAfterCents: number | null;
+    alreadyDecided?: boolean;
+  }>(client, "manager-verify-story", input);
   return {
     ticket: data.ticket,
     cashbackCreditedCents: data.cashbackCreditedCents,
@@ -391,13 +337,12 @@ export async function apiSubmitStory(
   client: SupabaseClient,
   input: { ticketId: string; screenshotUrl: string },
 ): Promise<Ticket> {
-  const { data, error } = await client.functions.invoke<SubmitStoryRes>(
+  const { ticket } = await invokeEF<{ ticket: Ticket; alreadyVerified?: boolean }>(
+    client,
     "guest-submit-story",
-    { body: input },
+    input,
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "guest-submit-story failed");
-  return data.ticket;
+  return ticket;
 }
 
 // ─── Step timeline (drives the guest's progress card) ────────────────────

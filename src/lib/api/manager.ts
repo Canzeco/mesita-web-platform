@@ -4,6 +4,7 @@
 // Edge Function per helper, helpers never compose multiple Edge Functions.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { invokeEF } from "./_invoke";
 
 export type ManagerProfile = {
   id: string;
@@ -13,31 +14,25 @@ export type ManagerProfile = {
   created_at: string;
 };
 
-type ProfileRes =
-  | { ok: true; manager: ManagerProfile }
-  | { ok: false; error: string };
-
 export async function apiGetManagerProfile(
   client: SupabaseClient,
 ): Promise<ManagerProfile> {
-  const { data, error } = await client.functions.invoke<ProfileRes>(
+  const { manager } = await invokeEF<{ manager: ManagerProfile }>(
+    client,
     "manager-get-profile",
-    { body: {} },
+    {},
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-get-profile failed");
-  return data.manager;
+  return manager;
 }
 
 export async function apiCreateManagerProfile(
   client: SupabaseClient,
   input: { full_name?: string | null; phone?: string | null },
 ): Promise<ManagerProfile> {
-  const { data, error } = await client.functions.invoke<ProfileRes>(
+  const { manager } = await invokeEF<{ manager: ManagerProfile }>(
+    client,
     "manager-create-profile",
-    { body: input },
+    input,
   );
-  if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error ?? "manager-create-profile failed");
-  return data.manager;
+  return manager;
 }
