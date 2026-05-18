@@ -6,6 +6,7 @@ import { AI_SUGGESTIONS } from "@/lib/guest-data";
 
 export default function AiPage() {
   const [input, setInput] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
 
   return (
     <div className="flex h-full flex-col">
@@ -22,6 +23,11 @@ export default function AiPage() {
           and I&apos;ll find the spot.
         </p>
 
+        <p className="mx-auto mt-4 max-w-xs rounded-xl bg-secondary/10 px-3 py-2 text-center text-[11px] text-secondary">
+          Preview — the AI concierge isn&apos;t live yet. Tap a suggestion to see what it&apos;ll
+          feel like.
+        </p>
+
         <div className="mt-6 flex flex-col gap-2.5">
           {AI_SUGGESTIONS.map((s) => (
             <button
@@ -34,12 +40,21 @@ export default function AiPage() {
             </button>
           ))}
         </div>
+
+        {notice && (
+          <p className="mx-auto mt-4 max-w-xs rounded-xl bg-muted px-3 py-2 text-center text-[11px] text-muted-foreground">
+            {notice}
+          </p>
+        )}
       </div>
 
       <div className="shrink-0 border-t border-border bg-background px-3 py-3">
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            setNotice(
+              "Coming soon — for now use Swipe or Catalog to find venues, or the Map tab to see what's nearby.",
+            );
           }}
           className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5"
         >
