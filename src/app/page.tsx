@@ -185,10 +185,26 @@ function ForGuests() {
 
 function Tiers() {
   const tiers = [
-    { name: "Bronze", req: "Default", desc: "Full catalog and reservation access." },
-    { name: "Silver", req: "1K followers · or $20K spent", desc: "Elevated cashback at partners." },
-    { name: "Gold", req: "5K followers · or $50K spent", desc: "Premium rates and priority." },
-    { name: "Diamond", req: "20K followers · or $100K · or invite", desc: "VIP treatment and private events." },
+    {
+      name: "Bronze",
+      req: "Default · no IG or under 1K followers",
+      desc: "Full catalog and reservation access.",
+    },
+    {
+      name: "Silver",
+      req: "1K+ followers · or MXN $5K+ spent",
+      desc: "Elevated cashback at partners.",
+    },
+    {
+      name: "Gold",
+      req: "5K+ followers · or MXN $20K+ spent",
+      desc: "Premium rates and priority.",
+    },
+    {
+      name: "Diamond",
+      req: "20K+ followers (invite-only) · or MXN $100K+ spent · or appeal",
+      desc: "VIP treatment and private events.",
+    },
   ];
 
   return (
@@ -199,7 +215,9 @@ function Tiers() {
             Your social capital is worth money.
           </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Four tiers. The higher you go, the better the cashback and access. Climb by real followers, historical spend, or invitation.
+            Four tiers. Two ways up: Instagram followers or lifetime Mesita spend.
+            If the numbers don&apos;t capture your real-world influence — models,
+            chefs, press, founders — Mesita can upgrade you manually.
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-4">
