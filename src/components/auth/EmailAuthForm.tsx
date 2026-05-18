@@ -54,6 +54,7 @@ export function EmailAuthForm({
           name="password"
           required
           minLength={6}
+          maxLength={72}
           autoComplete={passwordAutoComplete}
           className={INPUT_CLASS}
           placeholder="••••••••"
