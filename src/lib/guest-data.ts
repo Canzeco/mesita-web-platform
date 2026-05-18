@@ -649,21 +649,8 @@ export const ACHIEVEMENTS = Array.from({ length: 50 }, (_, i) => ({
   unlocked: i < 18,
 }));
 
-export const MAP_PINS = [
-  { id: "neon-bar", emoji: "🍸", x: 22, y: 32, cashback: 20 },
-  { id: "sala-trece", emoji: "🍕", x: 76, y: 35, cashback: 5 },
-  { id: "casa-luminar", emoji: "🎶", x: 52, y: 46, cashback: 20 },
-  { id: "mar-verde", emoji: "🐟", x: 32, y: 60, cashback: null },
-  { id: "loto-cafe", emoji: "☕", x: 70, y: 68, cashback: 10 },
-  { id: "taqueria-cruz", emoji: "🌮", x: 26, y: 78, cashback: 10 },
-];
-
 export function venueById(id: string): Venue | undefined {
   return VENUES.find((v) => v.id === id);
-}
-
-export function priceDots(level: 1 | 2 | 3 | 4): string {
-  return "$".repeat(level);
 }
 
 export function tierBadgeClass(tier: Tier): string {

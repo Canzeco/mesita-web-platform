@@ -1,5 +1,11 @@
 import { Crown, Sparkles, Award, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  BADGE_SHELL,
+  BADGE_SIZE_CLASS,
+  BADGE_ICON_CLASS,
+  type BadgeSize,
+} from "./badge-sizing";
 
 // Guest class — the four-tier ladder. Bronze is the default, Silver/Gold
 // scale on either Instagram follower count or lifetime Mesita spend, Diamond
@@ -26,26 +32,13 @@ export function TierBadge({
   className,
 }: {
   tier: Tier;
-  size?: "xs" | "sm" | "md";
+  size?: BadgeSize;
   className?: string;
 }) {
-  const meta = TIER_STYLE[tier];
-  const Icon = meta.Icon;
-  const sizing = {
-    xs: "px-1.5 py-0.5 text-[9px] gap-0.5",
-    sm: "px-2 py-0.5 text-[10px] gap-1",
-    md: "px-2.5 py-1 text-[11px] gap-1.5",
-  }[size];
+  const { tone, Icon } = TIER_STYLE[tier];
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full font-bold uppercase tracking-wider shadow-sm",
-        meta.tone,
-        sizing,
-        className,
-      )}
-    >
-      <Icon className={size === "md" ? "h-3 w-3" : "h-2.5 w-2.5"} />
+    <span className={cn(BADGE_SHELL, tone, BADGE_SIZE_CLASS[size], className)}>
+      <Icon className={BADGE_ICON_CLASS[size]} />
       {TIER_LABEL[tier]}
     </span>
   );

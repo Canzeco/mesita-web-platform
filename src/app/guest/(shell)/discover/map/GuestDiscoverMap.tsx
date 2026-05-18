@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { Venue } from "@/lib/api/venues";
+import { PartnerBadge, RatePill } from "@/components/shared";
 
 // Default map centre — Monterrey, since that's the city the project is
 // shipping in first. If the geolocation permission lands we re-centre on
@@ -293,17 +294,7 @@ function VenuePreview({
               <span className="truncate font-display text-[15px] font-semibold leading-tight tracking-tight">
                 {venue.name}
               </span>
-              {venue.listing_type === "partner" ? (
-                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-tier-gold/95 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-black">
-                  <Sparkles className="h-2 w-2" />
-                  Verified
-                </span>
-              ) : (
-                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Globe className="h-2 w-2" />
-                  Web
-                </span>
-              )}
+              <PartnerBadge listingType={venue.listing_type} size="xs" />
             </span>
             {subtitle && (
               <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
@@ -319,9 +310,11 @@ function VenuePreview({
                 {venue.listing_type === "partner" &&
                   venue.cashback_percent != null &&
                   venue.cashback_percent > 0 && (
-                    <span className="rounded-full bg-pink-gradient px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                      {venue.cashback_percent}% back
-                    </span>
+                    <RatePill
+                      percent={venue.cashback_percent}
+                      mechanic={venue.fiscal_type === "informal" ? "discount" : "cashback"}
+                      size="xs"
+                    />
                   )}
               </span>
             )}

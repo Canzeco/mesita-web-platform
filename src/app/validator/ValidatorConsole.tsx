@@ -44,6 +44,7 @@ import {
   type TicketKind,
   type VenueTicket,
 } from "@/lib/api/tickets";
+import { RatePill } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
 // ── Local types ────────────────────────────────────────────────────────
@@ -433,17 +434,11 @@ function NewTicketCard({
               : "Discount flow — discount is revealed to you, the bill settles in cash."}
           </p>
         </div>
-        <span
-          className={cn(
-            "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm",
-            isFormal
-              ? "bg-pink-gradient text-white"
-              : "bg-tier-gold text-black",
-          )}
-          title={isFormal ? "Formal venue — cashback" : "Informal venue — instant discount"}
-        >
-          {isFormal ? `${ratePercent}% cashback` : `${ratePercent}% discount`}
-        </span>
+        <RatePill
+          percent={ratePercent}
+          mechanic={isFormal ? "cashback" : "discount"}
+          size="md"
+        />
       </div>
 
       {isFormal && (

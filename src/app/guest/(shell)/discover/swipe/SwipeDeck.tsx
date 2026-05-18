@@ -14,8 +14,7 @@ import {
   Compass,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/guest/ImageCarousel";
-import { PartnerBadge } from "@/components/shared/PartnerBadge";
-import { RatePill } from "@/components/shared/RatePill";
+import { PartnerBadge, RatePill } from "@/components/shared";
 import { cn } from "@/lib/utils";
 import type { Venue } from "@/lib/api/venues";
 

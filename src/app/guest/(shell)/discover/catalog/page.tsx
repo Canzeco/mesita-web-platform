@@ -2,8 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { apiFetchPublicVenues, type Venue } from "@/lib/api/venues";
-import { PartnerBadge } from "@/components/shared/PartnerBadge";
-import { RatePill } from "@/components/shared/RatePill";
+import { PartnerBadge, RatePill } from "@/components/shared";
 
 export const dynamic = "force-dynamic";
 

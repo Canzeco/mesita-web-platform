@@ -1,5 +1,11 @@
 import { Sparkles, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  BADGE_SHELL,
+  BADGE_SIZE_CLASS,
+  BADGE_ICON_CLASS,
+  type BadgeSize,
+} from "./badge-sizing";
 
 // Venue badge that distinguishes Verified Partners (signed up at
 // manager.mesita.app, configured a coupon mechanic) from Web-Listed
@@ -12,29 +18,24 @@ export function PartnerBadge({
   className,
 }: {
   listingType: ListingType;
-  size?: "xs" | "sm" | "md";
+  size?: BadgeSize;
   className?: string;
 }) {
   const isPartner = listingType === "partner";
-  const sizing = {
-    xs: "px-1.5 py-0.5 text-[9px] gap-0.5",
-    sm: "px-2 py-0.5 text-[10px] gap-1",
-    md: "px-2.5 py-1 text-[11px] gap-1.5",
-  }[size];
-  const iconSize = size === "md" ? "h-3 w-3" : "h-2.5 w-2.5";
+  const Icon = isPartner ? Sparkles : Globe;
+  const tone = isPartner
+    ? "bg-tier-gold/95 text-black"
+    : "bg-card/95 text-foreground border border-border";
   return (
     <span
-      title={isPartner ? "Verified Partner — runs the coupon mechanic" : "Web-Listed — auto-sourced from Google, no coupon"}
-      className={cn(
-        "inline-flex items-center rounded-full font-bold uppercase tracking-wider shadow-sm",
+      title={
         isPartner
-          ? "bg-tier-gold/95 text-black"
-          : "bg-card/95 text-foreground border border-border",
-        sizing,
-        className,
-      )}
+          ? "Verified Partner — runs the coupon mechanic"
+          : "Web-Listed — auto-sourced from Google, no coupon"
+      }
+      className={cn(BADGE_SHELL, tone, BADGE_SIZE_CLASS[size], className)}
     >
-      {isPartner ? <Sparkles className={iconSize} /> : <Globe className={iconSize} />}
+      <Icon className={BADGE_ICON_CLASS[size]} />
       {isPartner ? "Verified" : "Web"}
     </span>
   );

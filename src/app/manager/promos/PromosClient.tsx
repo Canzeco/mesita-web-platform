@@ -17,6 +17,7 @@ import {
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type VenuePlan } from "@/lib/api/venues";
 import { KIND_LABEL, type TicketKind } from "@/lib/api/tickets";
+import { FiscalBadge } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
 // ─── Plan catalog ────────────────────────────────────────────────────────
@@ -191,14 +192,7 @@ export function PromosClient({ venue }: { venue: MyVenue }) {
               Visibility: <span className="font-semibold">{visibilityForPlan(venue.plan)}</span>
             </p>
           </div>
-          <span
-            className={cn(
-              "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider shadow-sm",
-              isFormal ? "bg-pink-gradient text-white" : "bg-tier-gold text-black",
-            )}
-          >
-            {isFormal ? "Formal venue" : "Informal venue"}
-          </span>
+          <FiscalBadge fiscalType={venue.fiscal_type} size="md" />
         </div>
       </section>
 

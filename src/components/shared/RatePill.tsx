@@ -1,15 +1,36 @@
 import { CircleDollarSign, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  BADGE_SHELL,
+  BADGE_SIZE_CLASS,
+  BADGE_ICON_CLASS,
+  type BadgeSize,
+} from "./badge-sizing";
 
 // Coupon rate displayed on cards / modal headers / promo previews.
-// The colour scales with the four canonical rates (5 / 10 / 20 / 50). Any
-// rate inside a band picks up that band's tone, so a 7% lands in the 5–9
-// range with the lowest-saturation pill.
-//
-// Mechanic decides the label suffix: "cashback" on formal venues,
-// "discount" on informal venues. Same component, two readings.
+// Mechanic decides the suffix: "cashback" on formal venues, "discount"
+// on informal venues. Same component, two readings.
 
 export type Mechanic = "cashback" | "discount";
+
+// Mesita's canonical rate rungs: 5 / 10 / 20 / 50. Bands sit between rungs
+// so a 7% still reads as the 5% tier visually, a 23% reads as the 20%
+// tier, etc. The order matters — we walk from lightest to most saturated.
+const RATE_BANDS: { max: number; tone: string }[] = [
+  { max: 0, tone: "bg-muted text-muted-foreground" },
+  { max: 10, tone: "bg-secondary/30 text-foreground" },
+  { max: 20, tone: "bg-secondary/60 text-secondary-foreground" },
+  { max: 50, tone: "bg-pink-gradient text-white" },
+  { max: Infinity, tone: "bg-pink-gradient text-white shadow-glow" },
+];
+
+function toneForPercent(p: number): string {
+  for (const band of RATE_BANDS) {
+    if (p <= band.max) return band.tone;
+  }
+  // Unreachable (last band has max: Infinity) but keeps the type checker happy.
+  return RATE_BANDS[RATE_BANDS.length - 1].tone;
+}
 
 export function RatePill({
   percent,
@@ -19,39 +40,22 @@ export function RatePill({
 }: {
   percent: number;
   mechanic: Mechanic;
-  size?: "xs" | "sm" | "md";
+  size?: BadgeSize;
   className?: string;
 }) {
-  const tone = toneForPercent(percent);
   const Icon = mechanic === "cashback" ? CircleDollarSign : Percent;
-  const sizing = {
-    xs: "px-1.5 py-0.5 text-[9px] gap-0.5",
-    sm: "px-2 py-0.5 text-[10px] gap-1",
-    md: "px-2.5 py-1 text-[11px] gap-1.5",
-  }[size];
   const label = mechanic === "cashback" ? "cashback" : "discount";
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full font-bold uppercase tracking-wider shadow-sm",
-        tone,
-        sizing,
+        BADGE_SHELL,
+        toneForPercent(percent),
+        BADGE_SIZE_CLASS[size],
         className,
       )}
     >
-      <Icon className={size === "md" ? "h-3 w-3" : "h-2.5 w-2.5"} />
+      <Icon className={BADGE_ICON_CLASS[size]} />
       {percent}% {label}
     </span>
   );
-}
-
-// 5% / 10% / 20% / 50% are Mesita's canonical rungs. Anything below 5 picks
-// the muted tone; anything above 50 picks the maxed-out gradient. Bands sit
-// between the rungs so a 7% still reads as the 5% tier visually.
-function toneForPercent(p: number): string {
-  if (p <= 0) return "bg-muted text-muted-foreground";
-  if (p < 10) return "bg-secondary/30 text-foreground";
-  if (p < 20) return "bg-secondary/60 text-secondary-foreground";
-  if (p < 50) return "bg-pink-gradient text-white";
-  return "bg-pink-gradient text-white shadow-glow";
 }
