@@ -2,27 +2,65 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
-// Paths that require an authenticated session. Anything starting with one
-// of these prefixes — and NOT in PUBLIC_AUTH_PATHS below — gets bounced to
-// the matching sign-in page with a ?next= pointing back here. Keeps client-
-// rendered pages (like /manager/promos) protected without each page needing
-// its own server-side gate.
-const PROTECTED_PREFIXES: Array<{ prefix: string; signIn: string }> = [
+// Routing rules. Two passes:
+//
+// 1. "Signed-out wall" — any path that requires a user. If the request
+//    arrives without a session, we redirect to the right sign-in page
+//    and pass a `?next=` so the post-signin router lands them back here.
+//
+// 2. "Already-signed-in bounce" — sign-in / sign-up pages should not be
+//    visited while the user is already authenticated. We bounce them
+//    through /auth/post-signin which forwards to onboard or dashboard
+//    depending on whether the corresponding profile has a full_name.
+//
+// The onboarded-vs-not check is intentionally NOT in middleware — that
+// requires an Edge Function call per request, which is too expensive.
+// Onboard pages and dashboards each do their own server-side check.
+//
+// Guest browsing (discover, venue detail, share) is deliberately public
+// so anonymous visitors can swipe before signing up. /guest/profile,
+// /guest/qr, /guest/saved are private because they expose personal data.
+
+type GateRule = {
+  // Path that requires auth. Match is "exact OR starts with `${prefix}/`".
+  prefix: string;
+  // Where to bounce signed-out users.
+  signIn: string;
+};
+
+const PROTECTED_RULES: GateRule[] = [
+  // Manager surfaces — sign-in / sign-up / OAuth callback are listed in
+  // PUBLIC_AUTH_PATHS below so they aren't blocked by their own prefix.
   { prefix: "/manager", signIn: "/manager/sign-in" },
   { prefix: "/validator", signIn: "/manager/sign-in" },
   { prefix: "/admin", signIn: "/manager/sign-in" },
+  // Guest private surfaces.
+  { prefix: "/guest/profile", signIn: "/guest/sign-in" },
+  { prefix: "/guest/qr", signIn: "/guest/sign-in" },
+  { prefix: "/guest/saved", signIn: "/guest/sign-in" },
 ];
 
-// Within a protected prefix, these subpaths stay public (sign-in / sign-up
-// itself, OAuth callback). Anything else is gated.
+// Within a protected prefix, these subpaths stay public (sign-in, sign-up,
+// OAuth callback, password reset). Anything else under the prefix is gated.
 const PUBLIC_AUTH_PATHS = new Set([
   "/manager/sign-in",
   "/manager/sign-up",
+  "/manager/forgot",
 ]);
+
+// Sign-in / sign-up pages where a signed-in visitor should be bounced
+// through post-signin. Each entry maps the path to the audience flag the
+// router needs so it can pick the right onboarded check.
+const SIGNED_IN_BOUNCE: Record<string, "guest" | "manager"> = {
+  "/manager/sign-in": "manager",
+  "/manager/sign-up": "manager",
+  "/guest/sign-in": "guest",
+  "/guest/sign-up": "guest",
+};
 
 function shouldGate(pathname: string): { signIn: string } | null {
   if (PUBLIC_AUTH_PATHS.has(pathname)) return null;
-  for (const { prefix, signIn } of PROTECTED_PREFIXES) {
+  for (const { prefix, signIn } of PROTECTED_RULES) {
     if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
       return { signIn };
     }
@@ -69,14 +107,32 @@ export async function updateSupabaseSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const gate = shouldGate(request.nextUrl.pathname);
+  const pathname = request.nextUrl.pathname;
+
+  // Signed-out wall.
+  const gate = shouldGate(pathname);
   if (gate && !user) {
     const signInUrl = request.nextUrl.clone();
     signInUrl.pathname = gate.signIn;
     signInUrl.search = `?next=${encodeURIComponent(
-      request.nextUrl.pathname + request.nextUrl.search,
+      pathname + request.nextUrl.search,
     )}`;
     return NextResponse.redirect(signInUrl);
+  }
+
+  // Already-signed-in bounce. We keep the user's own `?next=` intact so a
+  // deep link that forced a sign-in still lands at the original target.
+  if (user && pathname in SIGNED_IN_BOUNCE) {
+    const audience = SIGNED_IN_BOUNCE[pathname];
+    const bounce = request.nextUrl.clone();
+    bounce.pathname = "/auth/post-signin";
+    const incomingNext = request.nextUrl.searchParams.get("next");
+    const params = new URLSearchParams({ audience });
+    if (incomingNext && incomingNext.startsWith("/") && !incomingNext.startsWith("//")) {
+      params.set("next", incomingNext);
+    }
+    bounce.search = `?${params.toString()}`;
+    return NextResponse.redirect(bounce);
   }
 
   return response;

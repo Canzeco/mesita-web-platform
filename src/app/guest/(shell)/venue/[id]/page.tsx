@@ -13,6 +13,11 @@ import {
   CalendarCheck,
   Bike,
   Sparkles,
+  Twitter,
+  Youtube,
+  AtSign,
+  Mail,
+  Star,
 } from "lucide-react";
 import { ImageCarousel } from "@/components/guest/ImageCarousel";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -118,6 +123,7 @@ export default async function VenueDetailPage({
         <ContactBlock venue={venue} />
         <ChannelsBlock venue={venue} />
         <ReservationsBlock venue={venue} />
+        <ReviewsBlock venue={venue} />
       </div>
     </div>
   );
@@ -128,6 +134,7 @@ function ContactBlock({ venue }: { venue: Venue }) {
     venue.address ? { icon: MapPin, label: venue.address } : null,
     venue.closes_at ? { icon: Clock, label: `Closes at ${venue.closes_at}` } : null,
     venue.phone ? { icon: Phone, label: venue.phone, href: `tel:${venue.phone}` } : null,
+    venue.email ? { icon: Mail, label: venue.email, href: `mailto:${venue.email}` } : null,
   ].filter(Boolean) as { icon: typeof MapPin; label: string; href?: string }[];
 
   if (items.length === 0) return null;
@@ -160,6 +167,10 @@ const CHANNEL_DEFS = [
   { key: "instagram_url", label: "Instagram", Icon: Instagram },
   { key: "tiktok_url", label: "TikTok", Icon: Music2 },
   { key: "facebook_url", label: "Facebook", Icon: Facebook },
+  { key: "x_url", label: "X", Icon: Twitter },
+  { key: "youtube_url", label: "YouTube", Icon: Youtube },
+  { key: "threads_url", label: "Threads", Icon: AtSign },
+  { key: "reddit_url", label: "Reddit", Icon: MessageCircle },
 ] as const;
 
 const RESERVATION_DEFS = [
@@ -167,6 +178,14 @@ const RESERVATION_DEFS = [
   { key: "resy_url", label: "Resy", Icon: CalendarCheck },
   { key: "uber_eats_url", label: "Uber Eats", Icon: Bike },
   { key: "rappi_url", label: "Rappi", Icon: Bike },
+  { key: "didi_food_url", label: "DiDi Food", Icon: Bike },
+] as const;
+
+// Review/discover surfaces. Kept separate from socials so guests can scan
+// "where can I read about this place" at a glance.
+const REVIEW_DEFS = [
+  { key: "tripadvisor_url", label: "TripAdvisor", Icon: Star },
+  { key: "google_maps_url", label: "Google Maps", Icon: MapPin },
 ] as const;
 
 function ChannelsBlock({ venue }: { venue: Venue }) {
@@ -179,6 +198,12 @@ function ReservationsBlock({ venue }: { venue: Venue }) {
   const active = RESERVATION_DEFS.filter((c) => !!venue[c.key]);
   if (active.length === 0) return null;
   return <ChipGrid title="Reserve & order" items={active} venue={venue} />;
+}
+
+function ReviewsBlock({ venue }: { venue: Venue }) {
+  const active = REVIEW_DEFS.filter((c) => !!venue[c.key]);
+  if (active.length === 0) return null;
+  return <ChipGrid title="Reviews & maps" items={active} venue={venue} />;
 }
 
 function ChipGrid({

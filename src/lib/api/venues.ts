@@ -48,6 +48,14 @@ export type Venue = {
   resy_url: string | null;
   uber_eats_url: string | null;
   rappi_url: string | null;
+  x_url: string | null;
+  youtube_url: string | null;
+  threads_url: string | null;
+  reddit_url: string | null;
+  didi_food_url: string | null;
+  tripadvisor_url: string | null;
+  google_maps_url: string | null;
+  email: string | null;
   created_at: string;
 };
 
@@ -69,6 +77,9 @@ export type EnrichmentReport = {
   perplexity: boolean;
   openai: boolean;
   openaiError?: string | null;
+  /** Number of channel columns (URLs + email) auto-classified from the
+   *  enrichment pass. Lets the UI brag "We pulled 9 of your channels". */
+  channelCount?: number;
 };
 
 type ListResponse = { ok: true; venues: Venue[] } | { ok: false; error: string };
@@ -216,6 +227,14 @@ export type UpdateVenueInput = {
   resy_url?: string | null;
   uber_eats_url?: string | null;
   rappi_url?: string | null;
+  x_url?: string | null;
+  youtube_url?: string | null;
+  threads_url?: string | null;
+  reddit_url?: string | null;
+  didi_food_url?: string | null;
+  tripadvisor_url?: string | null;
+  google_maps_url?: string | null;
+  email?: string | null;
 };
 
 type UpdateResponse =

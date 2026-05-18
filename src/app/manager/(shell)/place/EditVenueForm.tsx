@@ -18,6 +18,12 @@ import {
   Music2,
   CalendarCheck,
   Bike,
+  Twitter,
+  Youtube,
+  AtSign,
+  MapPin,
+  Star,
+  Mail,
 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type UpdateVenueInput } from "@/lib/api/venues";
@@ -72,6 +78,13 @@ type LinksState = {
   resy_url: string;
   uber_eats_url: string;
   rappi_url: string;
+  x_url: string;
+  youtube_url: string;
+  threads_url: string;
+  reddit_url: string;
+  didi_food_url: string;
+  tripadvisor_url: string;
+  google_maps_url: string;
 };
 
 function nullableUrl(v: string): string | null {
@@ -128,9 +141,19 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
     resy_url: venue.resy_url ?? "",
     uber_eats_url: venue.uber_eats_url ?? "",
     rappi_url: venue.rappi_url ?? "",
+    x_url: venue.x_url ?? "",
+    youtube_url: venue.youtube_url ?? "",
+    threads_url: venue.threads_url ?? "",
+    reddit_url: venue.reddit_url ?? "",
+    didi_food_url: venue.didi_food_url ?? "",
+    tripadvisor_url: venue.tripadvisor_url ?? "",
+    google_maps_url: venue.google_maps_url ?? "",
   });
   const setLink = (key: keyof LinksState, value: string) =>
     setLinks((prev) => ({ ...prev, [key]: value }));
+  // Email is plain text, not URL-shaped — handled separately so it bypasses
+  // the auto-https upgrade in nullableUrl().
+  const [email, setEmail] = useState(venue.email ?? "");
 
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +182,12 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
       return;
     }
 
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("Email must look like name@domain.tld.");
+      return;
+    }
+
     const payload: UpdateVenueInput = {
       id: venue.id,
       name: trimmedName,
@@ -183,6 +212,14 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
       resy_url: nullableUrl(links.resy_url),
       uber_eats_url: nullableUrl(links.uber_eats_url),
       rappi_url: nullableUrl(links.rappi_url),
+      x_url: nullableUrl(links.x_url),
+      youtube_url: nullableUrl(links.youtube_url),
+      threads_url: nullableUrl(links.threads_url),
+      reddit_url: nullableUrl(links.reddit_url),
+      didi_food_url: nullableUrl(links.didi_food_url),
+      tripadvisor_url: nullableUrl(links.tripadvisor_url),
+      google_maps_url: nullableUrl(links.google_maps_url),
+      email: trimmedEmail === "" ? null : trimmedEmail,
     };
 
     startTransition(async () => {
@@ -396,6 +433,56 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             value={links.facebook_url}
             onChange={(v) => setLink("facebook_url", v)}
           />
+          <UrlField
+            label="X (Twitter)"
+            icon={<Twitter className="h-4 w-4" />}
+            placeholder="https://x.com/yourplace"
+            value={links.x_url}
+            onChange={(v) => setLink("x_url", v)}
+          />
+          <UrlField
+            label="YouTube"
+            icon={<Youtube className="h-4 w-4" />}
+            placeholder="https://youtube.com/@yourplace"
+            value={links.youtube_url}
+            onChange={(v) => setLink("youtube_url", v)}
+          />
+          <UrlField
+            label="Threads"
+            icon={<AtSign className="h-4 w-4" />}
+            placeholder="https://threads.net/@yourplace"
+            value={links.threads_url}
+            onChange={(v) => setLink("threads_url", v)}
+          />
+          <UrlField
+            label="Reddit"
+            icon={<MessageCircle className="h-4 w-4" />}
+            placeholder="https://reddit.com/r/yourplace"
+            value={links.reddit_url}
+            onChange={(v) => setLink("reddit_url", v)}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Reviews"
+        subtitle="Where the venue lives on review platforms. Guests deep-link out from the venue page."
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <UrlField
+            label="TripAdvisor"
+            icon={<Star className="h-4 w-4" />}
+            placeholder="https://tripadvisor.com/Restaurant_Review-..."
+            value={links.tripadvisor_url}
+            onChange={(v) => setLink("tripadvisor_url", v)}
+          />
+          <UrlField
+            label="Google Maps"
+            icon={<MapPin className="h-4 w-4" />}
+            placeholder="https://maps.app.goo.gl/..."
+            value={links.google_maps_url}
+            onChange={(v) => setLink("google_maps_url", v)}
+          />
         </div>
       </Section>
 
@@ -432,7 +519,35 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             value={links.rappi_url}
             onChange={(v) => setLink("rappi_url", v)}
           />
+          <UrlField
+            label="DiDi Food"
+            icon={<Bike className="h-4 w-4" />}
+            placeholder="https://didifood.mx/restaurantes/..."
+            value={links.didi_food_url}
+            onChange={(v) => setLink("didi_food_url", v)}
+          />
         </div>
+      </Section>
+
+      <Section
+        title="Direct contact"
+        subtitle="One canonical email guests + support can reach. We pulled this from your homepage where possible."
+      >
+        <Field label="Email">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+            <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="hola@yourplace.com"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+        </Field>
       </Section>
 
       <Section title="Rewards">

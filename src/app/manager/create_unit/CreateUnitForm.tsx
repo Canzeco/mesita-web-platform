@@ -273,6 +273,7 @@ function ReportCard({ report }: { report: EnrichmentReport }) {
   const lines: string[] = [
     `Google Places: ${report.google ? "✓" : "—"}`,
     `Photos pulled: ${report.photoCount}`,
+    `Channels found: ${report.channelCount ?? 0}`,
     `Website scrape: ${report.firecrawl ? "✓" : "—"}`,
     `Web research brief: ${report.perplexity ? "✓" : "—"}`,
     `AI synthesis: ${report.openai ? "✓" : "fallback"}`,

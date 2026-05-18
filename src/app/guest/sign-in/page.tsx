@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MobileFrame } from "@/components/guest/MobileFrame";
 import { StatusBar } from "@/components/guest/StatusBar";
-import { AppSwitcher } from "@/components/AppSwitcher";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { authSignInWithEmail } from "@/app/auth/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -41,9 +40,10 @@ export default async function GuestSignInPage({
   return (
     <MobileFrame>
       <StatusBar />
-      <div className="px-4 pt-3">
-        <AppSwitcher />
-      </div>
+      {/* No AppSwitcher on the sign-in screen on purpose. A guest who's
+          about to authenticate shouldn't see hooks into the manager /
+          validator / admin worlds — those are operator surfaces and the
+          tab strip just adds doubt at exactly the wrong moment. */}
       <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-8 pt-6">
         <div className="mb-6">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-peacock text-xl shadow-glow">

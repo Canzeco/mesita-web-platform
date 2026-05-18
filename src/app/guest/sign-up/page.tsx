@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MobileFrame } from "@/components/guest/MobileFrame";
 import { StatusBar } from "@/components/guest/StatusBar";
-import { AppSwitcher } from "@/components/AppSwitcher";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
 import { authSignUpWithEmail } from "@/app/auth/actions";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -21,16 +20,18 @@ export default async function GuestSignUpPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect("/guest/discover/swipe");
+  // Send already-signed-in users through post-signin so onboarded vs.
+  // not is checked — direct /guest/discover/swipe was wrong because a
+  // signed-in but un-onboarded user would skip the wizard.
+  if (user) redirect(GUEST_AFTER_SIGNUP);
 
   const action = authSignUpWithEmail.bind(null, GUEST_AFTER_SIGNUP);
 
   return (
     <MobileFrame>
       <StatusBar />
-      <div className="px-4 pt-3">
-        <AppSwitcher />
-      </div>
+      {/* AppSwitcher removed: a guest who is about to sign up doesn't
+          benefit from seeing the manager / validator / admin tabs. */}
       <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-8 pt-6">
         <div className="mb-6">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-peacock text-xl shadow-glow">
