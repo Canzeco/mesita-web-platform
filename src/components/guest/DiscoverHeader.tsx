@@ -76,9 +76,13 @@ export function DiscoverHeader() {
             </div>
           </button>
         </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-tier-gold text-[10px] font-bold text-black shadow-sm">
-          GOLD
-        </div>
+        <Link
+          href="/guest/qr"
+          aria-label="My QR"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-sm transition hover:bg-muted"
+        >
+          <span className="text-base">⌑</span>
+        </Link>
       </div>
 
       {open === "city" && (
