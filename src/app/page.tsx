@@ -296,7 +296,7 @@ function ForVenues() {
     {
       title: "Marketing intelligence",
       body:
-        "Profile views, influenced spend, coupons paid, repeat rate, ROAS, and the conversion funnel from view → swipe → claim → visit → story. Plus an AI copilot that drafts the next campaign in a click.",
+        "Profile views, influenced spend, coupons paid, repeat rate, ROAS, and the conversion funnel from view → swipe → claim → visit → story. One dashboard, plain English.",
       Icon: BarChart3,
     },
   ];

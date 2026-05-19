@@ -125,23 +125,3 @@ export const VALIDATORS = [
   { id: "w-3", name: "Diego A.", role: "Host", phone: "+52 81 5555 1212", lastActive: "Yesterday" },
 ];
 
-// ── Copilot (copilot/page.tsx) ────────────────────────────────────────────
-
-export const COPILOT_SUGGESTIONS = [
-  "Why are Thursdays so much better than Wednesdays?",
-  "Draft a Story Bonus for Sunday brunch.",
-  "Which guests bring the most followers per visit?",
-  "Compare May vs April spend, focus on Diamond guests.",
-  "What's our payback period vs the average partner?",
-];
-
-export const COPILOT_HISTORY = [
-  {
-    role: "user" as const,
-    text: "How are Saturdays trending?",
-  },
-  {
-    role: "assistant" as const,
-    text: "Saturday visits are up 23% vs the four-week average. Influenced spend is MX$84k on the latest Saturday — your strongest day this month. 41% of Sat visitors are Gold or Diamond, and 78% posted a story. Suggest extending the bar program from 11 PM → midnight and pushing the Rooftop Drop one tier higher for Diamond.",
-  },
-];
