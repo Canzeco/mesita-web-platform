@@ -250,8 +250,8 @@ export function CreateUnitForm() {
         </button>
       </div>
       <p className="text-center text-[11px] text-muted-foreground">
-        Usually under 30 seconds. We auto-fill name, hours, photos, vibe, and story from Google +
-        your website. You can edit any of it after.
+        Can take up to 60 seconds. We auto-fill name, hours, photos, vibe, and story from
+        Google + your website. You can edit any of it after.
       </p>
     </form>
   );

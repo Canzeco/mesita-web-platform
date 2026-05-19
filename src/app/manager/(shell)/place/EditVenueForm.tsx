@@ -418,7 +418,7 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
 
       <Section
         title="Channels"
-        subtitle="Website + socials the guest sees on the venue page. Leave blank if you don't have one."
+        subtitle="Every link a guest can deep-link to from your venue page — socials, reviews, reservations, delivery. One box, leave blank what you don't have."
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <UrlField
@@ -484,21 +484,6 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             value={links.reddit_url}
             onChange={(v) => setLink("reddit_url", v)}
           />
-        </div>
-      </Section>
-
-      <Section
-        title="Reviews"
-        subtitle="Where the venue lives on review platforms. Guests deep-link out from the venue page."
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <UrlField
-            label="TripAdvisor"
-            icon={<Star className="h-4 w-4" />}
-            placeholder="https://tripadvisor.com/Restaurant_Review-..."
-            value={links.tripadvisor_url}
-            onChange={(v) => setLink("tripadvisor_url", v)}
-          />
           <UrlField
             label="Google Maps"
             icon={<MapPin className="h-4 w-4" />}
@@ -506,14 +491,13 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             value={links.google_maps_url}
             onChange={(v) => setLink("google_maps_url", v)}
           />
-        </div>
-      </Section>
-
-      <Section
-        title="Reservations &amp; delivery"
-        subtitle="Booking + food-delivery deep-links. Surfaced as quick actions on the guest venue page."
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <UrlField
+            label="TripAdvisor"
+            icon={<Star className="h-4 w-4" />}
+            placeholder="https://tripadvisor.com/Restaurant_Review-..."
+            value={links.tripadvisor_url}
+            onChange={(v) => setLink("tripadvisor_url", v)}
+          />
           <UrlField
             label="OpenTable"
             icon={<CalendarCheck className="h-4 w-4" />}
