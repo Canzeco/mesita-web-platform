@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
-  apiBuildCatalog,
+  apiRecommendCatalog,
   apiFetchPublicVenues,
   type CatalogCategory,
   type Venue,
@@ -11,7 +11,7 @@ import { PartnerBadge, RatePill } from "@/components/shared";
 
 export const dynamic = "force-dynamic";
 
-// Catalog is driven by guest-build-catalog: an LLM proposes up to 10
+// Catalog is driven by guest-recommend-catalog: an LLM proposes up to 10
 // category rows specific to THIS user's pool, time, and (when wired) past
 // taste. Each row is then RAG-ranked against an intent_query. If the EF
 // isn't deployed yet (or fails), we degrade gracefully to a hard-coded
@@ -24,13 +24,13 @@ export default async function CatalogPage() {
   let fetchError: string | null = null;
 
   try {
-    const result = await apiBuildCatalog(supabase, {
+    const result = await apiRecommendCatalog(supabase, {
       maxCategories: 10,
       perCategory: 10,
     });
     categories = result.categories;
   } catch (err) {
-    console.warn("[catalog] guest-build-catalog failed, falling back:", err);
+    console.warn("[catalog] guest-recommend-catalog failed, falling back:", err);
     try {
       fallback = await apiFetchPublicVenues(supabase, 60);
     } catch (err2) {

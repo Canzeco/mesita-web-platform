@@ -88,13 +88,13 @@ export type EnrichmentReport = {
 // that do bounding-box prefiltering + lazy embedding + RAG ranking. The
 // helpers below are thin invokers; all the curation logic lives in the
 // EFs so we can iterate on it without redeploying the web app.
-export type BuildDeckInput = {
+export type RecommendDeckInput = {
   lat?: number;
   lng?: number;
   radiusKm?: number;
   limit?: number;
 };
-export type BuildDeckResponse = {
+export type RecommendDeckResponse = {
   deck: Venue[];
   summary: {
     candidates: number;
@@ -109,14 +109,14 @@ export type CatalogCategory = {
   emoji: string;
   venues: Venue[];
 };
-export type BuildCatalogInput = {
+export type RecommendCatalogInput = {
   lat?: number;
   lng?: number;
   radiusKm?: number;
   maxCategories?: number;
   perCategory?: number;
 };
-export type BuildCatalogResponse = {
+export type RecommendCatalogResponse = {
   categories: CatalogCategory[];
   summary: {
     candidates: number;
@@ -165,13 +165,13 @@ function stripInsecurePhotos<T extends { photos: string[] }>(v: T): T {
   return { ...v, photos: v.photos.filter((p) => p.startsWith("https://")) };
 }
 
-export async function apiBuildDeck(
+export async function apiRecommendDeck(
   client: SupabaseClient,
-  input: BuildDeckInput = {},
-): Promise<BuildDeckResponse> {
-  const data = await invokeEF<BuildDeckResponse>(
+  input: RecommendDeckInput = {},
+): Promise<RecommendDeckResponse> {
+  const data = await invokeEF<RecommendDeckResponse>(
     client,
-    "guest-build-deck",
+    "guest-recommend-deck",
     input,
   );
   return {
@@ -180,13 +180,13 @@ export async function apiBuildDeck(
   };
 }
 
-export async function apiBuildCatalog(
+export async function apiRecommendCatalog(
   client: SupabaseClient,
-  input: BuildCatalogInput = {},
-): Promise<BuildCatalogResponse> {
-  const data = await invokeEF<BuildCatalogResponse>(
+  input: RecommendCatalogInput = {},
+): Promise<RecommendCatalogResponse> {
+  const data = await invokeEF<RecommendCatalogResponse>(
     client,
-    "guest-build-catalog",
+    "guest-recommend-catalog",
     input,
   );
   return {
