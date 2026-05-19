@@ -617,11 +617,20 @@ export const COUNTRY_BY_NAME: Record<string, Country> = Object.fromEntries(
   COUNTRIES.map((c) => [c.name, c]),
 );
 
+// How the current tier was granted. The Class tab shows different copy
+// depending on origin (e.g. "earned via 7.3K Instagram followers" vs
+// "subscribed · renews Dec 12"), and `subscription` is the only origin
+// that allows a downgrade/cancel action.
+export type TierOrigin = "default" | "instagram" | "subscription" | "appeal";
+
 export const CURRENT_USER = {
   name: "Valentina R.",
   handle: "@valenrose",
   age: 27,
   tier: "gold" as Tier,
+  tierOrigin: "instagram" as TierOrigin,
+  /** Only meaningful when `tierOrigin === "subscription"`. ISO date string. */
+  tierRenewsAt: null as string | null,
   balance: 1284,
   city: "CDMX",
   followers: 7320,
@@ -639,13 +648,20 @@ export const TIERS: {
   id: Tier;
   label: string;
   req: string;
+  /** Monthly subscription price in MXN. 0 for Bronze (the default tier).
+   *  Granted upfront — no spend accumulation required. */
+  priceMxn: number;
   cashback: string;
   perk: string;
 }[] = [
-  { id: "bronze", label: "Bronze", req: "No IG or under 1K followers", cashback: "Base cashback", perk: "Welcome to the club" },
-  { id: "silver", label: "Silver", req: "1K+ followers · or $200 MXN / mo", cashback: "More cashback", perk: "Insider perks" },
-  { id: "gold", label: "Gold", req: "5K+ followers · or $500 MXN / mo", cashback: "Even more cashback", perk: "Priority access" },
-  { id: "diamond", label: "Diamond", req: "20K+ followers · invite-only · or appeal", cashback: "Most cashback", perk: "VIP · invite-only" },
+  // The tier IS the brand — rendered as "Mesita Bronze" / "Mesita Silver"
+  // / "Mesita Gold" / "Mesita Diamond" in marketing and subscribe surfaces.
+  // The compact `label` here is used inside tight UI (tier badges, table
+  // rows) where the "Mesita" prefix would just add noise.
+  { id: "bronze", label: "Bronze", req: "Default · no IG or under 1K followers", priceMxn: 0, cashback: "Base cashback", perk: "Welcome to the club" },
+  { id: "silver", label: "Silver", req: "1K+ followers · or $200 MXN / mo", priceMxn: 200, cashback: "More cashback", perk: "Insider perks" },
+  { id: "gold", label: "Gold", req: "5K+ followers · or $500 MXN / mo", priceMxn: 500, cashback: "Even more cashback", perk: "Priority access" },
+  { id: "diamond", label: "Diamond", req: "20K+ followers · or $1,000 MXN / mo · or appeal", priceMxn: 1000, cashback: "Most cashback", perk: "VIP · private events" },
 ];
 
 export const COMMUNITIES_JOINED = [

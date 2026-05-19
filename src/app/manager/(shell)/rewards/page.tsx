@@ -29,7 +29,7 @@ export default async function ManagerRewardsPage({
   if (overviewError) {
     return (
       <>
-        <Topbar title="Rewards" subtitle="Cashback / discount rate and ticket types" />
+        <Topbar title="Rewards" subtitle="Per-tier rates, Welcome coupon, communities" />
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-10 text-center">
@@ -55,7 +55,7 @@ export default async function ManagerRewardsPage({
   if (!overview || overview.venues.length === 0) {
     return (
       <>
-        <Topbar title="Rewards" subtitle="Cashback / discount rate and ticket types" />
+        <Topbar title="Rewards" subtitle="Per-tier rates, Welcome coupon, communities" />
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
@@ -89,7 +89,7 @@ export default async function ManagerRewardsPage({
     <>
       <Topbar
         title={active.name}
-        subtitle="Rewards — cashback / discount rate and ticket types"
+        subtitle="Set Mesita cashback for each tier. Everything else is automatic."
       />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">

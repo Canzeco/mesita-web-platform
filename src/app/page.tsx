@@ -206,7 +206,7 @@ function Tiers() {
     },
     {
       name: "Diamond",
-      req: "20K+ followers · invite-only · or appeal",
+      req: "20K+ followers · or $1,000 MXN / month · or appeal",
       desc: "VIP treatment and private events.",
     },
   ];
@@ -671,7 +671,7 @@ function FAQ() {
     },
     {
       q: "How does a guest reach Silver, Gold, or Diamond?",
-      a: "Two main ladders — Instagram followers or a Mesita membership. 1K / 5K / 20K followers maps to Silver / Gold / Diamond. The membership ladder grants the tier upfront: $200 MXN / month for Silver, $500 MXN / month for Gold. Diamond is invite-only — no subscription buys it. There's also a manual appeal path for models, chefs, press, founders, and other local elites.",
+      a: "Two main ladders — Instagram followers or a Mesita subscription. 1K / 5K / 20K followers maps to Mesita Silver / Gold / Diamond. The paid ladder grants the tier upfront: $200 MXN / month for Mesita Silver, $500 for Gold, $1,000 for Diamond. There's also a manual appeal path for models, chefs, press, founders, and other local elites.",
     },
     {
       q: "What's the Instagram story step about?",

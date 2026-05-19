@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Crown,
-  TrendingUp,
   Instagram,
   GraduationCap,
   BadgeCheck,
@@ -187,25 +186,9 @@ function ClassTab({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            <TrendingUp className="h-3.5 w-3.5 text-secondary" />
-            Spent on Mesita
-          </div>
-          <span className="text-[11px] text-muted-foreground">All-time</span>
-        </div>
-        <div className="mt-3">
-          <p className="font-display text-5xl font-bold leading-none tracking-tight">
-            MX${CURRENT_USER.spendMxn.toLocaleString()}
-          </p>
-          <p className="mt-2 text-[12px] text-muted-foreground">
-            Your lifetime tab. Class is set by Instagram followers or a
-            monthly membership — not by spend.
-          </p>
-        </div>
-        <TierProgressBar />
-      </div>
+      <CurrentClassCard />
+
+      <SubscribeLadder />
 
       <button
         type="button"
@@ -220,7 +203,7 @@ function ClassTab({
             Connect Instagram
           </p>
           <p className="mt-0.5 text-[12px] text-muted-foreground">
-            Unlock Silver, Gold, Diamond class instantly
+            1K / 5K / 20K followers maps to Silver / Gold / Diamond instantly
           </p>
         </div>
         <span className="rounded-full bg-pink-gradient px-4 py-2 text-[12px] font-semibold text-white shadow-sm">
@@ -228,86 +211,19 @@ function ClassTab({
         </span>
       </button>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            <Crown className="h-3.5 w-3.5 text-secondary" />
-            Class ladder
-          </div>
-          <span className="text-[11px] text-muted-foreground">Followers or membership</span>
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-left transition hover:bg-muted/40"
+      >
+        <Crown className="h-4 w-4 shrink-0 text-foreground" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">Appeal for upgrade</p>
+          <p className="text-[11px] text-muted-foreground">
+            Model, chef, press, founder? Request a manual class upgrade.
+          </p>
         </div>
-        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          Your Class is how the city sees you — earned by being{" "}
-          <span className="font-semibold text-foreground">popular</span> on Instagram or by{" "}
-          <span className="font-semibold text-foreground">subscribing</span> to Mesita. Higher Class ·
-          more cashback. Models, talents, elites, chefs & press can also get{" "}
-          <span className="font-semibold text-foreground">Diamond</span> by invite or appeal.
-        </p>
-        <div className="mt-4 flex flex-col gap-2.5">
-          {TIERS.map((t) => {
-            const isCurrent = t.id === CURRENT_USER.tier;
-            return (
-              <div
-                key={t.id}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5",
-                  isCurrent ? "border border-foreground bg-card" : "border border-transparent bg-muted/40",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-                    t.id === "bronze" && "bg-tier-bronze text-white",
-                    t.id === "silver" && "bg-tier-silver text-white",
-                    t.id === "gold" && "bg-tier-gold text-black",
-                    t.id === "diamond" && "bg-tier-diamond text-white",
-                  )}
-                >
-                  {isCurrent || ["bronze", "silver", "gold"].includes(t.id) ? (
-                    t.id === "diamond" ? (
-                      <span className="font-display font-bold">D</span>
-                    ) : (
-                      <Check className="h-4 w-4" strokeWidth={3} />
-                    )
-                  ) : (
-                    <span className="font-display font-bold">{t.label[0]}</span>
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-display text-base font-semibold tracking-tight">
-                      {t.label}
-                    </p>
-                    {isCurrent && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Current
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">{t.req}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[11px] font-semibold leading-tight">{t.cashback}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.perk}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          className="mt-3 flex w-full items-center gap-3 rounded-xl border border-dashed border-border px-3 py-3 text-left transition hover:bg-muted/40"
-        >
-          <Crown className="h-4 w-4 shrink-0 text-foreground" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Appeal for upgrade</p>
-            <p className="text-[11px] text-muted-foreground">
-              Model, chef, press, founder? Request manual review.
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </button>
-      </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </button>
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex items-center justify-between">
@@ -369,38 +285,152 @@ function ClassTab({
   );
 }
 
-function TierProgressBar() {
-  // Static class indicator. Under the new model the "rich" path is a paid
-  // membership (Silver / Gold) granted upfront, not a spend-accumulation
-  // bar — so this no longer animates fill. It just marks where the guest
-  // sits on the four-tier ladder.
-  const tierIdx = ["bronze", "silver", "gold", "diamond"].indexOf(CURRENT_USER.tier);
-  const labels = ["Bronze", "Silver", "Gold", "Diamond"];
-  const colors = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-diamond"];
+function CurrentClassCard() {
+  // Top of the Class tab. The class IS the brand — "Mesita Gold" reads as a
+  // proper noun, not "a Gold member". Origin determines the subtitle: who
+  // earned the tier and how (followers / subscription / appeal / default).
+  const meta = TIERS.find((t) => t.id === CURRENT_USER.tier)!;
+  const brand = `Mesita ${meta.label}`;
+  const origin = (() => {
+    switch (CURRENT_USER.tierOrigin) {
+      case "instagram":
+        return `Earned via ${formatFollowers(CURRENT_USER.followers)} Instagram followers`;
+      case "subscription":
+        return CURRENT_USER.tierRenewsAt
+          ? `Subscribed · renews ${CURRENT_USER.tierRenewsAt}`
+          : "Subscribed · renews monthly";
+      case "appeal":
+        return "Granted by Mesita on appeal";
+      default:
+        return "Default tier — anyone with a Mesita account starts here";
+    }
+  })();
+  const tone =
+    CURRENT_USER.tier === "bronze"
+      ? "bg-tier-bronze text-white"
+      : CURRENT_USER.tier === "silver"
+        ? "bg-tier-silver text-foreground"
+        : CURRENT_USER.tier === "gold"
+          ? "bg-tier-gold text-black"
+          : "bg-tier-diamond text-white";
   return (
-    <div className="mt-5">
-      <div className="relative h-2 rounded-full bg-muted">
-        {labels.map((_, i) => {
-          const pct = (i / (labels.length - 1)) * 100;
+    <section className={cn("rounded-2xl p-5 shadow-sm", tone)}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">
+        Your class
+      </p>
+      <h2 className="mt-1 font-display text-3xl font-semibold tracking-tight">
+        {brand}
+      </h2>
+      <p className="mt-1.5 text-[12px] opacity-90">{origin}</p>
+    </section>
+  );
+}
+
+function SubscribeLadder() {
+  // The "rich" path is now a paid monthly subscription granted upfront —
+  // tier-as-product. Each row links to /guest/subscribe/[tier] which today
+  // stops at the checkout CTA (Stripe wiring lands next).
+  const currentIdx = ["bronze", "silver", "gold", "diamond"].indexOf(
+    CURRENT_USER.tier,
+  );
+  const isSubscribed = CURRENT_USER.tierOrigin === "subscription";
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <Crown className="h-3.5 w-3.5 text-secondary" />
+          Subscribe to a Mesita class
+        </div>
+        <span className="text-[11px] text-muted-foreground">Monthly · cancel anytime</span>
+      </div>
+      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+        Paid classes are granted upfront — you become the tier the moment you
+        subscribe, no spend accumulation needed. The Instagram path stays
+        available for free; subscribing is the alternative.
+      </p>
+      <div className="mt-4 flex flex-col gap-2.5">
+        {TIERS.map((t) => {
+          const isCurrent = t.id === CURRENT_USER.tier;
+          const isPaidTier = t.priceMxn > 0;
+          const tierIdx = ["bronze", "silver", "gold", "diamond"].indexOf(t.id);
+          const brand = `Mesita ${t.label}`;
+          // A user "has" a paid tier already if their current is >= this one.
+          // We surface that so they don't try to sub at a lower tier than
+          // they already hold via followers.
+          const alreadyAtOrAbove = tierIdx <= currentIdx;
           return (
-            <span
-              key={i}
+            <div
+              key={t.id}
               className={cn(
-                "absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card",
-                i <= tierIdx ? colors[i] : "bg-muted",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5",
+                isCurrent
+                  ? "border border-foreground bg-card"
+                  : "border border-transparent bg-muted/40",
               )}
-              style={{ left: `${pct}%` }}
-            />
+            >
+              <span
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                  t.id === "bronze" && "bg-tier-bronze text-white",
+                  t.id === "silver" && "bg-tier-silver text-foreground",
+                  t.id === "gold" && "bg-tier-gold text-black",
+                  t.id === "diamond" && "bg-tier-diamond text-white",
+                )}
+              >
+                {t.label[0]}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-display text-base font-semibold tracking-tight">
+                    {brand}
+                  </p>
+                  {isCurrent && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Current
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {isPaidTier
+                    ? `$${t.priceMxn.toLocaleString()} MXN / mo · ${t.cashback.toLowerCase()}`
+                    : `Default · ${t.cashback.toLowerCase()}`}
+                </p>
+              </div>
+              {isPaidTier ? (
+                isCurrent && isSubscribed ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2.5 py-1 text-[11px] font-semibold text-secondary">
+                    <Check className="h-3 w-3" />
+                    Active
+                  </span>
+                ) : alreadyAtOrAbove && !isCurrent ? (
+                  <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+                    Held
+                  </span>
+                ) : (
+                  <Link
+                    href={`/guest/subscribe/${t.id}`}
+                    className="rounded-full bg-pink-gradient px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-sm"
+                  >
+                    Subscribe
+                  </Link>
+                )
+              ) : (
+                <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+                  Free
+                </span>
+              )}
+            </div>
           );
         })}
       </div>
-      <div className="mt-2 flex justify-between text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-        {labels.map((l) => (
-          <span key={l}>{l}</span>
-        ))}
-      </div>
     </div>
   );
+}
+
+function formatFollowers(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}K`;
+  return n.toString();
 }
 
 function BalanceTab() {
@@ -467,15 +497,18 @@ function BalanceTab() {
 function GameTab() {
   const unlocked = ACHIEVEMENTS.filter((a) => a.unlocked).length;
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-          Achievements
-        </p>
-        <span className="text-[12px] font-semibold text-secondary">
-          {unlocked} / {ACHIEVEMENTS.length} unlocked
-        </span>
-      </div>
+    <div className="flex flex-col gap-5">
+      <LifetimeStats />
+
+      <div>
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Achievements
+          </p>
+          <span className="text-[12px] font-semibold text-secondary">
+            {unlocked} / {ACHIEVEMENTS.length} unlocked
+          </span>
+        </div>
       <div className="mt-3 rounded-2xl border border-border bg-card p-3">
         <div className="grid grid-cols-3 gap-2">
           {ACHIEVEMENTS.map((a) => (
@@ -522,6 +555,41 @@ function GameTab() {
               </p>
             </div>
           ))}
+        </div>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+function LifetimeStats() {
+  // Lifetime activity stats — moved here from the Class tab once Class
+  // became subscription-driven instead of spend-driven. These remain useful
+  // as a record of the guest's history on Mesita, just no longer a
+  // progression mechanic.
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Lifetime stats
+      </p>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Spent on Mesita
+          </p>
+          <p className="mt-1 font-display text-2xl font-bold tracking-tight">
+            MX${CURRENT_USER.spendMxn.toLocaleString()}
+          </p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">All-time</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Cashback earned
+          </p>
+          <p className="mt-1 font-display text-2xl font-bold tracking-tight">
+            MX${CURRENT_USER.savedBack.toLocaleString()}
+          </p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">All-time</p>
         </div>
       </div>
     </div>
