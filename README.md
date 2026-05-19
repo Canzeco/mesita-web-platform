@@ -1,27 +1,40 @@
 # mesita-web-platform
 
-Web platform for **Mesita** — an AI-powered product for restaurants, cafés, and nightlife venues that gives guests venue intelligence, AI-assisted table reservations, and cashback coupons. Guests are segmented by social influence and spending behavior so venues can compete for high-value customers.
+Web platform for **Mesita** — an AI-powered product for restaurants, cafés, bars, and nightlife venues. Guests get a complete venue intelligence layer, AI-assisted table reservations, and a coupon mechanic that adapts to the venue: **cashback** at venues that issue invoices, **instant discount** at cash-based venues. Guests are segmented into four tiers (Bronze, Silver, Gold, Diamond) reached through three independent paths: verified Instagram followers, a paid monthly Membership ($200 MX Silver, $500 MX Gold), or a manual upgrade.
 
 This repo contains the five web surfaces:
 
-- **Landing** — public marketing site
-- **Admin** — internal operations (Canzeco team)
-- **Manager** — venue owner / operator dashboard
-- **Waiter** — service staff app
-- **Guest** — guest-facing web (companion to the mobile app)
+| Surface       | Route          | Audience                                                              |
+| ------------- | -------------- | --------------------------------------------------------------------- |
+| **Landing**   | `/`            | Public marketing site                                                 |
+| **Admin**     | `/admin`       | Internal operations (Canzeco team)                                    |
+| **Manager**   | `/manager`     | Verified Partner owners and operators                                 |
+| **Validator** | `/validator`   | Service staff (Web Waiter — browser-based checkout)                   |
+| **Guest**     | `/guest`       | Guest-facing web (companion to the mobile app)                        |
 
-The mobile guest app and the WhatsApp waiter bot live in separate repos.
+The mobile guest app (Expo) and the WhatsApp Waiter Bot live in separate repos.
 
 ## Stack
 
 - **Framework**: Next.js 16 (App Router, React 19, Turbopack)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4 + shadcn/ui (new-york style, neutral base)
-- **Package manager**: pnpm
+- **Styling**: Tailwind CSS v4 + shadcn/ui (new-york style, neutral base) + `tw-animate-css`
+- **UI primitives**: Radix UI (`radix-ui`), Lucide icons, Sonner toasts, `qrcode.react`
+- **Backend**: Supabase (separate repo: `mesita-supabase`) — `@supabase/ssr` + `@supabase/supabase-js`
+- **Maps**: Google Maps via `@vis.gl/react-google-maps`
+- **Payments**: Stripe (venue plans + guest Memberships)
+- **Package manager**: pnpm 11 (pinned via `packageManager`)
 - **Node**: 22 LTS (pinned via `.nvmrc` and `engines`)
-- **Backend**: Supabase (separate repo: `mesita-supabase`) — client calls Edge Functions, Edge Functions call the database. The client never calls the database directly.
-- **Payments**: Stripe
 - **Hosting**: Vercel
+
+## Architecture rules
+
+These are enforced across the platform — keep them in mind when adding code:
+
+- **Client → Edge Function → Database.** Clients never call the database directly. Every data read or write goes through a Supabase Edge Function.
+- **Functions don't call other functions.** Composition happens on the client. Edge Functions are leaf nodes.
+- **Function naming: `caller-verb-words`.** E.g., `manager-create-unit`, `guest-claim-coupon`.
+- **`verify_jwt=true` is currently forced on.** Don't disable it in function configs without coordinating.
 
 ## Getting started
 
@@ -30,6 +43,8 @@ nvm use            # picks up .nvmrc (Node 22)
 pnpm install
 pnpm dev           # http://localhost:3000
 ```
+
+You'll need a `.env.local` with Supabase URL + anon key, the Google Maps API key, and the Stripe publishable key. See `mesita-supabase` for the matching backend setup.
 
 ## Scripts
 
@@ -55,15 +70,58 @@ Components land in `src/components/ui/`.
 
 ```
 src/
-├── app/             # App Router routes
+├── app/
 │   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css  # Tailwind v4 + shadcn theme tokens
-├── components/      # shared components
-│   └── ui/          # shadcn primitives (added on demand)
-└── lib/
-    └── utils.ts     # cn() helper
+│   ├── page.tsx                # Landing
+│   ├── globals.css             # Tailwind v4 + shadcn theme tokens
+│   ├── robots.ts
+│   ├── sitemap.ts
+│   ├── auth/                   # Sign-in callback, password reset, post-signin routing
+│   ├── admin/                  # Internal back office
+│   ├── manager/                # Verified Partner dashboard
+│   │   ├── sign-in, sign-up, onboard, create_unit
+│   │   └── (shell)/            # Authed shell with sidebar
+│   │       ├── home
+│   │       ├── place
+│   │       ├── promos
+│   │       ├── performance
+│   │       ├── wallet
+│   │       └── team
+│   ├── validator/              # Web Waiter — browser-based checkout
+│   └── guest/                  # Guest-facing web (mirror of mobile app)
+│       ├── sign-in, sign-up, onboard
+│       └── (shell)/            # Authed shell with bottom nav
+│           ├── discover/       # swipe / map / catalog / ai
+│           ├── saved
+│           ├── qr
+│           ├── share
+│           ├── profile
+│           ├── subscribe/[tier] # Silver/Gold Membership checkout
+│           └── venue/[id]
+├── components/
+│   ├── ui/                     # shadcn primitives
+│   ├── auth/                   # Email, phone, OAuth, sign-out
+│   ├── shared/                 # Cross-surface (TierBadge, FiscalBadge, RatePill, …)
+│   ├── manager/                # Manager-only components
+│   └── guest/                  # Guest-only components (mobile frame, swipe deck, etc.)
+├── lib/
+│   ├── api/                    # Typed wrappers around Edge Functions
+│   ├── supabase/               # Browser, server, and middleware clients
+│   ├── ticket-workflow.ts      # 10-ticket taxonomy logic
+│   ├── validators.ts
+│   ├── guest-data.ts
+│   ├── ui-classes.ts
+│   └── utils.ts
+└── middleware.ts               # Auth + route protection
 ```
+
+## Manager Console layout
+
+The Manager `(shell)` routes follow the agreed nav order:
+
+**Home · Place · Promos · Performance · Wallet · Team**
+
+`Wallet` only renders for venues on a Cashback plan (Formal). Plan management and integrations (Instagram, WhatsApp, Stripe Connect, Google Business) live in a profile-menu **Settings** drawer, not in the top-level nav.
 
 ## License
 
