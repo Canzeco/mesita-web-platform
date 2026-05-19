@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { COUNTRIES, COUNTRY_BY_NAME } from "@/lib/guest-data";
+import { COUNTRIES } from "@/lib/guest-data";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateGuestProfile } from "@/lib/api/tickets";
 import { PhoneInputWithCountry } from "@/components/auth/PhoneInputWithCountry";
@@ -16,37 +16,17 @@ export function OnboardForm() {
   const [name, setName] = useState("");
   const [sex, setSex] = useState("");
   const [birthday, setBirthday] = useState("");
-  const [country, setCountry] = useState("");
-  // Phone is split: dial-code country (ISO) + local subscriber number.
-  // We default the dial-code country to the residence Country dropdown so
-  // a Mexican guest gets +52 prefilled, but the picker is independent so
-  // someone living in Mexico with a US number can still pick +1.
+  // Country is no longer a separate dropdown — we infer it from the dial-code
+  // picker on the phone field. One country question, not two. Default MX.
   const [phoneCountry, setPhoneCountry] = useState("MX");
-  // Tracks whether the user has manually picked a dial code; if so we
-  // stop auto-syncing it from the residence dropdown. React 19's strict
-  // set-state-in-effect rule means we do the sync inline on the residence
-  // change handler instead of in a useEffect.
-  const [phoneCountryTouched, setPhoneCountryTouched] = useState(false);
   const [phoneLocal, setPhoneLocal] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCountryChange = (next: string) => {
-    setCountry(next);
-    if (!phoneCountryTouched) {
-      const match = COUNTRY_BY_NAME[next];
-      if (match) setPhoneCountry(match.code);
-    }
-  };
-  const handlePhoneCountryChange = (next: string) => {
-    setPhoneCountry(next);
-    setPhoneCountryTouched(true);
-  };
-
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!name.trim() || !sex || !birthday || !country || !phoneLocal.trim()) {
+    if (!name.trim() || !sex || !birthday || !phoneLocal.trim()) {
       setError("Please complete all required fields");
       return;
     }
@@ -55,6 +35,7 @@ export function OnboardForm() {
       return;
     }
     const dialEntry = COUNTRIES.find((c) => c.code === phoneCountry);
+    const country = dialEntry?.name ?? "Mexico";
     const dial = dialEntry?.dial ?? "52";
     const combinedPhone = `+${dial} ${phoneLocal.trim()}`;
 
@@ -65,7 +46,7 @@ export function OnboardForm() {
           full_name: name.trim(),
           sex,
           birthday,
-          country: country.trim(),
+          country,
           phone: combinedPhone,
         });
         router.push("/guest/discover/swipe");
@@ -115,28 +96,15 @@ export function OnboardForm() {
         </Field>
       </div>
 
-      <Field label="Country">
-        <select
-          className={INPUT_CLASS}
-          value={country}
-          onChange={(e) => handleCountryChange(e.target.value)}
-          required
-        >
-          <option value="">Select your country</option>
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.name}>
-              {c.flag}  {c.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Phone number">
+      <Field
+        label="Phone number"
+        hint="Your country is inferred from the dial code."
+      >
         <PhoneInputWithCountry
           value={phoneLocal}
           onChange={setPhoneLocal}
           countryCode={phoneCountry}
-          onCountryChange={handlePhoneCountryChange}
+          onCountryChange={setPhoneCountry}
           placeholder="55 1234 5678"
           required
         />
@@ -162,14 +130,6 @@ export function OnboardForm() {
           We use these to verify you and personalize recommendations. Your phone is never
           shared with venues.
         </p>
-        <button
-          type="button"
-          onClick={() => router.push("/guest/discover/swipe")}
-          disabled={loading}
-          className="mt-2 block w-full text-center text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-foreground hover:underline"
-        >
-          Skip for now — finish later from Profile
-        </button>
       </div>
     </form>
   );
