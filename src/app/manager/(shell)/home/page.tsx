@@ -342,12 +342,9 @@ function QuickActions({ activeId }: { activeId: string }) {
       sub: "Plan + fiscal type + ticket types",
       Icon: Ticket,
     },
-    {
-      href: `/manager/rewards?unit=${activeId}`,
-      label: "Rewards",
-      sub: "Welcome + per-tier rates",
-      Icon: Sparkles,
-    },
+    // Rewards quick action is hidden alongside the sidebar entry — the
+    // per-tier config is ahead of the backend wiring. Add back when the
+    // segments table is live.
     {
       href: `/validator`,
       label: "Validator",
@@ -356,7 +353,7 @@ function QuickActions({ activeId }: { activeId: string }) {
     },
   ];
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {tabs.map((t) => {
         const Icon = t.Icon;
         return (

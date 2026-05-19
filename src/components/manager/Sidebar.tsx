@@ -11,12 +11,12 @@ import {
   BarChart3,
   Wallet,
   Users,
-  Sparkles,
   ChevronDown,
   Check,
   Plus,
   Settings,
   LifeBuoy,
+  PlayCircle,
   Menu,
   X,
 } from "lucide-react";
@@ -40,11 +40,13 @@ const NAV: NavItem[] = [
   { href: "/manager/home", label: "Home", Icon: LayoutDashboard },
   { href: "/manager/place", label: "Place", Icon: Store },
   { href: "/manager/membership", label: "Membership", Icon: CreditCard },
-  { href: "/manager/rewards", label: "Rewards", Icon: Gift },
+  // Rewards hidden for the moment — the per-tier rate config is ahead of
+  // the backend (segments table + persistence still pending). Bring it
+  // back once the wiring is real.
+  { href: "/manager/rewards", label: "Rewards", Icon: Gift, disabled: true },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
   { href: "/manager/wallet", label: "Wallet", Icon: Wallet, disabled: true },
   { href: "/manager/team", label: "Team", Icon: Users, disabled: true },
-  { href: "/manager/copilot", label: "AI Copilot", Icon: Sparkles, disabled: true },
 ];
 
 export function Sidebar({
@@ -238,6 +240,7 @@ export function Sidebar({
         </nav>
 
         <div className="space-y-1 border-t border-border p-3">
+          <SidebarDisabled Icon={PlayCircle} label="Tutorials" />
           <SidebarDisabled Icon={Settings} label="Settings" />
           <SidebarDisabled Icon={LifeBuoy} label="Help & docs" />
 
