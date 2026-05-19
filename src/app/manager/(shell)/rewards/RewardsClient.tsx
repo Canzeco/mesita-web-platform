@@ -197,15 +197,13 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
         </section>
       )}
 
-      {mechanic === "None" ? (
-        <FreePlanNotice fiscalType={venue.fiscal_type} />
-      ) : (
-        <>
-          <FirstTimeSection mechanicLabel={mechanicLabel} />
-          <ReturningTierGrid mechanicLabel={mechanicLabel} />
-          <CommunitiesSection />
-        </>
+      {mechanic === "None" && (
+        <FreePlanBanner fiscalType={venue.fiscal_type} />
       )}
+
+      <FirstTimeSection mechanicLabel={mechanicLabel} />
+      <ReturningTierGrid mechanicLabel={mechanicLabel} />
+      <CommunitiesSection />
 
       <TicketReferenceCard isFormal={isFormal} planMechanic={mechanic} />
     </div>
@@ -255,22 +253,25 @@ function ActivePlanBanner({
   );
 }
 
-function FreePlanNotice({ fiscalType }: { fiscalType: "formal" | "informal" }) {
+function FreePlanBanner({ fiscalType }: { fiscalType: "formal" | "informal" }) {
+  // Thin "won't go live until upgrade" banner shown above the configurator.
+  // The UI underneath stays fully interactive so the manager can set their
+  // rates before subscribing — it just won't be active for guests yet.
+  const mechanic = fiscalType === "formal" ? "cashback" : "discount";
   return (
-    <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center">
-      <p className="font-display text-base font-semibold tracking-tight">
-        No coupon mechanic on the Free plan
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Upgrade to Pro or Ultra in{" "}
+    <section className="flex items-start gap-3 rounded-2xl border border-dashed border-border bg-muted/30 p-4">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+      <p className="text-[12px] leading-relaxed text-muted-foreground">
+        You&apos;re on <span className="font-semibold text-foreground">Free</span>.
+        Set your rates here — they won&apos;t go live for guests until you
+        upgrade to a {mechanic}-enabled plan in{" "}
         <Link
           href="/manager/subscription"
-          className="font-semibold underline underline-offset-2"
+          className="font-semibold text-foreground underline underline-offset-2"
         >
           Subscription
-        </Link>{" "}
-        to start running {fiscalType === "formal" ? "cashback" : "discount"}{" "}
-        coupons.
+        </Link>
+        .
       </p>
     </section>
   );
@@ -283,10 +284,10 @@ function FirstTimeSection({ mechanicLabel }: { mechanicLabel: "Cashback" | "Disc
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
         First-time visitors
       </p>
-      <div className="rounded-2xl bg-pink-gradient/5 p-5 ring-1 ring-pink-gradient/20">
+      <div className="rounded-2xl bg-primary/5 p-5 ring-1 ring-primary/15">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <span className="inline-flex rounded-full bg-pink-gradient px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+            <span className="inline-flex rounded-full bg-welcome-gradient px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
               Welcome
             </span>
             <p className="mt-2 text-sm text-foreground">
@@ -378,10 +379,10 @@ function RatePicker({
   return (
     <div>
       <p className="flex items-baseline gap-1.5">
-        <span className="font-display text-5xl font-bold leading-none tracking-tight text-pink-600">
+        <span className="font-display text-5xl font-bold leading-none tracking-tight text-primary">
           {rate}
         </span>
-        <span className="font-display text-xl font-semibold text-pink-600">%</span>
+        <span className="font-display text-xl font-semibold text-primary">%</span>
         <span className="ml-1 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           {label}
         </span>
@@ -435,7 +436,7 @@ function AudienceStat({
           {countLabel}
         </p>
       </div>
-      <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-pink-600">
+      <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
         {sub}
       </p>
       {publicPool && (
@@ -562,10 +563,10 @@ function CommunityCard({ community }: { community: CommunityMeta }) {
       </div>
 
       <p className={cn("mt-2 flex items-baseline gap-1", !on && "opacity-50")}>
-        <span className="font-display text-3xl font-bold leading-none tracking-tight text-pink-600">
+        <span className="font-display text-3xl font-bold leading-none tracking-tight text-primary">
           +{boost}
         </span>
-        <span className="font-display text-base font-semibold text-pink-600">%</span>
+        <span className="font-display text-base font-semibold text-primary">%</span>
         <span className="ml-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Boost
         </span>
