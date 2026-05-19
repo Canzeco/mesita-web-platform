@@ -213,10 +213,6 @@ export function CreateUnitForm() {
         )}
       </section>
 
-      {createPending && createStage && (
-        <ProgressCard stage={createStage} />
-      )}
-
       {createReport && !createError && (
         <ReportCard report={createReport} />
       )}
@@ -236,13 +232,14 @@ export function CreateUnitForm() {
             "bg-pink-gradient text-white shadow-glow",
           )}
         >
-          {/* Button stays generic while the ProgressCard above shows the
-              rotating stage messages — duplicating both was redundant and
-              the long stage strings wrapped awkwardly inside the button. */}
+          {/* Single indicator on purpose. The rotating stage label lives on
+              the button itself — having a separate ProgressCard above the
+              button just for the same loading signal read as two competing
+              bars. */}
           {createPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Creating venue…
+              {createStage ?? "Creating venue…"}
             </>
           ) : (
             <>
@@ -257,15 +254,6 @@ export function CreateUnitForm() {
         your website. You can edit any of it after.
       </p>
     </form>
-  );
-}
-
-function ProgressCard({ stage }: { stage: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-      <Loader2 className="h-4 w-4 shrink-0 animate-spin text-secondary" />
-      <p className="text-sm font-medium">{stage}</p>
-    </div>
   );
 }
 

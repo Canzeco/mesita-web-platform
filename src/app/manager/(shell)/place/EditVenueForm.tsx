@@ -49,25 +49,7 @@ const STATUS_OPTIONS: { value: "active" | "paused" | "archived"; label: string }
   { value: "archived", label: "Archived — closed permanently" },
 ];
 
-const FISCAL_OPTIONS: {
-  value: "formal" | "informal";
-  label: string;
-  hint: string;
-}[] = [
-  {
-    value: "formal",
-    label: "Formal — invoices + cashback",
-    hint: "You issue invoices by default. Payments run through Mesita; cashback lands in the guest's wallet.",
-  },
-  {
-    value: "informal",
-    label: "Informal — cash + instant discount",
-    hint: "You operate in cash. Mesita reveals the discount; the guest pays you directly. No cashback wallet for this venue.",
-  },
-];
-
 type Status = "active" | "paused" | "archived";
-type Fiscal = "formal" | "informal";
 
 type LinksState = {
   website_url: string;
@@ -112,10 +94,6 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
     // form never crashes on a status the schema added later than this UI.
     const valid: Status[] = ["active", "paused", "archived"];
     return valid.includes(venue.status as Status) ? (venue.status as Status) : "active";
-  });
-  const [fiscalType, setFiscalType] = useState<Fiscal>(() => {
-    const raw = (venue as { fiscal_type?: string }).fiscal_type;
-    return raw === "informal" ? "informal" : "formal";
   });
   const [category, setCategory] = useState(venue.category ?? "");
   const [vibe, setVibe] = useState(venue.vibe ?? "");
@@ -193,7 +171,6 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
       id: venue.id,
       name: trimmedName,
       status,
-      fiscal_type: fiscalType,
       category: nullable(category),
       vibe: nullable(vibe),
       price_level: priceNum,
@@ -321,28 +298,6 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             <input value={vibe} onChange={(e) => setVibe(e.target.value)} maxLength={80} className={INPUT} />
           </Field>
         </div>
-      </Section>
-
-      <Section
-        title="Fiscal type & coupon mechanic"
-        subtitle="Pins how Mesita works at your venue. Formal venues invoice + run cashback through Mesita's wallet. Informal venues stay cash and reveal an instant discount at the bill — Mesita never touches the money."
-      >
-        <Field label="Fiscal type">
-          <select
-            value={fiscalType}
-            onChange={(e) => setFiscalType(e.target.value as Fiscal)}
-            className={INPUT}
-          >
-            {FISCAL_OPTIONS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <span className="mt-2 block text-[11px] text-muted-foreground/80">
-            {FISCAL_OPTIONS.find((f) => f.value === fiscalType)?.hint}
-          </span>
-        </Field>
       </Section>
 
       <Section title="Contact & hours">

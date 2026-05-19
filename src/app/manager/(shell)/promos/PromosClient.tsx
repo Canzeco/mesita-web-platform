@@ -129,6 +129,24 @@ export function PromosClient({ venue }: { venue: MyVenue }) {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
+  // Fiscal type lives on Promos because it's the upstream lever for the
+  // mechanic. Changing it triggers a save + refresh so the plan list below
+  // re-narrows to the matching pair.
+  const [fiscalPending, startFiscalSave] = useTransition();
+  const [fiscalError, setFiscalError] = useState<string | null>(null);
+  const switchFiscal = (next: "formal" | "informal") => {
+    if (next === venue.fiscal_type || fiscalPending) return;
+    setFiscalError(null);
+    startFiscalSave(async () => {
+      try {
+        await apiUpdateVenue(supabase, { id: venue.id, fiscal_type: next });
+        router.refresh();
+      } catch (err) {
+        setFiscalError(err instanceof Error ? err.message : "Couldn't save.");
+      }
+    });
+  };
+
   const isFormal = venue.fiscal_type === "formal";
   const mechanic = mechanicForPlan(plan);
   const visibility = visibilityForPlan(plan);
@@ -214,6 +232,14 @@ export function PromosClient({ venue }: { venue: MyVenue }) {
         </section>
       )}
 
+      {/* ── Fiscal selector ──────────────────────────────────────────── */}
+      <FiscalSelector
+        current={venue.fiscal_type}
+        pending={fiscalPending}
+        error={fiscalError}
+        onSwitch={switchFiscal}
+      />
+
       {/* ── Payment rail rule (the one rule that bites most often) ───── */}
       <PaymentRailRule isFormal={isFormal} />
 
@@ -225,8 +251,9 @@ export function PromosClient({ venue }: { venue: MyVenue }) {
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
             Plans differ by price and visibility. The mechanic (cashback or
-            discount) is pinned by the venue&apos;s fiscal type, so you only see
-            the plans that match. Change fiscal type from the Place tab.
+            discount) is pinned by your fiscal type above, so you only see the
+            plans that match. Switch fiscal type at the top of this page if you
+            need the other set.
           </p>
         </header>
 
@@ -334,6 +361,118 @@ function PlanCard({
         </p>
       </button>
     </li>
+  );
+}
+
+function FiscalSelector({
+  current,
+  pending,
+  error,
+  onSwitch,
+}: {
+  current: "formal" | "informal";
+  pending: boolean;
+  error: string | null;
+  onSwitch: (next: "formal" | "informal") => void;
+}) {
+  // Two big tap-targets, one selected. The criterion ("do you always
+  // invoice?") is what a venue owner can actually answer about themselves;
+  // the mechanic implication is the consequence.
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <header className="mb-4">
+        <h3 className="font-display text-lg font-semibold tracking-tight">
+          Fiscal type
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Are you a venue that always invoices, or one that usually doesn&apos;t?
+          This pins your mechanic — Formal runs cashback, Informal runs instant
+          discount — and which plans show up below.
+        </p>
+      </header>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <FiscalOption
+          tone="formal"
+          label="Formal"
+          headline="I always issue an invoice."
+          body="Every ticket invoiced, VAT charged, reported to SAT. Cashback fits cleanly — Mesita touches the payment rail and the % comes back to the guest's wallet."
+          selected={current === "formal"}
+          pending={pending}
+          onSelect={() => onSwitch("formal")}
+        />
+        <FiscalOption
+          tone="informal"
+          label="Informal"
+          headline="I usually don't invoice."
+          body="Most tickets paid in cash, never invoiced. Instant discount applies directly at the bill — Mesita stays out of the payment flow."
+          selected={current === "informal"}
+          pending={pending}
+          onSelect={() => onSwitch("informal")}
+        />
+      </div>
+      {error && (
+        <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function FiscalOption({
+  tone,
+  label,
+  headline,
+  body,
+  selected,
+  pending,
+  onSelect,
+}: {
+  tone: "formal" | "informal";
+  label: string;
+  headline: string;
+  body: string;
+  selected: boolean;
+  pending: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={selected || pending}
+      className={cn(
+        "flex h-full flex-col gap-2 rounded-2xl border p-4 text-left transition disabled:cursor-default",
+        selected
+          ? "border-foreground bg-background shadow-elev"
+          : "border-border bg-background hover:bg-muted/50",
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+            tone === "formal"
+              ? "bg-pink-gradient text-white"
+              : "bg-tier-gold text-black",
+          )}
+        >
+          {label}
+        </span>
+        {selected && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-secondary">
+            {pending ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Check className="h-3 w-3" />
+            )}
+            {pending ? "Saving" : "Active"}
+          </span>
+        )}
+      </div>
+      <p className="text-sm font-semibold">{headline}</p>
+      <p className="text-[12px] leading-relaxed text-muted-foreground">{body}</p>
+    </button>
   );
 }
 
