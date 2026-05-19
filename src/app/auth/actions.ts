@@ -117,10 +117,26 @@ export async function authSignUpWithEmail(
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) {
     const lower = error.message.toLowerCase();
-    if (lower.includes("already") || lower.includes("registered") || lower.includes("exists")) {
+    // Smart-signup fallback: if the email is already registered, try to
+    // sign the caller in with the password they typed. This collapses
+    // "wait, did I already make an account here?" into a single button.
+    //
+    //   correct password  → seamless sign-in + redirect
+    //   wrong password    → friendly "already on Mesita, doesn't match"
+    //   anything else     → surface the original error
+    if (
+      lower.includes("already") ||
+      lower.includes("registered") ||
+      lower.includes("exists")
+    ) {
+      const signIn = await supabase.auth.signInWithPassword({ email, password });
+      if (!signIn.error) {
+        revalidatePath("/", "layout");
+        redirect(redirectTo);
+      }
       return {
         error:
-          "An account with this email already exists. Sign in instead, or use 'Reset it' below if you don't remember your password.",
+          "This email is already on a Mesita account, but the password you entered doesn't match. Sign in below or hit 'Reset it' if you forgot.",
       };
     }
     if (lower.includes("password")) {
