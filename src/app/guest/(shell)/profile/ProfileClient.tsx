@@ -82,14 +82,9 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
   if (age != null) subtitleParts.push(`${age}`);
   if (identity.sex) subtitleParts.push(prettySex(identity.sex));
 
-  // True when the guest hasn't completed any of the onboard fields. We
-  // surface a "Complete your profile" banner pointing at /guest/onboard
-  // so they can fill it in.
-  const incomplete =
-    !identity.fullName ||
-    !identity.country ||
-    !identity.birthday ||
-    !identity.sex;
+  // The guest (shell) layout already enforces onboarding completion, so by
+  // the time we render here all four identity fields are guaranteed real.
+  // No banner / no half-state path.
 
   return (
     <div className="flex h-full flex-col">
@@ -117,15 +112,9 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
                 {CURRENT_USER.tier}
               </span>
             </div>
-            {subtitleParts.length > 0 ? (
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {subtitleParts.join(" · ")}
-              </p>
-            ) : (
-              <p className="mt-0.5 text-sm italic text-muted-foreground/70">
-                No country / age / sex yet.
-              </p>
-            )}
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {subtitleParts.join(" · ")}
+            </p>
             {identity.email && (
               <p className="mt-0.5 truncate text-[11px] text-muted-foreground/80">
                 {identity.email}
@@ -134,18 +123,6 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
           </div>
         </div>
 
-        {incomplete && (
-          <Link
-            href="/guest/onboard"
-            className="mt-4 flex items-center justify-between rounded-2xl border border-dashed border-secondary/40 bg-secondary/5 px-4 py-3 text-[12px] text-secondary transition hover:bg-secondary/10"
-          >
-            <span>
-              <span className="font-semibold">Complete your guest profile.</span>{" "}
-              <span className="text-secondary/80">Adds your name, country, age, and sex.</span>
-            </span>
-            <span aria-hidden className="text-base">→</span>
-          </Link>
-        )}
       </div>
 
       <div className="px-4 pt-4">

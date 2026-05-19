@@ -270,3 +270,14 @@ export async function apiUpdateVenue(
   }>(client, "manager-update-unit", input);
   return venue;
 }
+
+// Destructive: drops the venue + every dependent row (tickets,
+// cashback_ledger entries, venue_members, links). Only the venue's owner
+// can call this; the EF rejects anyone else with 403. Returns the deleted
+// id on success.
+export async function apiDeleteVenue(
+  client: SupabaseClient,
+  id: string,
+): Promise<{ id: string }> {
+  return await invokeEF<{ id: string }>(client, "manager-delete-unit", { id });
+}

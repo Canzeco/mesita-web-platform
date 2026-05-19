@@ -45,6 +45,16 @@ export async function apiUpdateGuestProfile(
   return guest;
 }
 
+// Destructive: drops the caller's guest row + every dependent ticket /
+// cashback_ledger entry, plus the auth.users row so the email can
+// re-sign-up clean. Caller's session ends — the client should sign out
+// and redirect to the sign-in page after.
+export async function apiDeleteGuestAccount(
+  client: SupabaseClient,
+): Promise<{ id: string }> {
+  return await invokeEF<{ id: string }>(client, "guest-delete-account", {});
+}
+
 // ─── Ticket taxonomy ─────────────────────────────────────────────────────
 
 // All 10 kinds from the spec. `none` means "no Mesita transaction" —

@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Mail, MessageCircle, ChevronRight, Check, Plus } from "lucide-react";
+import { Copy, ChevronRight, Check, Plus } from "lucide-react";
 import { SimpleHeader } from "@/components/guest/SimpleHeader";
 import { cn } from "@/lib/utils";
 
-type Tab = "guests" | "creators" | "venues" | "agencies" | "models";
+type Tab = "guests" | "venues" | "others";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "guests", label: "Guests" },
-  { id: "creators", label: "Creators" },
   { id: "venues", label: "Venues" },
-  { id: "agencies", label: "Agencies" },
-  { id: "models", label: "Models" },
+  { id: "others", label: "Others" },
 ];
 
 export default function SharePage() {
@@ -44,10 +42,8 @@ export default function SharePage() {
 
       <div className="flex-1 overflow-y-auto px-5 py-5 scrollbar-hide">
         {tab === "guests" && <GuestsTab />}
-        {tab === "creators" && <CreatorsTab />}
         {tab === "venues" && <VenuesTab />}
-        {tab === "agencies" && <AgenciesTab />}
-        {tab === "models" && <ModelsTab />}
+        {tab === "others" && <OthersTab />}
       </div>
     </div>
   );
@@ -261,45 +257,110 @@ function GuestsTab() {
   );
 }
 
-function CreatorsTab() {
+// Three lighter partner programs collapsed into one page — Creators,
+// Agencies, Models. Each gets a compact card with its own UVPs, URL,
+// and share CTA. Saves the user from a tab carousel for three audiences
+// that rarely match the same person.
+function OthersTab() {
+  const groups: {
+    id: string;
+    title: string;
+    blurb: string;
+    bullets: string[];
+    url: string;
+    shareUrl: string;
+    shareTitle: string;
+    shareText: string;
+    cta: string;
+  }[] = [
+    {
+      id: "creators",
+      title: "Creators",
+      blurb:
+        "Food, nightlife, travel, lifestyle, hotels, coffee, wine, city guides. Custom codes, revenue share, private events, equity for long-term partners.",
+      bullets: [
+        "Custom code · bigger welcome gift",
+        "Revenue share on your signups",
+        "Private tastings & openings",
+        "Equity path for long-term partners",
+      ],
+      url: "mesita.ai/creators",
+      shareUrl: "https://www.mesita.ai/creators",
+      shareTitle: "Mesita creator program",
+      shareText: "Mesita partners with creators worldwide — custom codes, revenue share, and equity for long-term collabs.",
+      cta: "Apply as a creator",
+    },
+    {
+      id: "agencies",
+      title: "Marketing agencies",
+      blurb:
+        "Add Mesita to the stack you sell to restaurants & bars — measurable lift, no extra hardware.",
+      bullets: [
+        "Recurring revenue per venue you onboard",
+        "Cashback redemptions = attributable ROI",
+        "White-glove onboarding for your first 5 venues",
+        "Partner dashboard across every client",
+      ],
+      url: "mesita.ai/agencies",
+      shareUrl: "https://www.mesita.ai/agencies",
+      shareTitle: "Mesita partner program",
+      shareText: "Mesita's partner program could fit your agency — recurring revenue + co-branded campaigns.",
+      cta: "Become a partner",
+    },
+    {
+      id: "models",
+      title: "Modeling & talent agencies",
+      blurb:
+        "Activate the models you manage on Mesita — Diamond perks, boosted cashback, priority tables. Earn on every visit.",
+      bullets: [
+        "Diamond by default — your roster skips tiers",
+        "Boosted cashback at partner venues",
+        "Priority tables on Fri & Sat",
+        "Agency dashboard for bookings + earnings",
+      ],
+      url: "mesita.ai/models",
+      shareUrl: "https://www.mesita.ai/models",
+      shareTitle: "Mesita for talent agencies",
+      shareText: "Get your talent roster Diamond access + revenue share on Mesita.",
+      cta: "Activate your roster",
+    },
+  ];
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Love Mesita and create content about food, nightlife, travel, lifestyle, hotels, coffee,
-        wine or city guides? We partner with creators worldwide who genuinely live the experience —
-        collabs, custom codes, revenue share, private venue events, and equity for long-term
-        partners.
+        Three lighter partner programs Mesita runs alongside venues. Pick the
+        one that fits — each has its own onboarding flow.
       </p>
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight">
-          Let&apos;s collaborate
-        </h2>
-        <div className="mt-3 grid grid-cols-2 gap-2.5">
-          <FeatureCard title="Custom code" sub="Bigger welcome gift for your followers." />
-          <FeatureCard title="Revenue share" sub="Cut of cashback from your signups." />
-          <FeatureCard title="Private events" sub="Tastings & openings before they go public." />
-          <FeatureCard title="Equity path" sub="For partners who help shape Mesita." />
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-full border border-border bg-card py-3 text-sm font-semibold transition hover:bg-muted"
-          >
-            <Mail className="h-4 w-4 text-secondary" />
-            Email
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-full border border-border bg-card py-3 text-sm font-semibold transition hover:bg-muted"
-          >
-            <MessageCircle className="h-4 w-4 text-secondary" />
-            WhatsApp
-          </button>
-        </div>
-        <p className="mt-3 text-center text-[12px] text-muted-foreground">
-          We reply personally within a few days.
-        </p>
-      </div>
+      {groups.map((g) => (
+        <section
+          key={g.id}
+          className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4"
+        >
+          <header>
+            <h3 className="font-display text-lg font-semibold tracking-tight">
+              {g.title}
+            </h3>
+            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+              {g.blurb}
+            </p>
+          </header>
+          <ul className="flex flex-col gap-1.5">
+            {g.bullets.map((b) => (
+              <li
+                key={b}
+                className="text-[12px] leading-snug text-foreground before:mr-2 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-foreground/40 before:align-middle"
+              >
+                {b}
+              </li>
+            ))}
+          </ul>
+          <UrlField url={g.url} />
+          <PrimaryCta
+            label={g.cta}
+            share={{ title: g.shareTitle, text: g.shareText, url: g.shareUrl }}
+          />
+        </section>
+      ))}
     </div>
   );
 }
@@ -316,12 +377,30 @@ function VenuesTab() {
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
-        <FeatureCard title="More customers" sub="Featured in Mesita discovery." />
-        <FeatureCard title="Better customers" sub="Socially-magnetic, higher-spend, loyal guests." />
-        <FeatureCard title="Auto IG stories" sub="Each visit becomes organic reach." />
-        <FeatureCard title="Live insights" sub="Repeat guests, AI visit summaries." />
-        <FeatureCard title="Setup in 10 min" sub="All from a browser, no app." />
-        <FeatureCard title="Free to start" sub="Costs nothing until it pays off." />
+        <FeatureCard
+          title="More customers"
+          sub="Priority placement on swipe, map, catalog, AI planner."
+        />
+        <FeatureCard
+          title="Better customers"
+          sub="Socially-magnetic, higher-spend, repeat guests."
+        />
+        <FeatureCard
+          title="Auto IG stories"
+          sub="Each visit becomes organic reach, AI-verified."
+        />
+        <FeatureCard
+          title="Easier reservations"
+          sub="AI books through your existing channel — no new tools."
+        />
+        <FeatureCard
+          title="Marketing intelligence"
+          sub="Influenced spend, repeat rate, ROAS in one dashboard."
+        />
+        <FeatureCard
+          title="Setup in 10 minutes"
+          sub="All from a browser — no app, no hardware, no POS."
+        />
       </div>
       <UrlField url="www.mesita.ai" />
       <PrimaryCta
@@ -336,68 +415,3 @@ function VenuesTab() {
   );
 }
 
-function AgenciesTab() {
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h2 className="font-display text-3xl font-semibold leading-tight tracking-tight">
-          Run a marketing agency for venues?
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Add Mesita to the stack you sell to restaurants & bars — measurable lift, no extra
-          hardware.
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        <FeatureCard title="Recurring revenue" sub="Earn a cut on every venue you onboard." />
-        <FeatureCard title="Plug into IG" sub="Auto stories from real guest visits." />
-        <FeatureCard title="Proof, not vibes" sub="Cashback redemptions = attributable ROI." />
-        <FeatureCard title="White-glove onboarding" sub="We help you launch your first 5 venues." />
-        <FeatureCard title="Co-branded campaigns" sub="Run tier drops with your creators." />
-        <FeatureCard title="Partner dashboard" sub="Track all client venues in one place." />
-      </div>
-      <UrlField url="mesita.ai/agencies" />
-      <PrimaryCta
-        label="Become a partner"
-        share={{
-          title: "Mesita partner program",
-          text: "Mesita's partner program could fit your agency — recurring revenue + co-branded campaigns.",
-          url: "https://www.mesita.ai/agencies",
-        }}
-      />
-    </div>
-  );
-}
-
-function ModelsTab() {
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h2 className="font-display text-3xl font-semibold leading-tight tracking-tight">
-          Run a modeling or talent agency?
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Activate the models you manage on Mesita — they unlock Diamond perks, boosted cashback
-          and priority tables at the city&apos;s best venues. You earn on every visit.
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        <FeatureCard title="Diamond by default" sub="Your roster skips tiers — instant VIP." />
-        <FeatureCard title="Boosted cashback" sub="Up to 2× cashback at partner venues." />
-        <FeatureCard title="Priority tables" sub="Last-minute access on Fri & Sat nights." />
-        <FeatureCard title="Story-for-table" sub="Models post · venues comp · everyone wins." />
-        <FeatureCard title="Agency dashboard" sub="Track bookings, stories & earnings per talent." />
-        <FeatureCard title="Revenue share" sub="Earn on every visit your talent generates." />
-      </div>
-      <UrlField url="mesita.ai/models" />
-      <PrimaryCta
-        label="Activate your roster"
-        share={{
-          title: "Mesita for talent agencies",
-          text: "Get your talent roster Diamond access + revenue share on Mesita.",
-          url: "https://www.mesita.ai/models",
-        }}
-      />
-    </div>
-  );
-}
