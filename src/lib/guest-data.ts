@@ -623,25 +623,17 @@ export const COUNTRY_BY_NAME: Record<string, Country> = Object.fromEntries(
 // that allows a downgrade/cancel action.
 export type TierOrigin = "default" | "instagram" | "subscription" | "appeal";
 
+// Mock guest used by the Profile + Discover header until real guest-side
+// reads are wired up. Only carries the fields the UI actually reads — name,
+// city, joined-at, etc. were leftovers from the original Lovable export
+// and never consumed in the current build.
 export const CURRENT_USER = {
-  name: "Valentina R.",
-  handle: "@valenrose",
-  age: 27,
   tier: "gold" as Tier,
   tierOrigin: "instagram" as TierOrigin,
   /** Only meaningful when `tierOrigin === "subscription"`. ISO date string. */
   tierRenewsAt: null as string | null,
   balance: 1284,
-  city: "CDMX",
   followers: 7320,
-  spendMxn: 58400,
-  savedBack: 1840,
-  joined: "Feb 2026",
-  phone: "+52 55 1234 5678",
-  instagram: "@valenrose",
-  qrCode: "MES-7K9P2Q",
-  avatar:
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80&auto=format&fit=crop&crop=faces",
 };
 
 export const TIERS: {
@@ -662,21 +654,6 @@ export const TIERS: {
   { id: "silver", label: "Silver", req: "1K+ followers · or $200 MXN / mo", priceMxn: 200, cashback: "More cashback", perk: "Insider perks" },
   { id: "gold", label: "Gold", req: "5K+ followers · or $500 MXN / mo", priceMxn: 500, cashback: "Even more cashback", perk: "Priority access" },
   { id: "diamond", label: "Diamond", req: "20K+ followers · or $1,000 MXN / mo · or appeal", priceMxn: 1000, cashback: "Most cashback", perk: "VIP · private events" },
-];
-
-export const COMMUNITIES_JOINED = [
-  { id: "tec", name: "Tec de Monterrey", handle: "@tec.mx", color: "bg-[oklch(0.35_0.10_150)]" },
-];
-
-export const COMMUNITIES_ALL = [
-  { id: "udem", name: "UDEM", city: "Monterrey", handle: "@udem.edu", color: "bg-[oklch(0.35_0.10_150)]" },
-  { id: "stanford", name: "Stanford", city: "Palo Alto, CA", handle: "@stanford.edu", color: "bg-[oklch(0.40_0.15_25)]" },
-  { id: "itam", name: "ITAM", city: "CDMX", handle: "@itam.mx", color: "bg-[oklch(0.30_0.15_260)]" },
-  { id: "ibero", name: "Ibero", city: "CDMX", handle: "@ibero.mx", color: "bg-[oklch(0.55_0.18_240)]" },
-  { id: "unam", name: "UNAM", city: "CDMX", handle: "@unam.mx", color: "bg-[oklch(0.35_0.10_150)]" },
-  { id: "anahuac", name: "Anáhuac", city: "CDMX · Querétaro", handle: "@anahuac.mx", color: "bg-[oklch(0.30_0.15_260)]" },
-  { id: "lasalle", name: "La Salle", city: "CDMX", handle: "@lasalle.mx", color: "bg-[oklch(0.40_0.15_25)]" },
-  { id: "up", name: "Universidad Panamericana", city: "CDMX · Guadalajara", handle: "@up.edu.mx", color: "bg-[oklch(0.42_0.20_25)]" },
 ];
 
 export type Transaction = {
