@@ -549,31 +549,49 @@ function StoryQueueCard() {
   );
 }
 
-// ── Upcoming reservations ───────────────────────────────────────────────
+// ── AI reservations sent (attribution log) ──────────────────────────────
 
 function UpcomingReservationsCard() {
+  // Reservations don't live inside Mesita — guests deploy a Mesita AI agent
+  // that contacts the venue through its existing channel (IG DM, WhatsApp,
+  // voice, web form, OpenTable). The booking lands in whatever system the
+  // venue already uses; Mesita just sends it. This card is therefore an
+  // attribution log: "here's how many high-intent reservations Mesita
+  // pushed to your existing booking system this week."
   const reservations: {
     handle: string;
     tier: "bronze" | "silver" | "gold";
     party: number;
     when: string;
+    channel: "voice" | "whatsapp" | "instagram" | "opentable";
   }[] = [
-    { handle: "@valenrose", tier: "gold", party: 4, when: "Tonight · 9:30 PM" },
-    { handle: "@matgg", tier: "gold", party: 2, when: "Tonight · 10:00 PM" },
-    { handle: "@noctura", tier: "silver", party: 6, when: "Fri · 8:00 PM" },
-    { handle: "@luispb", tier: "silver", party: 2, when: "Sat · 9:30 PM" },
+    { handle: "@valenrose", tier: "gold", party: 4, when: "Tonight · 9:30 PM", channel: "instagram" },
+    { handle: "@matgg", tier: "gold", party: 2, when: "Tonight · 10:00 PM", channel: "voice" },
+    { handle: "@noctura", tier: "silver", party: 6, when: "Fri · 8:00 PM", channel: "whatsapp" },
+    { handle: "@luispb", tier: "silver", party: 2, when: "Sat · 9:30 PM", channel: "opentable" },
   ];
+  const channelLabel: Record<typeof reservations[number]["channel"], string> = {
+    voice: "Voice call",
+    whatsapp: "WhatsApp",
+    instagram: "Instagram DM",
+    opentable: "OpenTable",
+  };
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
       <header className="flex items-baseline justify-between gap-2">
         <h3 className="font-display text-base font-semibold tracking-tight">
-          Upcoming reservations
+          AI reservations sent
         </h3>
         <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
           <Calendar className="h-3 w-3" />
-          AI-booked
+          This week
         </span>
       </header>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+        Mesita&apos;s AI agent contacted you through your usual channel and
+        confirmed these. They live in your own booking system — Mesita
+        doesn&apos;t manage the queue.
+      </p>
       <ul className="mt-3 flex flex-col divide-y divide-border">
         {reservations.map((r, i) => (
           <li key={i} className="flex items-center gap-3 py-2.5">
@@ -590,7 +608,7 @@ function UpcomingReservationsCard() {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{r.handle}</p>
               <p className="text-[11px] text-muted-foreground">
-                Party of {r.party}
+                Party of {r.party} · sent via {channelLabel[r.channel]}
               </p>
             </div>
             <p className="shrink-0 text-[11px] font-semibold text-foreground">
@@ -621,8 +639,8 @@ function RecentActivityCard() {
     },
     {
       Icon: Calendar,
-      title: "Reservation booked",
-      detail: "Party of 4 · tonight 9:30 PM",
+      title: "Reservation sent via Instagram",
+      detail: "Mesita AI · party of 4 · tonight 9:30 PM",
       when: "3h ago",
     },
     {

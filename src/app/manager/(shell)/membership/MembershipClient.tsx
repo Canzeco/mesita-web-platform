@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type VenuePlan } from "@/lib/api/venues";
-import { FiscalBadge } from "@/components/shared";
 import { TicketTypesCard } from "@/components/manager/TicketTypesCard";
 import { cn } from "@/lib/utils";
 import { PLANS, mechanicForPlan, visibilityForPlan } from "@/lib/manager/plans";
@@ -49,6 +48,7 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
   const isFormal = venue.fiscal_type === "formal";
   const mechanic = mechanicForPlan(plan);
   const visibility = visibilityForPlan(plan);
+  const currentMeta = PLANS.find((p) => p.id === venue.plan);
 
   const availablePlans = useMemo(
     () =>
@@ -60,9 +60,9 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
     [isFormal],
   );
 
-  // Rare case: persisted plan no longer fits venue's fiscal_type (e.g. the
-  // manager flipped fiscal_type while a Pro plan was active). Surface a
-  // warning so they fix it here before the inconsistency leaks into a ticket.
+  // Rare case: persisted plan no longer fits venue's fiscal_type. We surface
+  // it inline at the bottom of the hero card; no separate destructive
+  // section — it's already next to the lever that fixes it.
   const planMatchesFiscal = useMemo(() => {
     if (venue.plan === "free") return true;
     if (isFormal) return venue.plan.startsWith("formal_");
@@ -85,64 +85,66 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-secondary">
-              Current plan
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight">
-              {PLANS.find((p) => p.id === venue.plan)?.label ?? venue.plan}
-            </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {PLANS.find((p) => p.id === venue.plan)?.priceLabel}
-              {" · "}
-              Mechanic: <span className="font-semibold">{mechanicForPlan(venue.plan)}</span>
-              {" · "}
-              Visibility: <span className="font-semibold">{visibilityForPlan(venue.plan)}</span>
-            </p>
+    <div className="flex flex-col gap-8">
+      {/* ── Hero: current plan + fiscal toggle + payment rail in one card ── */}
+      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">
+                Active plan
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight">
+                {currentMeta?.label ?? venue.plan}
+              </h2>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {currentMeta?.priceLabel}
+                {" · "}
+                {mechanicForPlan(venue.plan)} mechanic
+                {" · "}
+                {visibilityForPlan(venue.plan)} visibility
+              </p>
+            </div>
+            <FiscalSegmentedToggle
+              current={venue.fiscal_type}
+              pending={fiscalPending}
+              onSwitch={switchFiscal}
+            />
           </div>
-          <FiscalBadge fiscalType={venue.fiscal_type} size="md" />
+
+          <PaymentRailLine isFormal={isFormal} />
+
+          {fiscalError && (
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {fiscalError}
+            </p>
+          )}
+
+          {!planMatchesFiscal && (
+            <p className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-[12px] leading-relaxed text-destructive">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Plan{" "}
+                <span className="font-semibold">
+                  {currentMeta?.label ?? venue.plan}
+                </span>{" "}
+                doesn&apos;t match your fiscal type. Pick a matching plan below
+                — otherwise tickets refuse to open.
+              </span>
+            </p>
+          )}
         </div>
       </section>
 
-      {!planMatchesFiscal && (
-        <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4">
-          <p className="flex items-start gap-2 text-[12px] leading-relaxed">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-            <span>
-              Your current plan{" "}
-              <span className="font-semibold">
-                {PLANS.find((p) => p.id === venue.plan)?.label ?? venue.plan}
-              </span>{" "}
-              doesn&apos;t match this venue&apos;s fiscal type (
-              <span className="font-semibold">{venue.fiscal_type}</span>). Pick a
-              matching plan below and save, otherwise tickets will refuse to open.
-            </span>
-          </p>
-        </section>
-      )}
-
-      <FiscalSelector
-        current={venue.fiscal_type}
-        pending={fiscalPending}
-        error={fiscalError}
-        onSwitch={switchFiscal}
-      />
-
-      <PaymentRailRule isFormal={isFormal} />
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <header className="mb-4">
+      {/* ── Plan picker: open layout, no outer card chrome ── */}
+      <section className="flex flex-col gap-3">
+        <header>
           <h3 className="font-display text-lg font-semibold tracking-tight">
             Pick a plan
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Plans differ by price and visibility. The mechanic (cashback or
-            discount) is pinned by your fiscal type above, so you only see the
-            plans that match. Switch fiscal type at the top of this page if you
-            need the other set.
+            Plans differ by price and visibility. The mechanic is pinned by
+            your fiscal type above, so only matching plans show up here.
           </p>
         </header>
 
@@ -158,18 +160,20 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
           ))}
         </ul>
 
-        {error && (
-          <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            {error}
-          </p>
-        )}
-        {saved && (
-          <p className="mt-3 rounded-lg bg-secondary/10 px-3 py-2 text-xs text-secondary">
-            Plan saved.
+        {(error || saved) && (
+          <p
+            className={cn(
+              "rounded-lg px-3 py-2 text-xs",
+              error
+                ? "bg-destructive/10 text-destructive"
+                : "bg-secondary/10 text-secondary",
+            )}
+          >
+            {error ?? "Plan saved."}
           </p>
         )}
 
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 pt-1">
           <p className="text-[11px] text-muted-foreground">
             Selected:{" "}
             <span className="font-semibold text-foreground">
@@ -219,7 +223,7 @@ function PlanCard({
           "flex w-full flex-col items-stretch gap-2 rounded-2xl border p-4 text-left transition",
           selected
             ? "border-secondary bg-secondary/5 ring-2 ring-secondary/30"
-            : "border-border bg-background hover:border-foreground/30",
+            : "border-border bg-card hover:border-foreground/30 hover:shadow-sm",
         )}
       >
         <div className="flex items-center justify-between gap-2">
@@ -257,156 +261,91 @@ function PlanCard({
   );
 }
 
-function FiscalSelector({
+// Compact two-up segmented control replacing the old full-section selector.
+// Same affordance (tap to switch fiscal_type) at a fraction of the visual
+// weight — the hero card can hold this + plan label without feeling busy.
+function FiscalSegmentedToggle({
   current,
   pending,
-  error,
   onSwitch,
 }: {
   current: "formal" | "informal";
   pending: boolean;
-  error: string | null;
   onSwitch: (next: "formal" | "informal") => void;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-5">
-      <header className="mb-4">
-        <h3 className="font-display text-lg font-semibold tracking-tight">
-          Fiscal type
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Are you a venue that always invoices, or one that usually doesn&apos;t?
-          This pins your mechanic — Formal runs cashback, Informal runs instant
-          discount — and which plans show up below.
-        </p>
-      </header>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <FiscalOption
-          tone="formal"
-          label="Formal"
-          headline="I always issue an invoice."
-          body="Every ticket invoiced, VAT charged, reported to SAT. Cashback fits cleanly — Mesita touches the payment rail and the % comes back to the guest's wallet."
-          selected={current === "formal"}
-          pending={pending}
-          onSelect={() => onSwitch("formal")}
-        />
-        <FiscalOption
-          tone="informal"
-          label="Informal"
-          headline="I usually don't invoice."
-          body="Most tickets paid in cash, never invoiced. Instant discount applies directly at the bill — Mesita stays out of the payment flow."
-          selected={current === "informal"}
-          pending={pending}
-          onSelect={() => onSwitch("informal")}
-        />
-      </div>
-      {error && (
-        <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      )}
-    </section>
+    <div className="inline-flex items-center rounded-full bg-muted p-0.5">
+      <FiscalSegment
+        label="Formal"
+        active={current === "formal"}
+        pending={pending}
+        onClick={() => onSwitch("formal")}
+        tone="bg-pink-gradient text-white"
+      />
+      <FiscalSegment
+        label="Informal"
+        active={current === "informal"}
+        pending={pending}
+        onClick={() => onSwitch("informal")}
+        tone="bg-tier-gold text-black"
+      />
+    </div>
   );
 }
 
-function FiscalOption({
-  tone,
+function FiscalSegment({
   label,
-  headline,
-  body,
-  selected,
+  active,
   pending,
-  onSelect,
+  onClick,
+  tone,
 }: {
-  tone: "formal" | "informal";
   label: string;
-  headline: string;
-  body: string;
-  selected: boolean;
+  active: boolean;
   pending: boolean;
-  onSelect: () => void;
+  onClick: () => void;
+  tone: string;
 }) {
   return (
     <button
       type="button"
-      onClick={onSelect}
-      disabled={selected || pending}
+      onClick={onClick}
+      disabled={active || pending}
       className={cn(
-        "flex h-full flex-col gap-2 rounded-2xl border p-4 text-left transition disabled:cursor-default",
-        selected
-          ? "border-foreground bg-background shadow-elev"
-          : "border-border bg-background hover:bg-muted/50",
+        "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition disabled:cursor-default",
+        active
+          ? tone
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-            tone === "formal"
-              ? "bg-pink-gradient text-white"
-              : "bg-tier-gold text-black",
-          )}
-        >
-          {label}
-        </span>
-        {selected && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-secondary">
-            {pending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Check className="h-3 w-3" />
-            )}
-            {pending ? "Saving" : "Active"}
-          </span>
-        )}
-      </div>
-      <p className="text-sm font-semibold">{headline}</p>
-      <p className="text-[12px] leading-relaxed text-muted-foreground">{body}</p>
+      {active && pending ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : active ? (
+        <Check className="h-3 w-3" />
+      ) : null}
+      {label}
     </button>
   );
 }
 
-function PaymentRailRule({ isFormal }: { isFormal: boolean }) {
+// Single-line payment-rail summary. The previous version was a separate
+// destructive-toned section — overkill for a permanent rule. Now it reads
+// like a caption directly under the active plan.
+function PaymentRailLine({ isFormal }: { isFormal: boolean }) {
   return (
-    <section
-      className={cn(
-        "rounded-2xl border p-4",
-        isFormal
-          ? "border-destructive/30 bg-destructive/5"
-          : "border-tier-gold/40 bg-tier-gold/10",
+    <p className="flex items-start gap-2 text-[12px] leading-relaxed text-muted-foreground">
+      {isFormal ? (
+        <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      ) : (
+        <Percent className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       )}
-    >
-      <div className="flex items-start gap-3">
-        {isFormal ? (
-          <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-        ) : (
-          <Percent className="mt-0.5 h-5 w-5 shrink-0 text-black" />
-        )}
-        <div className="text-[12px] leading-relaxed">
-          <p className="font-display text-sm font-semibold tracking-tight">
-            Payment rail rule
-          </p>
-          {isFormal ? (
-            <p className="mt-1 text-foreground/80">
-              Cashback is{" "}
-              <span className="font-semibold">only valid when the guest pays by card through Mesita&apos;s flow</span>.
-              If the guest pays in cash at the table, the coupon is invalid and no
-              cashback is issued. Your waiter sends the Stripe link from the QR
-              scan; the cashback lands once payment clears (and the story
-              verifies, when required).
-            </p>
-          ) : (
-            <p className="mt-1 text-foreground/80">
-              Discount is{" "}
-              <span className="font-semibold">applied directly to the bill — cash or card, either works</span>.
-              Mesita stays out of the payment flow. The waiter scans the QR, the
-              discount is revealed and applied at the bill, and the guest pays you
-              directly. No Stripe, no wallet.
-            </p>
-          )}
-        </div>
-      </div>
-    </section>
+      <span>
+        <span className="font-semibold text-foreground">Payment rail:</span>{" "}
+        {isFormal
+          ? "Cashback only counts when the guest pays by card through Mesita. Cash at the table = no cashback."
+          : "Discount is applied directly to the bill — cash or card. Mesita stays out of the payment flow."}
+      </span>
+    </p>
   );
 }
 
