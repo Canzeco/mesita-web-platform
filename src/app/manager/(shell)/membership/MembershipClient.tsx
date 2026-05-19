@@ -47,7 +47,6 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
 
   const isFormal = venue.fiscal_type === "formal";
   const mechanic = mechanicForPlan(plan);
-  const visibility = visibilityForPlan(plan);
   const currentMeta = PLANS.find((p) => p.id === venue.plan);
 
   const availablePlans = useMemo(
@@ -138,28 +137,30 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
 
       {/* ── Plan picker: open layout, no outer card chrome ── */}
       <section className="flex flex-col gap-3">
-        <header>
+        <header className="flex items-baseline justify-between gap-3">
           <h3 className="font-display text-lg font-semibold tracking-tight">
             Pick a plan
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Two options: stay on Free and appear minimally, or go Pro for
-            priority placement plus the coupon mechanic that matches your
-            fiscal type. Switch fiscal at the top to see the other Pro.
+          <p className="text-[11px] text-muted-foreground">
+            Two options for {isFormal ? "Formal" : "Informal"} venues
           </p>
         </header>
 
-        <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {availablePlans.map((p) => (
-            <PlanCard
+        {/* Compact radio-row picker. Only 2 options per fiscal type — the
+            grid-of-cards layout from the 5-plan era was overkill. Each row
+            is its own tap target; selected row gets a tinted left border. */}
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          {availablePlans.map((p, i) => (
+            <PlanRow
               key={p.id}
               plan={p}
               selected={plan === p.id}
               currentlyActive={venue.plan === p.id}
               onSelect={() => setPlan(p.id)}
+              isLast={i === availablePlans.length - 1}
             />
           ))}
-        </ul>
+        </div>
 
         {(error || saved) && (
           <p
@@ -174,20 +175,12 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
           </p>
         )}
 
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <p className="text-[11px] text-muted-foreground">
-            Selected:{" "}
-            <span className="font-semibold text-foreground">
-              {PLANS.find((p) => p.id === plan)?.label}
-            </span>
-            {" — "}
-            {mechanic} mechanic, {visibility} visibility.
-          </p>
+        <div className="flex justify-end pt-1">
           <button
             type="button"
             onClick={submit}
             disabled={pending || plan === venue.plan}
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-pink-gradient px-4 text-sm font-semibold text-white shadow-glow disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-pink-gradient px-5 text-sm font-semibold text-white shadow-glow disabled:opacity-60"
           >
             {pending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -204,61 +197,66 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
   );
 }
 
-function PlanCard({
+function PlanRow({
   plan,
   selected,
   currentlyActive,
   onSelect,
+  isLast,
 }: {
   plan: (typeof PLANS)[number];
   selected: boolean;
   currentlyActive: boolean;
   onSelect: () => void;
+  isLast: boolean;
 }) {
+  const MechanicIcon =
+    plan.mechanic === "Cashback"
+      ? CircleDollarSign
+      : plan.mechanic === "Discount"
+        ? Percent
+        : Sparkles;
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onSelect}
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "flex w-full items-start gap-4 p-4 text-left transition",
+        !isLast && "border-b border-border",
+        selected ? "bg-secondary/5" : "hover:bg-muted/40",
+      )}
+    >
+      <span
         className={cn(
-          "flex w-full flex-col items-stretch gap-2 rounded-2xl border p-4 text-left transition",
-          selected
-            ? "border-secondary bg-secondary/5 ring-2 ring-secondary/30"
-            : "border-border bg-card hover:border-foreground/30 hover:shadow-sm",
+          "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition",
+          selected ? "border-secondary bg-secondary" : "border-muted-foreground/40",
         )}
       >
-        <div className="flex items-center justify-between gap-2">
+        {selected && <span className="h-1.5 w-1.5 rounded-full bg-background" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="font-display text-base font-semibold tracking-tight">
             {plan.label}
           </p>
+          <p className="font-display text-sm font-semibold tabular-nums text-foreground">
+            {plan.priceLabel}
+          </p>
           {currentlyActive && (
-            <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary">
+            <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-secondary">
               Active
             </span>
           )}
         </div>
-        <p className="font-display text-xl font-bold tabular-nums">
-          {plan.priceLabel}
-        </p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Pill
-            icon={
-              plan.mechanic === "Cashback"
-                ? CircleDollarSign
-                : plan.mechanic === "Discount"
-                  ? Percent
-                  : Sparkles
-            }
-          >
-            {plan.mechanic}
-          </Pill>
-          <Pill icon={Sparkles}>{plan.visibility} visibility</Pill>
-        </div>
-        <p className="text-[11px] leading-snug text-muted-foreground">
+        <p className="mt-1 text-[12px] leading-snug text-muted-foreground">
           {plan.blurb}
         </p>
-      </button>
-    </li>
+      </div>
+      <div className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
+        <Pill icon={MechanicIcon}>{plan.mechanic}</Pill>
+        <Pill icon={Sparkles}>{plan.visibility}</Pill>
+      </div>
+    </button>
   );
 }
 

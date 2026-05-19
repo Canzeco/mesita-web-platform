@@ -9,7 +9,6 @@ import {
   Filter,
   GraduationCap,
   Instagram,
-  Mail,
   MapPin,
   Users,
 } from "lucide-react";
@@ -97,23 +96,6 @@ const TIERS: TierMeta[] = [
   },
 ];
 
-// ─── Communities (coming soon) ────────────────────────────────────────────
-
-type CommunityMeta = {
-  id: string;
-  label: string;
-  defaultOn: boolean;
-  defaultBoost: 5 | 10 | 15;
-  membersOnMesita: number;
-};
-
-const COMMUNITIES: CommunityMeta[] = [
-  { id: "tec", label: "Tec de Monterrey", defaultOn: true, defaultBoost: 5, membersOnMesita: 1840 },
-  { id: "udem", label: "UDEM", defaultOn: true, defaultBoost: 5, membersOnMesita: 980 },
-  { id: "stanford", label: "Stanford", defaultOn: false, defaultBoost: 10, membersOnMesita: 712 },
-  { id: "itam", label: "ITAM", defaultOn: false, defaultBoost: 5, membersOnMesita: 640 },
-];
-
 // ─── Client ───────────────────────────────────────────────────────────────
 
 export function RewardsClient({ venue }: { venue: MyVenue }) {
@@ -183,7 +165,6 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
         blurb="Stack extra dimensions on top of the basic tier rates — communities, demographics, geography, custom rules. All landing with the segments table."
       >
         <AdvancedSegmentationGrid />
-        <CommunitiesSection />
       </SegmentationGroup>
     </div>
   );
@@ -515,6 +496,13 @@ type AdvancedAxisMeta = {
 
 const ADVANCED_AXES: AdvancedAxisMeta[] = [
   {
+    id: "community",
+    label: "Communities",
+    blurb: "Email-verified schools and orgs — Tec, UDEM, Stanford, ITAM…",
+    examples: ["Tec students only", "Stanford alumni", "ITAM Sundays"],
+    Icon: GraduationCap,
+  },
+  {
     id: "demo",
     label: "Sex & age",
     blurb: "Boost or filter by demographic bands.",
@@ -580,111 +568,6 @@ function AdvancedAxisCard({ axis }: { axis: AdvancedAxisMeta }) {
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-// ─── Communities (coming soon) ────────────────────────────────────────────
-
-function CommunitiesSection() {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm opacity-90">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 className="font-display text-base font-semibold tracking-tight">
-            Filter &amp; boost by community
-          </h3>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-            Reach members of specific schools or orgs (Tec, UDEM, Stanford…).
-            Community membership requires email verification — only verified
-            members see the boost.
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-1 text-[10px] font-semibold text-secondary">
-          <Mail className="h-3 w-3" />
-          Verified
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {COMMUNITIES.map((c) => (
-          <CommunityCard key={c.id} community={c} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CommunityCard({ community }: { community: CommunityMeta }) {
-  const [on, setOn] = useState(community.defaultOn);
-  const [boost, setBoost] = useState<5 | 10 | 15>(community.defaultBoost);
-  const CHOICES: (5 | 10 | 15)[] = [5, 10, 15];
-  return (
-    <div className="rounded-xl border border-border bg-background p-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground">
-          <GraduationCap className="h-3 w-3" />
-          {community.label}
-        </span>
-        <button
-          type="button"
-          onClick={() => setOn((v) => !v)}
-          role="switch"
-          aria-checked={on}
-          className={cn(
-            "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition",
-            on ? "bg-pink-gradient" : "bg-muted",
-          )}
-        >
-          <span
-            className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition",
-              on ? "translate-x-4" : "translate-x-0.5",
-            )}
-          />
-        </button>
-      </div>
-
-      <p className={cn("mt-2 flex items-baseline gap-1", !on && "opacity-50")}>
-        <span className="font-display text-3xl font-bold leading-none tracking-tight text-primary">
-          +{boost}
-        </span>
-        <span className="font-display text-base font-semibold text-primary">%</span>
-        <span className="ml-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-          Boost
-        </span>
-      </p>
-
-      <div className={cn("mt-2 flex flex-wrap gap-1.5", !on && "opacity-50")}>
-        {CHOICES.map((c) => {
-          const active = c === boost;
-          return (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setBoost(c)}
-              disabled={!on}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-[10px] font-semibold transition",
-                active
-                  ? "bg-pink-gradient text-white shadow-sm"
-                  : "border border-border bg-background text-foreground hover:border-foreground/30",
-                !on && "cursor-not-allowed",
-              )}
-            >
-              +{c}%
-            </button>
-          );
-        })}
-      </div>
-
-      <p className="mt-3 flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Users className="h-3 w-3" />
-        <span className="font-semibold text-foreground">
-          {community.membersOnMesita.toLocaleString()}
-        </span>{" "}
-        verified members on Mesita
-      </p>
     </div>
   );
 }
