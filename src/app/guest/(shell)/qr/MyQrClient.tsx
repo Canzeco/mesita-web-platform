@@ -117,8 +117,11 @@ export function MyQrClient({
           <Wallet className="h-7 w-7 text-white/80" />
         </div>
         <p className="mt-3 text-[11px] leading-snug text-white/85">
-          Auto-applies to your next bill at any Formal partner — no
-          redeem button, no expiry as long as you stay active.
+          Auto-applies to your next bill at <span className="font-semibold">any partner</span> —
+          Formal or Informal. At Informal venues it comes off the discounted
+          total: e.g. $500 bill with 10% off and $200 balance → you hand the
+          waiter $250 in cash and Mesita pays them the $200 from your wallet.
+          No redeem button, no expiry while you stay active.
         </p>
       </section>
 

@@ -22,14 +22,14 @@ export default function SharePage() {
       <SimpleHeader title="Mesita" eyebrow="Share with friends" />
 
       <div className="px-4 pt-4">
-        <div className="flex gap-1 rounded-full border border-border bg-card p-1">
+        <div className="grid grid-cols-4 gap-0 rounded-full border border-border bg-card p-1">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "flex-1 rounded-full px-2 py-1.5 text-center text-[12px] font-medium transition",
+                "rounded-full px-1 py-1.5 text-center text-[12px] font-medium transition",
                 tab === t.id
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground",
