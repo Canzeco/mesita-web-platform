@@ -33,8 +33,6 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 import {
   CURRENT_USER,
   TIERS,
-  COMMUNITIES_JOINED,
-  COMMUNITIES_ALL,
   TRANSACTIONS,
   ACHIEVEMENTS,
   venueById,
@@ -67,7 +65,6 @@ export type RealIdentity = {
 export function ProfileClient({ identity }: { identity: RealIdentity }) {
   const [tab, setTab] = useState<Tab>("class");
   const [verifyOpen, setVerifyOpen] = useState(false);
-  const [joinOpen, setJoinOpen] = useState(false);
 
   // Display name: prefer the onboard-supplied full_name; otherwise the
   // email local-part as a fallback. Never the mock CURRENT_USER.name.
@@ -173,10 +170,7 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
 
       <div className="flex-1 overflow-y-auto px-5 pb-8 pt-5 scrollbar-hide">
         {tab === "class" && (
-          <ClassTab
-            onConnectInstagram={() => setVerifyOpen(true)}
-            onJoinCommunity={() => setJoinOpen(true)}
-          />
+          <ClassTab onConnectInstagram={() => setVerifyOpen(true)} />
         )}
         {tab === "balance" && <BalanceTab />}
         {tab === "game" && <GameTab />}
@@ -184,116 +178,126 @@ export function ProfileClient({ identity }: { identity: RealIdentity }) {
       </div>
 
       {verifyOpen && <VerifyInstagramSheet onClose={() => setVerifyOpen(false)} />}
-      {joinOpen && <JoinCommunitySheet onClose={() => setJoinOpen(false)} />}
     </div>
   );
 }
 
 function ClassTab({
   onConnectInstagram,
-  onJoinCommunity,
 }: {
   onConnectInstagram: () => void;
-  onJoinCommunity: () => void;
 }) {
+  // Order matters: the current class anchors the tab, then the two upgrade
+  // paths (Instagram + Subscribe) sit side by side as the two real routes
+  // up, then the class ladder explains what each tier actually gets, then
+  // the manual appeal sits at the bottom as the rare-case escape hatch.
+  // Communities is hidden for now — gated behind a settings/admin page
+  // until the community boosts ship for real.
   return (
     <div className="flex flex-col gap-4">
       <CurrentClassCard />
+      <InstagramPathBox onConnect={onConnectInstagram} />
+      <SubscriptionPathBox />
+      <ClassLadderCard />
+      <AppealForUpgradeButton />
+    </div>
+  );
+}
 
-      <SubscribeLadder />
-
-      <button
-        type="button"
-        onClick={onConnectInstagram}
-        className="flex items-center gap-4 rounded-2xl bg-[linear-gradient(135deg,oklch(0.93_0.05_30),oklch(0.92_0.08_50))] p-4 text-left shadow-sm"
-      >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,oklch(0.70_0.20_30),oklch(0.65_0.20_350))] text-white">
-          <Instagram className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-base font-semibold tracking-tight">
-            Connect Instagram
-          </p>
-          <p className="mt-0.5 text-[12px] text-muted-foreground">
-            1K / 5K / 20K followers maps to Silver / Gold / Diamond instantly
-          </p>
-        </div>
-        <span className="rounded-full bg-pink-gradient px-4 py-2 text-[12px] font-semibold text-white shadow-sm">
-          Connect
-        </span>
-      </button>
-
-      <button
-        type="button"
-        className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-left transition hover:bg-muted/40"
-      >
-        <Crown className="h-4 w-4 shrink-0 text-foreground" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Appeal for upgrade</p>
-          <p className="text-[11px] text-muted-foreground">
-            Model, chef, press, founder? Request a manual class upgrade.
-          </p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </button>
-
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            <GraduationCap className="h-3.5 w-3.5 text-secondary" />
-            Communities
-          </div>
-          <span className="text-[11px] text-muted-foreground">Email-verified</span>
-        </div>
-        <div className="mt-3 flex flex-col gap-2">
-          {COMMUNITIES_JOINED.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5"
-            >
-              <span
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white",
-                  c.color,
-                )}
-              >
-                <GraduationCap className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">{c.name}</p>
-                <p className="text-[11px] text-muted-foreground">Verified via {c.handle}</p>
-              </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2.5 py-1 text-[11px] font-semibold text-secondary">
-                <BadgeCheck className="h-3 w-3" />
-                Member
-              </span>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={onJoinCommunity}
-            className="flex items-center gap-3 rounded-xl border border-dashed border-secondary/40 bg-secondary/5 px-3 py-2.5 text-left transition hover:bg-secondary/10"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-secondary">
-              <Plus className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">Join a community</p>
-              <p className="text-[11px] text-muted-foreground">
-                Verify your school or org email — unlock filtered venues.
-              </p>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
-        <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
-          You can be in many communities — but only one Class. Some venues boost cashback for
-          verified members of certain communities — e.g. Tec students fill rooftops in San Pedro on
-          Thursdays, Stanford alumni gather at wine bars in Polanco, ITAM crowds the brunch spots
-          in Condesa on Sundays.
+function InstagramPathBox({ onConnect }: { onConnect: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onConnect}
+      className="flex items-center gap-4 rounded-2xl bg-[linear-gradient(135deg,oklch(0.93_0.05_30),oklch(0.92_0.08_50))] p-4 text-left shadow-sm transition hover:shadow-md"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,oklch(0.70_0.20_30),oklch(0.65_0.20_350))] text-white">
+        <Instagram className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-foreground/70">
+          Path 1 · Free
+        </p>
+        <p className="mt-0.5 font-display text-base font-semibold tracking-tight">
+          Connect Instagram
+        </p>
+        <p className="mt-0.5 text-[12px] text-muted-foreground">
+          1K / 5K / 20K followers maps to Silver / Gold / Diamond instantly.
         </p>
       </div>
-    </div>
+      <span className="rounded-full bg-pink-gradient px-4 py-2 text-[12px] font-semibold text-white shadow-sm">
+        Connect
+      </span>
+    </button>
+  );
+}
+
+function AppealForUpgradeButton() {
+  return (
+    <button
+      type="button"
+      className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-left transition hover:bg-muted/40"
+    >
+      <Crown className="h-4 w-4 shrink-0 text-foreground" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">Appeal for upgrade</p>
+        <p className="text-[11px] text-muted-foreground">
+          Model, chef, press, founder? Request a manual class upgrade.
+        </p>
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </button>
+  );
+}
+
+// Read-only explainer of what each class gets. The buy/connect surfaces
+// are above — this is the reference card that helps a guest understand
+// why upgrading is worth it.
+function ClassLadderCard() {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <header className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">
+          Class ladder
+        </p>
+        <span className="text-[11px] text-muted-foreground">
+          Same at every partner
+        </span>
+      </header>
+      <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+        Higher class = more cashback at every Verified Partner. The rate per
+        class is set by each venue inside Mesita.
+      </p>
+      <ul className="mt-3 flex flex-col gap-2">
+        {TIERS.map((t) => (
+          <li
+            key={t.id}
+            className="flex items-center gap-3 rounded-xl bg-muted/30 px-3 py-2.5"
+          >
+            <span
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                t.id === "bronze" && "bg-tier-bronze text-white",
+                t.id === "silver" && "bg-tier-silver text-foreground",
+                t.id === "gold" && "bg-tier-gold text-black",
+                t.id === "diamond" && "bg-tier-diamond text-white",
+              )}
+            >
+              {t.label[0]}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-sm font-semibold tracking-tight">
+                Mesita {t.label}
+              </p>
+              <p className="text-[11px] text-muted-foreground">{t.cashback}</p>
+            </div>
+            <p className="shrink-0 text-[11px] font-semibold text-foreground">
+              {t.perk}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -338,10 +342,10 @@ function CurrentClassCard() {
   );
 }
 
-function SubscribeLadder() {
-  // The "rich" path is now a paid monthly subscription granted upfront —
-  // tier-as-product. Each row links to /guest/subscribe/[tier] which today
-  // stops at the checkout CTA (Stripe wiring lands next).
+function SubscriptionPathBox() {
+  // Path 2 — paid monthly subscription, tier-as-product. Each row links to
+  // /guest/subscribe/[tier] which today stops at the checkout CTA (Stripe
+  // wiring lands next).
   const currentIdx = ["bronze", "silver", "gold", "diamond"].indexOf(
     CURRENT_USER.tier,
   );
@@ -349,17 +353,20 @@ function SubscribeLadder() {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-          <Crown className="h-3.5 w-3.5 text-secondary" />
-          Subscribe to a Mesita class
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">
+            Path 2 · Subscribe
+          </p>
+          <p className="mt-0.5 font-display text-base font-semibold tracking-tight">
+            Buy a Mesita class
+          </p>
         </div>
         <span className="text-[11px] text-muted-foreground">Monthly · cancel anytime</span>
       </div>
-      <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-        Paid classes are granted upfront — you become the tier the moment you
-        subscribe, no spend accumulation needed. The Instagram path stays
-        available for free; subscribing is the alternative.
+      <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+        Granted upfront — you become the tier the moment you subscribe, no
+        spend accumulation needed.
       </p>
       <div className="mt-4 flex flex-col gap-2.5">
         {TIERS.map((t) => {
@@ -714,109 +721,6 @@ function VerifyInstagramSheet({ onClose }: { onClose: () => void }) {
         <p className="mt-3 text-center text-[11px] text-muted-foreground">
           We never ask for your Instagram password.
         </p>
-      </div>
-    </div>
-  );
-}
-
-function JoinCommunitySheet({ onClose }: { onClose: () => void }) {
-  const [communityTab, setCommunityTab] = useState("colleges");
-  const tabs = [
-    { id: "colleges", label: "Colleges", soon: false },
-    { id: "companies", label: "Companies", soon: true },
-    { id: "sports", label: "Sports clubs", soon: true },
-    { id: "alumni", label: "Alumni", soon: true },
-  ];
-  return (
-    <div className="absolute inset-0 z-50 flex items-end">
-      <div
-        className="absolute inset-0 bg-foreground/30 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div className="relative z-10 flex h-[80%] w-full flex-col rounded-t-3xl bg-card shadow-elev">
-        <div className="shrink-0 px-5 pb-3 pt-3">
-          <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-foreground/30" />
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Join a community
-              </p>
-              <h2 className="mt-0.5 font-display text-2xl font-semibold tracking-tight">
-                Find your tribe
-              </h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                Verify once with your school email — unlock community-only filters and the
-                occasional cashback boost.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground"
-              aria-label="Close"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => !t.soon && setCommunityTab(t.id)}
-                disabled={t.soon}
-                className={cn(
-                  "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition",
-                  communityTab === t.id
-                    ? "bg-foreground text-background"
-                    : "border border-border bg-card text-muted-foreground",
-                  t.soon && "opacity-60",
-                )}
-              >
-                <GraduationCap className="h-3 w-3" />
-                {t.label}
-                {t.soon && (
-                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                    soon
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            {COMMUNITIES_ALL.length} schools
-          </p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 pb-6 scrollbar-hide">
-          <div className="flex flex-col gap-2">
-            {COMMUNITIES_ALL.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-3 text-left transition hover:bg-muted/40"
-              >
-                <span
-                  className={cn(
-                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white",
-                    c.color,
-                  )}
-                >
-                  <GraduationCap className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{c.name}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">📍 {c.city}</span> ·{" "}
-                    {c.handle}
-                  </p>
-                </div>
-                <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
