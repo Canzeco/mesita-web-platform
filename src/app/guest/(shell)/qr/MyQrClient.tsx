@@ -1,19 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import {
   Copy,
   Check,
   Wallet,
   Sparkles,
-  ChevronDown,
   Instagram,
   AlertTriangle,
   Loader2,
   Upload,
   Calendar,
-  Receipt as ReceiptIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
@@ -107,23 +104,25 @@ export function MyQrClient({
         </div>
       </section>
 
-      <section className="flex items-center justify-between rounded-2xl border border-border bg-pink-gradient p-4 text-white shadow-glow">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-            Cashback balance
-          </p>
-          <p className="mt-0.5 font-display text-2xl font-semibold tabular-nums">
-            {formatCurrency(profile.cashback_balance_cents)}
-          </p>
+      <section className="rounded-2xl border border-border bg-pink-gradient p-4 text-white shadow-glow">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              Cashback balance
+            </p>
+            <p className="mt-0.5 font-display text-2xl font-semibold tabular-nums">
+              {formatCurrency(profile.cashback_balance_cents)}
+            </p>
+          </div>
+          <Wallet className="h-7 w-7 text-white/80" />
         </div>
-        <Wallet className="h-7 w-7 text-white/80" />
+        <p className="mt-3 text-[11px] leading-snug text-white/85">
+          Auto-applies to your next bill at any Formal partner — no
+          redeem button, no expiry as long as you stay active.
+        </p>
       </section>
 
-      {activeTicket && (
-        <ActiveTicketCard ticket={activeTicket} />
-      )}
-
-      <RecentTickets tickets={tickets} />
+      {activeTicket && <ActiveTicketCard ticket={activeTicket} />}
     </div>
   );
 }
@@ -321,112 +320,3 @@ function StoryUpload({
   );
 }
 
-// ─── Recent visits list ──────────────────────────────────────────────────
-
-function RecentTickets({ tickets }: { tickets: GuestTicket[] }) {
-  const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? tickets : tickets.slice(0, 3);
-  return (
-    <section className="rounded-2xl border border-border bg-card">
-      <header className="flex items-center justify-between px-4 pb-2 pt-4">
-        <h3 className="font-display text-base font-semibold tracking-tight">
-          Recent visits
-        </h3>
-        {tickets.length > 3 && (
-          <button
-            type="button"
-            onClick={() => setExpanded((e) => !e)}
-            className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground"
-          >
-            {expanded ? "Show less" : `Show all (${tickets.length})`}
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 transition-transform",
-                expanded && "rotate-180",
-              )}
-            />
-          </button>
-        )}
-      </header>
-      {tickets.length === 0 ? (
-        <p className="px-4 pb-5 pt-1 text-center text-[12px] text-muted-foreground">
-          Your visits will land here once a partner scans your code.
-        </p>
-      ) : (
-        <ul className="divide-y divide-border">
-          {visible.map((t) => (
-            <RecentRow key={t.id} ticket={t} />
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function RecentRow({ ticket }: { ticket: GuestTicket }) {
-  const venue = ticket.venue;
-  const isFormal = ticketIsFormal(ticket.kind);
-  const earned = ticket.cashback_cents ?? 0;
-  const redeemed = ticket.redeem_cents ?? 0;
-  const discount = ticket.discount_cents ?? 0;
-  const statusLabel =
-    ticket.status === "paid"
-      ? "Settled"
-      : ticket.status === "pending_pay"
-        ? "Awaiting payment"
-        : ticket.status === "awaiting_story"
-          ? "Awaiting story"
-          : ticket.status === "revealed"
-            ? "Discount applied"
-            : ticket.status === "cancelled"
-              ? "Cancelled"
-              : ticket.status;
-  return (
-    <li className="flex items-center gap-3 px-4 py-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
-        {venue?.photos?.[0] ? (
-          <Image
-            src={venue.photos[0]}
-            alt={venue.name ?? "Venue"}
-            width={40}
-            height={40}
-            className="h-10 w-10 object-cover"
-          />
-        ) : (
-          <ReceiptIcon className="h-4 w-4 text-muted-foreground" />
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">
-          {venue?.name ?? "Unknown venue"}
-        </p>
-        <p className="truncate text-[11px] text-muted-foreground">
-          {formatCurrency(ticket.total_cents)} ·{" "}
-          {new Date(ticket.created_at).toLocaleDateString([], {
-            day: "numeric",
-            month: "short",
-          })}
-        </p>
-      </div>
-      <div className="text-right">
-        {isFormal ? (
-          <>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-secondary">
-              +{formatCurrency(earned)}
-            </p>
-            {redeemed > 0 && (
-              <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/70">
-                −{formatCurrency(redeemed)}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="text-[10px] font-bold uppercase tracking-wider text-tier-gold">
-            −{formatCurrency(discount)}
-          </p>
-        )}
-        <p className="text-[11px] text-muted-foreground">{statusLabel}</p>
-      </div>
-    </li>
-  );
-}

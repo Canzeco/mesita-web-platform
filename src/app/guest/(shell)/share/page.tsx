@@ -5,11 +5,12 @@ import { Copy, ChevronRight, Check, Plus } from "lucide-react";
 import { SimpleHeader } from "@/components/guest/SimpleHeader";
 import { cn } from "@/lib/utils";
 
-type Tab = "guests" | "venues" | "others";
+type Tab = "guests" | "venues" | "creators" | "others";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "guests", label: "Guests" },
   { id: "venues", label: "Venues" },
+  { id: "creators", label: "Creators" },
   { id: "others", label: "Others" },
 ];
 
@@ -21,14 +22,14 @@ export default function SharePage() {
       <SimpleHeader title="Mesita" eyebrow="Share with friends" />
 
       <div className="px-4 pt-4">
-        <div className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1 scrollbar-hide">
+        <div className="flex gap-1 rounded-full border border-border bg-card p-1">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "shrink-0 rounded-full px-4 py-1.5 text-[12px] font-medium transition",
+                "flex-1 rounded-full px-2 py-1.5 text-center text-[12px] font-medium transition",
                 tab === t.id
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground",
@@ -43,6 +44,7 @@ export default function SharePage() {
       <div className="flex-1 overflow-y-auto px-5 py-5 scrollbar-hide">
         {tab === "guests" && <GuestsTab />}
         {tab === "venues" && <VenuesTab />}
+        {tab === "creators" && <CreatorsTab />}
         {tab === "others" && <OthersTab />}
       </div>
     </div>
@@ -87,22 +89,35 @@ function UrlField({ url }: { url: string }) {
 }
 
 function PrimaryCta({ label, share }: { label: string; share?: { title: string; text: string; url?: string } }) {
+  // Three states so the button feels alive:
+  //   idle    → original label + chevron
+  //   shared  → 'Shared' tick (navigator.share succeeded)
+  //   copied  → 'Copied to clipboard' (fallback path)
+  // Resets to idle after ~1.6s.
+  const [flash, setFlash] = useState<null | "shared" | "copied">(null);
   const onClick = async () => {
     if (!share) return;
-    const payload = { title: share.title, text: share.text, url: share.url ?? window.location.origin };
+    const payload = {
+      title: share.title,
+      text: share.text,
+      url: share.url ?? window.location.origin,
+    };
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share(payload);
+        setFlash("shared");
+        window.setTimeout(() => setFlash(null), 1600);
         return;
       } catch {
         // User cancelled or the share sheet refused — fall through to copy.
       }
     }
-    // Fallback: copy the share text + URL to clipboard.
     try {
       await navigator.clipboard.writeText(`${share.text} ${payload.url}`);
+      setFlash("copied");
+      window.setTimeout(() => setFlash(null), 1600);
     } catch {
-      // Clipboard unavailable — silent fallback.
+      // Clipboard unavailable — fail silently; no visible state change.
     }
   };
   return (
@@ -112,8 +127,22 @@ function PrimaryCta({ label, share }: { label: string; share?: { title: string; 
       disabled={!share}
       className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-60"
     >
-      {label}
-      <ChevronRight className="h-4 w-4" />
+      {flash === "shared" ? (
+        <>
+          <Check className="h-4 w-4" />
+          Shared
+        </>
+      ) : flash === "copied" ? (
+        <>
+          <Check className="h-4 w-4" />
+          Copied to clipboard
+        </>
+      ) : (
+        <>
+          {label}
+          <ChevronRight className="h-4 w-4" />
+        </>
+      )}
     </button>
   );
 }
@@ -258,110 +287,130 @@ function GuestsTab() {
 }
 
 // Three lighter partner programs collapsed into one page — Creators,
-// Agencies, Models. Each gets a compact card with its own UVPs, URL,
-// and share CTA. Saves the user from a tab carousel for three audiences
-// that rarely match the same person.
+// Creators get their own top-level tab. Others stacks the remaining
+// lighter partner programs — agencies + modeling talent — in compact
+// cards on one scroll.
+type PartnerGroup = {
+  id: string;
+  title: string;
+  blurb: string;
+  bullets: string[];
+  url: string;
+  shareUrl: string;
+  shareTitle: string;
+  shareText: string;
+  cta: string;
+};
+
+const CREATOR_GROUP: PartnerGroup = {
+  id: "creators",
+  title: "Creators",
+  blurb:
+    "Food, nightlife, travel, lifestyle, hotels, coffee, wine, city guides. Custom codes, revenue share, private events, equity for long-term partners.",
+  bullets: [
+    "Custom code · bigger welcome gift",
+    "Revenue share on your signups",
+    "Private tastings & openings",
+    "Equity path for long-term partners",
+  ],
+  url: "mesita.ai/creators",
+  shareUrl: "https://www.mesita.ai/creators",
+  shareTitle: "Mesita creator program",
+  shareText:
+    "Mesita partners with creators worldwide — custom codes, revenue share, and equity for long-term collabs.",
+  cta: "Apply as a creator",
+};
+
+const OTHER_GROUPS: PartnerGroup[] = [
+  {
+    id: "agencies",
+    title: "Marketing agencies",
+    blurb:
+      "Add Mesita to the stack you sell to restaurants & bars — measurable lift, no extra hardware.",
+    bullets: [
+      "Recurring revenue per venue you onboard",
+      "Cashback redemptions = attributable ROI",
+      "White-glove onboarding for your first 5 venues",
+      "Partner dashboard across every client",
+    ],
+    url: "mesita.ai/agencies",
+    shareUrl: "https://www.mesita.ai/agencies",
+    shareTitle: "Mesita partner program",
+    shareText:
+      "Mesita's partner program could fit your agency — recurring revenue + co-branded campaigns.",
+    cta: "Become a partner",
+  },
+  {
+    id: "models",
+    title: "Modeling & talent agencies",
+    blurb:
+      "Activate the models you manage on Mesita — Diamond perks, boosted cashback, priority tables. Earn on every visit.",
+    bullets: [
+      "Diamond by default — your roster skips tiers",
+      "Boosted cashback at partner venues",
+      "Priority tables on Fri & Sat",
+      "Agency dashboard for bookings + earnings",
+    ],
+    url: "mesita.ai/models",
+    shareUrl: "https://www.mesita.ai/models",
+    shareTitle: "Mesita for talent agencies",
+    shareText: "Get your talent roster Diamond access + revenue share on Mesita.",
+    cta: "Activate your roster",
+  },
+];
+
+function CreatorsTab() {
+  return (
+    <div className="flex flex-col gap-5">
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {CREATOR_GROUP.blurb}
+      </p>
+      <PartnerCard group={CREATOR_GROUP} />
+    </div>
+  );
+}
+
 function OthersTab() {
-  const groups: {
-    id: string;
-    title: string;
-    blurb: string;
-    bullets: string[];
-    url: string;
-    shareUrl: string;
-    shareTitle: string;
-    shareText: string;
-    cta: string;
-  }[] = [
-    {
-      id: "creators",
-      title: "Creators",
-      blurb:
-        "Food, nightlife, travel, lifestyle, hotels, coffee, wine, city guides. Custom codes, revenue share, private events, equity for long-term partners.",
-      bullets: [
-        "Custom code · bigger welcome gift",
-        "Revenue share on your signups",
-        "Private tastings & openings",
-        "Equity path for long-term partners",
-      ],
-      url: "mesita.ai/creators",
-      shareUrl: "https://www.mesita.ai/creators",
-      shareTitle: "Mesita creator program",
-      shareText: "Mesita partners with creators worldwide — custom codes, revenue share, and equity for long-term collabs.",
-      cta: "Apply as a creator",
-    },
-    {
-      id: "agencies",
-      title: "Marketing agencies",
-      blurb:
-        "Add Mesita to the stack you sell to restaurants & bars — measurable lift, no extra hardware.",
-      bullets: [
-        "Recurring revenue per venue you onboard",
-        "Cashback redemptions = attributable ROI",
-        "White-glove onboarding for your first 5 venues",
-        "Partner dashboard across every client",
-      ],
-      url: "mesita.ai/agencies",
-      shareUrl: "https://www.mesita.ai/agencies",
-      shareTitle: "Mesita partner program",
-      shareText: "Mesita's partner program could fit your agency — recurring revenue + co-branded campaigns.",
-      cta: "Become a partner",
-    },
-    {
-      id: "models",
-      title: "Modeling & talent agencies",
-      blurb:
-        "Activate the models you manage on Mesita — Diamond perks, boosted cashback, priority tables. Earn on every visit.",
-      bullets: [
-        "Diamond by default — your roster skips tiers",
-        "Boosted cashback at partner venues",
-        "Priority tables on Fri & Sat",
-        "Agency dashboard for bookings + earnings",
-      ],
-      url: "mesita.ai/models",
-      shareUrl: "https://www.mesita.ai/models",
-      shareTitle: "Mesita for talent agencies",
-      shareText: "Get your talent roster Diamond access + revenue share on Mesita.",
-      cta: "Activate your roster",
-    },
-  ];
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Three lighter partner programs Mesita runs alongside venues. Pick the
+        Two lighter partner programs Mesita runs alongside venues. Pick the
         one that fits — each has its own onboarding flow.
       </p>
-      {groups.map((g) => (
-        <section
-          key={g.id}
-          className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4"
-        >
-          <header>
-            <h3 className="font-display text-lg font-semibold tracking-tight">
-              {g.title}
-            </h3>
-            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-              {g.blurb}
-            </p>
-          </header>
-          <ul className="flex flex-col gap-1.5">
-            {g.bullets.map((b) => (
-              <li
-                key={b}
-                className="text-[12px] leading-snug text-foreground before:mr-2 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-foreground/40 before:align-middle"
-              >
-                {b}
-              </li>
-            ))}
-          </ul>
-          <UrlField url={g.url} />
-          <PrimaryCta
-            label={g.cta}
-            share={{ title: g.shareTitle, text: g.shareText, url: g.shareUrl }}
-          />
-        </section>
+      {OTHER_GROUPS.map((g) => (
+        <PartnerCard key={g.id} group={g} />
       ))}
     </div>
+  );
+}
+
+function PartnerCard({ group: g }: { group: PartnerGroup }) {
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
+      <header>
+        <h3 className="font-display text-lg font-semibold tracking-tight">
+          {g.title}
+        </h3>
+        <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+          {g.blurb}
+        </p>
+      </header>
+      <ul className="flex flex-col gap-1.5">
+        {g.bullets.map((b) => (
+          <li
+            key={b}
+            className="text-[12px] leading-snug text-foreground before:mr-2 before:inline-block before:h-1 before:w-1 before:rounded-full before:bg-foreground/40 before:align-middle"
+          >
+            {b}
+          </li>
+        ))}
+      </ul>
+      <UrlField url={g.url} />
+      <PrimaryCta
+        label={g.cta}
+        share={{ title: g.shareTitle, text: g.shareText, url: g.shareUrl }}
+      />
+    </section>
   );
 }
 
