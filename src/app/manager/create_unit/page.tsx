@@ -26,11 +26,11 @@ export default async function CreateUnitPage() {
     <div className="min-h-dvh w-full bg-background">
       <div className="mx-auto flex max-w-2xl flex-col px-4 py-6 md:px-6 md:py-10">
         <Link
-          href="/manager/console"
+          href="/manager/home"
           className="mb-6 inline-flex items-center gap-1 self-start text-sm text-muted-foreground transition hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
-          Back to your console
+          Back to home
         </Link>
         <header className="mb-6">
           <h1 className="font-display text-2xl font-semibold tracking-tight">Create unit</h1>

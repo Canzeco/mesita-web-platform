@@ -33,11 +33,11 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  // Console is the dashboard root. Branches by venue count (0 / 1 / N)
+  // Home is the dashboard root. Branches by venue count (0 / 1 / N)
   // and links into Place / Membership / Rewards / Validator for the deep
   // work. Membership holds the plan + fiscal_type knobs + ticket-type
   // reference; Rewards holds the per-tier cashback / discount rates.
-  { href: "/manager/console", label: "Console", Icon: LayoutDashboard },
+  { href: "/manager/home", label: "Home", Icon: LayoutDashboard },
   { href: "/manager/place", label: "Place", Icon: Store },
   { href: "/manager/membership", label: "Membership", Icon: CreditCard },
   { href: "/manager/rewards", label: "Rewards", Icon: Gift },

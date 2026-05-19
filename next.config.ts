@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
       // Verified Partner framing (managers join a network, not subscribe to a
       // SaaS). Permanent because the rename is final.
       { source: "/manager/subscription", destination: "/manager/membership", permanent: true },
+      // /manager/console renamed to /manager/home — Home reads more like an
+      // owner's daily landing pad than a SaaS "console".
+      { source: "/manager/console", destination: "/manager/home", permanent: true },
     ];
   },
   images: {

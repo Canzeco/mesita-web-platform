@@ -42,7 +42,7 @@ export default async function PostSigninPage({
   if (audience === "manager") {
     try {
       const m = await apiGetManagerProfile(supabase);
-      redirect(m.full_name ? "/manager/console" : "/manager/onboard");
+      redirect(m.full_name ? "/manager/home" : "/manager/onboard");
     } catch {
       // Profile fetch failed (rare). Best fallback: send them through
       // onboard so they at least get a chance to fill the form.

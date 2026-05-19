@@ -4,10 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
+  Calendar,
   ChevronRight,
+  Filter,
   GraduationCap,
   Instagram,
   Mail,
+  MapPin,
   Users,
 } from "lucide-react";
 import { type MyVenue } from "@/lib/api/venues";
@@ -177,8 +180,9 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
       <SegmentationGroup
         kind="advanced"
         title="Advanced segmentation"
-        blurb="Email-verified audiences and other targeting layers. Coming with the next major release."
+        blurb="Stack extra dimensions on top of the basic tier rates — communities, demographics, geography, custom rules. All landing with the segments table."
       >
+        <AdvancedSegmentationGrid />
         <CommunitiesSection />
       </SegmentationGroup>
     </div>
@@ -496,6 +500,87 @@ function TierChip({ tier, label }: { tier: TierId; label: string }) {
     >
       {label}
     </span>
+  );
+}
+
+// ─── Advanced segmentation (coming soon) ──────────────────────────────────
+
+type AdvancedAxisMeta = {
+  id: string;
+  label: string;
+  blurb: string;
+  examples: string[];
+  Icon: typeof Users;
+};
+
+const ADVANCED_AXES: AdvancedAxisMeta[] = [
+  {
+    id: "demo",
+    label: "Sex & age",
+    blurb: "Boost or filter by demographic bands.",
+    examples: ["Women 21–28", "Men 30+", "Any sex 25–35"],
+    Icon: Users,
+  },
+  {
+    id: "geo",
+    label: "Country & city",
+    blurb: "Reach visitors from specific places only.",
+    examples: ["Visitors from CDMX", "Tourists from US / EU", "Locals only"],
+    Icon: MapPin,
+  },
+  {
+    id: "occasion",
+    label: "Date & occasion",
+    blurb: "Time-window boosts for slow nights or events.",
+    examples: ["Mondays only", "Birthday week", "Pride · Día de la Madre"],
+    Icon: Calendar,
+  },
+  {
+    id: "custom",
+    label: "Custom rules",
+    blurb: "Compose AND / OR filters across every axis.",
+    examples: ["Gold + Tec + Female", "Silver + birthday + Monday"],
+    Icon: Filter,
+  },
+];
+
+function AdvancedSegmentationGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      {ADVANCED_AXES.map((a) => (
+        <AdvancedAxisCard key={a.id} axis={a} />
+      ))}
+    </div>
+  );
+}
+
+function AdvancedAxisCard({ axis }: { axis: AdvancedAxisMeta }) {
+  const Icon = axis.Icon;
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 shadow-sm opacity-80">
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground">
+          <Icon className="h-3 w-3" />
+          {axis.label}
+        </span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+          Soon
+        </span>
+      </div>
+      <p className="text-[12px] leading-relaxed text-muted-foreground">
+        {axis.blurb}
+      </p>
+      <ul className="mt-1 flex flex-col gap-1">
+        {axis.examples.map((ex) => (
+          <li
+            key={ex}
+            className="rounded-md bg-muted/40 px-2 py-1 text-[11px] text-muted-foreground"
+          >
+            {ex}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

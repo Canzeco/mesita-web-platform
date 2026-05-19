@@ -100,7 +100,7 @@ export function ManagerOnboardForm() {
       </button>
       <button
         type="button"
-        onClick={() => router.push("/manager/console")}
+        onClick={() => router.push("/manager/home")}
         disabled={pending}
         className="mt-1 block w-full text-center text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-foreground hover:underline"
       >

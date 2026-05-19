@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // Default destination after sign-in. /auth/post-signin checks whether
 // the manager has finished onboarding and routes accordingly:
 //   no profile yet → /manager/onboard
-//   profile in place → /manager/console
+//   profile in place → /manager/home
 const MANAGER_AFTER_AUTH = "/auth/post-signin?audience=manager";
 
 // Honour a ?next= path so deep links land where the user was headed

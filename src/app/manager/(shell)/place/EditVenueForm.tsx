@@ -109,9 +109,11 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
   const [address, setAddress] = useState(venue.address ?? "");
   const [closesAt, setClosesAt] = useState(venue.closes_at ?? "");
   const [phone, setPhone] = useState(venue.phone ?? "");
-  const [cashbackPercent, setCashbackPercent] = useState(
-    venue.cashback_percent == null ? "" : String(venue.cashback_percent),
-  );
+  // cashback_percent moved to the Rewards page (per-tier rates land there).
+  // We still keep it in the Place submit payload so saving Place doesn't
+  // clobber the rate — read it straight from the persisted venue.
+  const cashbackPercent =
+    venue.cashback_percent == null ? "" : String(venue.cashback_percent);
   const [pitch, setPitch] = useState(venue.pitch ?? "");
   const [story, setStory] = useState(venue.story ?? "");
   const [photos, setPhotos] = useState<string[]>(venue.photos ?? []);
@@ -376,7 +378,7 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
         </div>
       </Section>
 
-      <Section title="Contact & hours">
+      <Section title="Address & hours">
         <Field label="Address">
           <input
             value={address}
@@ -385,25 +387,14 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
             className={INPUT}
           />
         </Field>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Phone">
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              maxLength={40}
-              type="tel"
-              className={INPUT}
-            />
-          </Field>
-          <Field label="Closes at" hint="24h format, e.g. 02:00.">
-            <input
-              value={closesAt}
-              onChange={(e) => setClosesAt(e.target.value)}
-              maxLength={5}
-              className={INPUT}
-            />
-          </Field>
-        </div>
+        <Field label="Closes at" hint="24h format, e.g. 02:00.">
+          <input
+            value={closesAt}
+            onChange={(e) => setClosesAt(e.target.value)}
+            maxLength={5}
+            className={INPUT}
+          />
+        </Field>
       </Section>
 
       <Section title="Story">
@@ -563,36 +554,35 @@ export function EditVenueForm({ venue }: { venue: MyVenue }) {
 
       <Section
         title="Direct contact"
-        subtitle="One canonical email guests + support can reach. We pulled this from your homepage where possible."
+        subtitle="Email + phone guests can reach. Pulled from your homepage where possible — overwrite if you'd rather route somewhere else."
       >
-        <Field label="Email">
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
-            <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Email">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+              <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="hola@yourplace.com"
+                inputMode="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+          </Field>
+          <Field label="Phone">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="hola@yourplace.com"
-              inputMode="email"
-              autoCapitalize="none"
-              spellCheck={false}
-              className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+52 55 1234 5678"
+              inputMode="tel"
+              className={INPUT}
             />
-          </div>
-        </Field>
-      </Section>
-
-      <Section title="Rewards">
-        <Field label="Cashback percent" hint="0–100. Blank means no cashback offered.">
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={cashbackPercent}
-            onChange={(e) => setCashbackPercent(e.target.value)}
-            className={INPUT}
-          />
-        </Field>
+          </Field>
+        </div>
       </Section>
 
       <Section

@@ -10,7 +10,7 @@ import { ManagerOnboardForm } from "./ManagerOnboardForm";
 //
 // Server-gated:
 //   - signed out         → /manager/sign-in (with next=/manager/onboard)
-//   - already onboarded  → /manager/console (don't re-collect a name)
+//   - already onboarded  → /manager/home (don't re-collect a name)
 //   - signed in, no name → render the form
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function ManagerOnboardPage() {
   try {
     const profile = await apiGetManagerProfile(supabase);
     if (profile.full_name) {
-      redirect("/manager/console");
+      redirect("/manager/home");
     }
   } catch (err) {
     console.error("[manager/onboard] manager-get-profile:", err);

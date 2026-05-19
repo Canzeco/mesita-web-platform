@@ -115,7 +115,7 @@ export function CreateUnitForm() {
         // just created — without ?unit= they'd be dropped on the first venue
         // alphabetically, which is confusing when they have several.
         window.setTimeout(() => {
-          router.push(`/manager/console?unit=${venue.id}`);
+          router.push(`/manager/home?unit=${venue.id}`);
           router.refresh();
         }, 600);
       } catch (err) {
