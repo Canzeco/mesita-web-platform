@@ -25,13 +25,19 @@ export default async function GuestOnboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/guest/sign-in?next=/guest/onboard");
 
-  // guest-get-profile auto-creates the row on first call, so we can
-  // safely treat a thrown response as "treat them as not-onboarded".
+  // Completeness predicate is the same one the (shell) layout uses to
+  // gate every authed surface — name + country + birthday + sex. If we
+  // only checked full_name here, a partially-onboarded user would loop:
+  //   onboard → discover/swipe (full_name truthy) → shell sees missing
+  //   country/birthday/sex → bounces back to onboard. Strict here too.
   try {
     const profile = await apiFetchGuestProfile(supabase);
-    if (profile.full_name) {
-      redirect("/guest/discover/swipe");
-    }
+    const onboarded =
+      !!profile.full_name &&
+      !!profile.country &&
+      !!profile.birthday &&
+      !!profile.sex;
+    if (onboarded) redirect("/guest/discover/swipe");
   } catch (err) {
     // Profile fetch failed — render the form. The submit handler will
     // surface a real error if persistence is broken.

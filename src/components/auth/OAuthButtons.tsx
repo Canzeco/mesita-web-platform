@@ -17,7 +17,15 @@ export function OAuthButtons({ redirectAfter }: { redirectAfter: string }) {
     startTransition(async () => {
       try {
         const supabase = createBrowserSupabase();
-        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectAfter)}`;
+        // Prefer the build-time NEXT_PUBLIC_SITE_URL (set on Vercel
+        // production / preview environments) so the OAuth round-trip
+        // can't accidentally land back on localhost when a dev build
+        // gets opened on a deployed URL. Fall back to the current
+        // browser origin otherwise — that covers local dev cleanly.
+        const baseUrl =
+          process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+          window.location.origin;
+        const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectAfter)}`;
         const { error: oauthError } = await supabase.auth.signInWithOAuth({
           provider,
           options: { redirectTo },
