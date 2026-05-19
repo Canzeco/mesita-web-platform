@@ -519,7 +519,7 @@ function Pricing() {
           </p>
           <p>
             <span className="font-semibold text-foreground">Per-venue billing.</span>{" "}
-            One subscription per location. If you operate three venues, you
+            One membership per location. If you operate three venues, you
             pick a plan for each — different plans per venue are fine
             (one Pro, two Free). Manager accounts are free; only the venues
             themselves are billed.
@@ -667,7 +667,7 @@ function FAQ() {
     },
     {
       q: "What's the difference between a Verified Partner and a Web-Listed venue?",
-      a: "Web-Listed venues are scraped automatically from Google Business and appear in discovery with AI reservations enabled — no sign-up, no dashboard, no coupons. Verified Partners signed up at manager.mesita.app and configured their coupon mechanic; they get priority placement and the Subscription / Rewards / Analytics / Wallet / Team dashboard.",
+      a: "Web-Listed venues are scraped automatically from Google Business and appear in discovery with AI reservations enabled — no sign-up, no dashboard, no coupons. Verified Partners signed up at manager.mesita.app and configured their coupon mechanic; they get priority placement and the Membership / Rewards / Analytics / Wallet / Team dashboard.",
     },
     {
       q: "How does a guest reach Silver, Gold, or Diamond?",

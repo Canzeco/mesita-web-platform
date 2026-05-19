@@ -3,10 +3,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // /manager/promos was split into Subscription (plan + fiscal type) and
-      // Rewards (rate + ticket types). Rewards is the closer match for old
-      // bookmarks since most managers landed there for the rate, not the plan.
+      // /manager/promos was split into Membership (plan + fiscal type + ticket
+      // types) and Rewards (per-tier rates). Rewards is the closer match for
+      // old bookmarks since most managers landed there for the rate, not the
+      // plan.
       { source: "/manager/promos", destination: "/manager/rewards", permanent: true },
+      // /manager/subscription renamed to /manager/membership to align with the
+      // Verified Partner framing (managers join a network, not subscribe to a
+      // SaaS). Permanent because the rename is final.
+      { source: "/manager/subscription", destination: "/manager/membership", permanent: true },
     ];
   },
   images: {

@@ -14,10 +14,11 @@ import {
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { apiUpdateVenue, type MyVenue, type VenuePlan } from "@/lib/api/venues";
 import { FiscalBadge } from "@/components/shared";
+import { TicketTypesCard } from "@/components/manager/TicketTypesCard";
 import { cn } from "@/lib/utils";
 import { PLANS, mechanicForPlan, visibilityForPlan } from "@/lib/manager/plans";
 
-export function SubscriptionClient({ venue }: { venue: MyVenue }) {
+export function MembershipClient({ venue }: { venue: MyVenue }) {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabase(), []);
 
@@ -192,6 +193,8 @@ export function SubscriptionClient({ venue }: { venue: MyVenue }) {
           </button>
         </div>
       </section>
+
+      <TicketTypesCard isFormal={isFormal} planMechanic={mechanic} />
     </div>
   );
 }

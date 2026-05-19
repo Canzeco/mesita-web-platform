@@ -4,18 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
-  Calendar,
   ChevronRight,
-  CircleDollarSign,
-  CreditCard,
   GraduationCap,
   Instagram,
   Mail,
-  Percent,
   Users,
 } from "lucide-react";
 import { type MyVenue } from "@/lib/api/venues";
-import { KIND_LABEL, type TicketKind } from "@/lib/api/tickets";
 import { FiscalBadge } from "@/components/shared";
 import { cn } from "@/lib/utils";
 import { PLANS, mechanicForPlan } from "@/lib/manager/plans";
@@ -116,37 +111,6 @@ const COMMUNITIES: CommunityMeta[] = [
   { id: "itam", label: "ITAM", defaultOn: false, defaultBoost: 5, membersOnMesita: 640 },
 ];
 
-// ─── 10-ticket reference ─────────────────────────────────────────────────
-
-type KindRef = { kind: TicketKind; layers: string[]; warn?: boolean };
-
-const FORMAL_REFERENCE: KindRef[] = [
-  { kind: "none", layers: ["No transaction"] },
-  { kind: "p_c", layers: ["Payment", "Cashback"] },
-  { kind: "s_p_sf_c", layers: ["Story", "Payment", "Story-Fallback", "Cashback"] },
-  { kind: "r_p_c", layers: ["Reservation", "Payment", "Cashback"] },
-  {
-    kind: "r_s_p_sf_c",
-    layers: ["Reservation", "Story", "Payment", "Story-Fallback", "Cashback"],
-  },
-];
-
-const INFORMAL_REFERENCE: KindRef[] = [
-  { kind: "none", layers: ["No transaction"] },
-  { kind: "dp", layers: ["Discounted-Payment"] },
-  {
-    kind: "s_dp_sf",
-    layers: ["Story", "Discounted-Payment", "Story-Fallback"],
-    warn: true,
-  },
-  { kind: "r_dp", layers: ["Reservation", "Discounted-Payment"] },
-  {
-    kind: "r_s_dp_sf",
-    layers: ["Reservation", "Story", "Discounted-Payment", "Story-Fallback"],
-    warn: true,
-  },
-];
-
 // ─── Client ───────────────────────────────────────────────────────────────
 
 export function RewardsClient({ venue }: { venue: MyVenue }) {
@@ -155,8 +119,8 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
   const currentPlan = PLANS.find((p) => p.id === venue.plan);
 
   // The plan can drift out of sync with fiscal_type (manager flips fiscal on
-  // Subscription without picking a new plan). Flag it here too — but send
-  // them back to Subscription to fix.
+  // Membership without picking a new plan). Flag it here too — but send
+  // them back to Membership to fix.
   const planMatchesFiscal =
     venue.plan === "free" ||
     (isFormal ? venue.plan.startsWith("formal_") : venue.plan.startsWith("informal_"));
@@ -186,10 +150,10 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
               <span className="font-semibold">{venue.fiscal_type}</span>). Pick a
               matching plan in{" "}
               <Link
-                href={`/manager/subscription?unit=${venue.id}`}
+                href={`/manager/membership?unit=${venue.id}`}
                 className="font-semibold underline underline-offset-2"
               >
-                Subscription
+                Membership
               </Link>
               , otherwise tickets will refuse to open.
             </span>
@@ -201,12 +165,56 @@ export function RewardsClient({ venue }: { venue: MyVenue }) {
         <FreePlanBanner fiscalType={venue.fiscal_type} />
       )}
 
-      <FirstTimeSection mechanicLabel={mechanicLabel} />
-      <ReturningTierGrid mechanicLabel={mechanicLabel} />
-      <CommunitiesSection />
+      <SegmentationGroup
+        kind="basic"
+        title="Basic segmentation"
+        blurb="Two levers every venue gets: a Welcome coupon for first-time guests and per-tier rates for returning ones."
+      >
+        <FirstTimeSection mechanicLabel={mechanicLabel} />
+        <ReturningTierGrid mechanicLabel={mechanicLabel} />
+      </SegmentationGroup>
 
-      <TicketReferenceCard isFormal={isFormal} planMechanic={mechanic} />
+      <SegmentationGroup
+        kind="advanced"
+        title="Advanced segmentation"
+        blurb="Email-verified audiences and other targeting layers. Coming with the next major release."
+      >
+        <CommunitiesSection />
+      </SegmentationGroup>
     </div>
+  );
+}
+
+function SegmentationGroup({
+  kind,
+  title,
+  blurb,
+  children,
+}: {
+  kind: "basic" | "advanced";
+  title: string;
+  blurb: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <header className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-lg font-semibold tracking-tight">
+            {title}
+          </h2>
+          {kind === "advanced" && (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+              Coming soon
+            </span>
+          )}
+        </div>
+        <p className="max-w-xl text-[12px] leading-relaxed text-muted-foreground">
+          {blurb}
+        </p>
+      </header>
+      <div className="flex flex-col gap-4">{children}</div>
+    </section>
   );
 }
 
@@ -242,7 +250,7 @@ function ActivePlanBanner({
         <div className="flex items-center gap-2">
           <FiscalBadge fiscalType={fiscalType} size="md" />
           <Link
-            href="/manager/subscription"
+            href="/manager/membership"
             className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted/50"
           >
             Change <ChevronRight className="h-3.5 w-3.5" />
@@ -266,10 +274,10 @@ function FreePlanBanner({ fiscalType }: { fiscalType: "formal" | "informal" }) {
         Set your rates here — they won&apos;t go live for guests until you
         upgrade to a {mechanic}-enabled plan in{" "}
         <Link
-          href="/manager/subscription"
+          href="/manager/membership"
           className="font-semibold text-foreground underline underline-offset-2"
         >
-          Subscription
+          Membership
         </Link>
         .
       </p>
@@ -495,40 +503,30 @@ function TierChip({ tier, label }: { tier: TierId; label: string }) {
 
 function CommunitiesSection() {
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-          Communities · email-verified audiences
-        </p>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-          Coming soon
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm opacity-90">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-base font-semibold tracking-tight">
+            Filter &amp; boost by community
+          </h3>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+            Reach members of specific schools or orgs (Tec, UDEM, Stanford…).
+            Community membership requires email verification — only verified
+            members see the boost.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-1 text-[10px] font-semibold text-secondary">
+          <Mail className="h-3 w-3" />
+          Verified
         </span>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm opacity-90">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-display text-base font-semibold tracking-tight">
-              Filter &amp; boost by community
-            </h3>
-            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-              Reach members of specific schools or orgs (Tec, UDEM, Stanford…).
-              Membership requires email verification — only verified members
-              see the boost.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-1 text-[10px] font-semibold text-secondary">
-            <Mail className="h-3 w-3" />
-            Verified
-          </span>
-        </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {COMMUNITIES.map((c) => (
-            <CommunityCard key={c.id} community={c} />
-          ))}
-        </div>
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {COMMUNITIES.map((c) => (
+          <CommunityCard key={c.id} community={c} />
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -603,107 +601,6 @@ function CommunityCard({ community }: { community: CommunityMeta }) {
         verified members on Mesita
       </p>
     </div>
-  );
-}
-
-// ─── Ticket types reference (kept at bottom — manager education) ─────────
-
-function TicketReferenceCard({
-  isFormal,
-  planMechanic,
-}: {
-  isFormal: boolean;
-  planMechanic: "None" | "Cashback" | "Discount";
-}) {
-  const rows = isFormal ? FORMAL_REFERENCE : INFORMAL_REFERENCE;
-  const subtitle = isFormal
-    ? "Five formal flows — each builds on None by adding Reservation, Story, or both. Cashback never lands until the story is verified, so failed stories cost the guest the cashback (not the venue)."
-    : "Five informal flows — each builds on None by adding Reservation, Story, or both. The story is verified post-checkout; if it fails, the discount was already applied at the bill. That's the vulnerability flag below.";
-  return (
-    <section className="rounded-2xl border border-border bg-card p-5">
-      <header className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-display text-lg font-semibold tracking-tight">
-            Your ticket types ({rows.length})
-          </h3>
-          <p className="mt-1 max-w-3xl text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-        <span className="rounded-full bg-foreground/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground">
-          {isFormal ? "Formal" : "Informal"}
-        </span>
-      </header>
-
-      {planMechanic === "None" && (
-        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">
-          On Free the only available flow is{" "}
-          <span className="font-semibold">None</span> — no Mesita transaction at
-          checkout.
-        </p>
-      )}
-
-      <ul className="flex flex-col divide-y divide-border">
-        {rows.map((row, i) => (
-          <li key={row.kind} className="flex items-start gap-3 py-2.5">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-              {i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <p className="text-sm font-semibold">{KIND_LABEL[row.kind]}</p>
-                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-                  {row.kind}
-                </span>
-                {row.warn && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-destructive">
-                    <AlertTriangle className="h-2.5 w-2.5" />
-                    Vulnerability
-                  </span>
-                )}
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                {row.layers.map((l) => (
-                  <LayerChip key={l} label={l} isFormal={isFormal} />
-                ))}
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function LayerChip({ label, isFormal }: { label: string; isFormal: boolean }) {
-  const tone = (() => {
-    if (label === "Reservation") return "bg-secondary/15 text-secondary";
-    if (label === "Story") return "bg-pink-gradient/15 text-foreground";
-    if (label === "Story-Fallback") return "bg-muted text-muted-foreground";
-    if (label === "Payment") return "bg-foreground/10 text-foreground";
-    if (label === "Discounted-Payment") return "bg-tier-gold/30 text-black";
-    if (label === "Cashback")
-      return isFormal ? "bg-pink-gradient text-white" : "bg-muted text-muted-foreground";
-    if (label === "No transaction") return "bg-muted text-muted-foreground";
-    return "bg-muted text-muted-foreground";
-  })();
-  const Icon = (() => {
-    if (label === "Reservation") return Calendar;
-    if (label === "Story") return Instagram;
-    if (label === "Story-Fallback") return Instagram;
-    if (label === "Payment") return CreditCard;
-    if (label === "Discounted-Payment") return Percent;
-    if (label === "Cashback") return CircleDollarSign;
-    return ChevronRight;
-  })();
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-        tone,
-      )}
-    >
-      <Icon className="h-2.5 w-2.5" />
-      {label}
-    </span>
   );
 }
 

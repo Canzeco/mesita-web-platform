@@ -1,6 +1,6 @@
 import type { VenuePlan } from "@/lib/api/venues";
 
-// Plan catalog shared between Subscription (picker) and Rewards (label lookup
+// Plan catalog shared between Membership (picker) and Rewards (label lookup
 // + active-plan banner). Keep this the single source of truth for plan copy
 // and mechanic/visibility derivation.
 

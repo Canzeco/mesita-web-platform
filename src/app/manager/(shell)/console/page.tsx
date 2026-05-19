@@ -9,11 +9,11 @@ import { FiscalBadge } from "@/components/shared";
 // /manager/console — the dashboard root. Branches by venue count:
 //
 //   0 venues   → CTA to /manager/create_unit
-//   1 venue    → the venue's overview + jump-offs to Place / Subscription /
+//   1 venue    → the venue's overview + jump-offs to Place / Membership /
 //                Rewards / etc.
 //   2+ venues  → unit switcher (via ?unit=<id>) + selected venue overview
 //
-// This is intentionally a thin dashboard — Place, Subscription, Rewards,
+// This is intentionally a thin dashboard — Place, Membership, Rewards,
 // etc. remain at their own routes and the console links into them. Once
 // the schema spec arrives the console can absorb more inline panels.
 
@@ -232,8 +232,8 @@ function QuickActions({ activeId }: { activeId: string }) {
       sub: "Photos, hours, channels, story",
     },
     {
-      href: `/manager/subscription?unit=${activeId}`,
-      label: "Subscription",
+      href: `/manager/membership?unit=${activeId}`,
+      label: "Membership",
       sub: "Plan + fiscal type + payment rail",
     },
     {
