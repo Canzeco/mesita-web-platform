@@ -288,17 +288,6 @@ function ForVenues() {
             </div>
           ))}
         </div>
-        <div className="mt-12 rounded-xl border border-border bg-card p-8 text-card-foreground">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Conservative case
-          </p>
-          <p className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-            300 partners × 30 redemptions/month × $300 ticket = $2.7M MXN influenced per month.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            ~$270K MXN in monthly commission at 10%. ~$3.24M MXN annual.
-          </p>
-        </div>
       </div>
     </section>
   );
@@ -669,11 +658,11 @@ function FAQ() {
   const items = [
     {
       q: "Why do Formal venues run cashback and Informal venues run discount?",
-      a: "Mechanic is tied to fiscal type, not optional. Formal venues invoice by default, so cashback fits cleanly as marketing spend and the wallet locks the guest into a return visit. Informal venues operate in cash; running cashback would force them to invoice + charge 16% VAT, which kills the deal — a guest would pay 16% more upfront to recover 10% later. So Informal venues use an instant discount at the bill instead.",
+      a: "It comes down to whether you invoice. If you do, cashback works clean: the guest pays full price by card, you book it as marketing spend, and the % comes back to their Mesita balance for a future visit. If you don't invoice, asking the guest to pay full price first (so you can invoice + charge 16% VAT) so they can recover 10% later would lose them money. So instead the discount is revealed at the bill and applied to the cash total directly — no invoice, no IVA, the guest just pays less today.",
     },
     {
       q: "Why does Informal cost 2× Formal at every tier?",
-      a: "Because Mesita captures no data on the discount rail — no wallet, no return-visit lock-in, no transaction telemetry. The Informal venue gets the same visibility without handing over the wallet, so the price covers the value Mesita won't get back on the back end.",
+      a: "Formal partners participate in the Mesita wallet. Every peso of cashback issued lives on as a balance the guest can redeem at any other Formal partner — so the network compounds: traffic flows between Formal venues that you'd never see in a vacuum. Informal partners offer a standalone discount that doesn't pool across the network the same way. Same visibility tier, no shared wallet pull — so Informal pays more for the same surface coverage.",
     },
     {
       q: "What's the difference between a Verified Partner and a Web-Listed venue?",
@@ -699,7 +688,7 @@ function FAQ() {
           Frequently asked
         </h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          Everything that&apos;s come up in the first batch of partner conversations.
+          Common questions from venue owners deciding whether to partner.
         </p>
         <div className="mt-8 divide-y divide-border rounded-2xl border border-border bg-background">
           {items.map((it) => (
@@ -807,8 +796,7 @@ function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 text-xs text-muted-foreground">
-          <p>© 2026 Canzeco. All rights reserved.</p>
-          <p>v0.1.0</p>
+          <p>© 2026 Mesita. All rights reserved.</p>
         </div>
       </div>
     </footer>
