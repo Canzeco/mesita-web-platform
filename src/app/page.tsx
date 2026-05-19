@@ -14,6 +14,15 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 // Landing page — single-source-of-truth marketing surface.
 //
@@ -63,13 +72,12 @@ function Nav() {
           <a href="#pricing" className="transition hover:text-foreground">Pricing</a>
           <a href="#faq" className="transition hover:text-foreground">FAQ</a>
         </nav>
-        <Link
-          href="/manager/sign-up"
-          className="inline-flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-[12px] font-semibold text-background transition hover:opacity-90"
-        >
-          List your venue
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <Button asChild size="sm" className="rounded-full">
+          <Link href="/manager/sign-up">
+            List your venue
+            <ArrowRight />
+          </Link>
+        </Button>
       </div>
     </header>
   );
@@ -81,9 +89,12 @@ function Hero() {
   return (
     <section className="relative overflow-hidden bg-hero">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-5 pb-12 pt-16 text-center md:pb-20 md:pt-24">
-        <span className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+        <Badge
+          variant="outline"
+          className="rounded-full bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur"
+        >
           Smart hospitality · Made in Monterrey
-        </span>
+        </Badge>
 
         <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
           The smartest cashback wallet for going out.
@@ -113,13 +124,16 @@ function Hero() {
             store="Google Play"
             Icon={Smartphone}
           />
-          <Link
-            href="/guest"
-            className="inline-flex items-center gap-2 rounded-full bg-pink-gradient px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:opacity-90"
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full bg-pink-gradient px-5 text-white shadow-glow hover:opacity-90"
           >
-            <Globe className="h-4 w-4" />
-            Open the web app
-          </Link>
+            <Link href="/guest">
+              <Globe />
+              Open the web app
+            </Link>
+          </Button>
         </div>
 
         <p className="text-xs text-muted-foreground">
@@ -425,63 +439,69 @@ function Pricing() {
 
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
           {plans.map((p) => (
-            <article
+            <Card
               key={p.id}
               className={
-                "relative flex flex-col gap-3 rounded-2xl border p-6 " +
-                (p.featured
-                  ? "border-foreground bg-card shadow-elev"
-                  : "border-border bg-background")
+                p.featured
+                  ? "relative gap-3 rounded-2xl border-foreground shadow-elev"
+                  : "relative gap-3 rounded-2xl"
               }
             >
               {p.featured && (
-                <span className="absolute -top-2.5 right-4 rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
+                <Badge className="absolute -top-2.5 right-4 rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
                   Featured
-                </span>
+                </Badge>
               )}
-              <h3 className="font-display text-2xl font-semibold tracking-tight">
-                {p.name}
-              </h3>
-              <p className="font-display text-4xl font-bold tabular-nums">
-                {p.price}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  {p.cadence}
-                </span>
-              </p>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">
-                  {p.mechanic}
-                </span>
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold">
-                  {p.visibility} visibility
-                </span>
-              </div>
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                {p.blurb}
-              </p>
-              <ul className="mt-1 flex flex-1 flex-col gap-1.5 text-[12px]">
-                {p.bullets.map((b) => (
-                  <li
-                    key={b}
-                    className="flex items-start gap-2 leading-snug"
-                  >
-                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/manager/sign-up"
-                className={
-                  "mt-4 inline-flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition " +
-                  (p.featured
-                    ? "bg-pink-gradient text-white shadow-glow hover:opacity-90"
-                    : "border border-border bg-background hover:bg-muted")
-                }
-              >
-                {p.id === "free" ? "Use Free" : "Become a partner"}
-              </Link>
-            </article>
+              <CardHeader>
+                <CardTitle className="font-display text-2xl font-semibold tracking-tight">
+                  {p.name}
+                </CardTitle>
+                <p className="font-display text-4xl font-bold tabular-nums">
+                  {p.price}
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    {p.cadence}
+                  </span>
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="secondary" className="rounded-full">
+                    {p.mechanic}
+                  </Badge>
+                  <Badge variant="secondary" className="rounded-full">
+                    {p.visibility} visibility
+                  </Badge>
+                </div>
+                <CardDescription className="text-[13px] leading-relaxed">
+                  {p.blurb}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col gap-4">
+                <ul className="flex flex-1 flex-col gap-1.5 text-[12px]">
+                  {p.bullets.map((b) => (
+                    <li
+                      key={b}
+                      className="flex items-start gap-2 leading-snug"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  asChild
+                  size="lg"
+                  variant={p.featured ? "default" : "outline"}
+                  className={
+                    p.featured
+                      ? "rounded-full bg-pink-gradient text-white shadow-glow hover:opacity-90"
+                      : "rounded-full"
+                  }
+                >
+                  <Link href="/manager/sign-up">
+                    {p.id === "free" ? "Use Free" : "Become a partner"}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
 

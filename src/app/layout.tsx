@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -48,7 +49,13 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* Sonner toaster — surfaces via toast() / toast.success() etc.
+            from anywhere in the tree. Tucked at the body root so
+            stacking context is predictable. */}
+        <Toaster richColors closeButton position="bottom-center" />
+      </body>
     </html>
   );
 }
