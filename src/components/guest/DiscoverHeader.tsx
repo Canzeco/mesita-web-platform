@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MapPin, Calendar, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CURRENT_USER, TIERS } from "@/lib/guest-data";
 
 const CITIES = ["Monterrey", "CDMX", "Guadalajara", "Miami", "New York", "Madrid", "Barcelona", "Tokyo"];
 const DATES = ["Tonight", "Tomorrow", "Thu May 14", "Fri May 15", "Sat May 16", "Sun May 17"];
@@ -76,13 +77,7 @@ export function DiscoverHeader() {
             </div>
           </button>
         </div>
-        <Link
-          href="/guest/qr"
-          aria-label="My QR"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-sm transition hover:bg-muted"
-        >
-          <span className="text-base">⌑</span>
-        </Link>
+        <ClassChip />
       </div>
 
       {open === "city" && (
@@ -154,5 +149,38 @@ export function DiscoverHeader() {
         </div>
       )}
     </div>
+  );
+}
+
+// Top-right header chip. Replaces the old QR-only square with a tier-colored
+// avatar showing the user's current Mesita class (B / S / G / D). Tap still
+// routes to /guest/qr, which carries the QR and the balance — so the
+// affordance is preserved and the class becomes glanceable at all times.
+function ClassChip() {
+  const meta = TIERS.find((t) => t.id === CURRENT_USER.tier);
+  const initial = (meta?.label ?? CURRENT_USER.tier).charAt(0).toUpperCase();
+  const tone = (() => {
+    switch (CURRENT_USER.tier) {
+      case "silver":
+        return "bg-tier-silver text-foreground";
+      case "gold":
+        return "bg-tier-gold text-black";
+      case "diamond":
+        return "bg-tier-diamond text-white";
+      default:
+        return "bg-tier-bronze text-white";
+    }
+  })();
+  return (
+    <Link
+      href="/guest/qr"
+      aria-label={`My QR · Mesita ${meta?.label ?? "class"}`}
+      className={cn(
+        "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-display text-base font-bold shadow-sm transition hover:opacity-90",
+        tone,
+      )}
+    >
+      {initial}
+    </Link>
   );
 }
