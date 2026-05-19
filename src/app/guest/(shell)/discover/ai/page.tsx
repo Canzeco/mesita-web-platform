@@ -24,7 +24,7 @@ export default function AiPage() {
         </p>
 
         <p className="mx-auto mt-4 max-w-xs rounded-xl bg-secondary/10 px-3 py-2 text-center text-[11px] text-secondary">
-          Preview — the AI concierge isn&apos;t live yet. Tap a suggestion to see what it&apos;ll
+          Preview — Mesita AI isn&apos;t live yet. Tap a suggestion to see what it&apos;ll
           feel like.
         </p>
 

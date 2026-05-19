@@ -83,18 +83,28 @@ export function GuestDiscoverMap({
   fetchError: string | null;
   totalVenues: number;
 }) {
-  // Missing key → we can't render the SDK. Surface a clear setup hint.
+  // Missing key → we can't render the SDK. Show a friendly fallback for
+  // end users; the dev-mode hint (env var name + setup steps) stays in
+  // development so the team still knows what to fix.
   if (!apiKey) {
+    const isDev = process.env.NODE_ENV !== "production";
     return (
       <SetupCard
-        title="Map not configured"
+        title="Map coming soon"
         body={
-          <>
-            Add <code className="rounded bg-muted px-1 text-[11px]">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>{" "}
-            to your Vercel project (Settings → Environment Variables) with a
-            Google Maps JavaScript API key. Restrict the key to your domain
-            and redeploy.
-          </>
+          isDev ? (
+            <>
+              Set <code className="rounded bg-muted px-1 text-[11px]">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>{" "}
+              in your environment (Vercel project → Settings → Environment
+              Variables) with a Google Maps JavaScript API key restricted to
+              your domain, then redeploy.
+            </>
+          ) : (
+            <>
+              We&apos;re finishing the map view. Try Swipe, Catalog, or AI
+              for now — every venue lives there too.
+            </>
+          )
         }
       />
     );

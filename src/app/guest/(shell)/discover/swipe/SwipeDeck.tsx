@@ -40,8 +40,6 @@ export function SwipeDeck({
       <EmptyDeck
         title="No venues yet"
         body="The catalog is empty. As partners onboard, their venues will show up here."
-        actionHref="/manager/sign-up"
-        actionLabel="Are you a venue?"
       />
     );
   }
@@ -284,8 +282,8 @@ function EmptyDeck({
 }: {
   title: string;
   body: string;
-  actionHref: string;
-  actionLabel: string;
+  actionHref?: string;
+  actionLabel?: string;
 }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
@@ -294,12 +292,14 @@ function EmptyDeck({
       </div>
       <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
       <p className="max-w-xs text-sm text-muted-foreground">{body}</p>
-      <Link
-        href={actionHref}
-        className="mt-2 inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
-      >
-        {actionLabel}
-      </Link>
+      {actionHref && actionLabel && (
+        <Link
+          href={actionHref}
+          className="mt-2 inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
+        >
+          {actionLabel}
+        </Link>
+      )}
     </div>
   );
 }
