@@ -331,11 +331,12 @@ function HowItWorks() {
 }
 
 function Pricing() {
-  // The five plans are 1:1 with the venue_plan enum in the schema. Mechanic
-  // is pinned by fiscal type (Formal → cashback, Informal → discount); the
-  // plan only differs in price and visibility. Informal is 2× formal at
-  // every tier because Mesita captures no wallet / transaction data on
-  // the discount rail — the venue pays more for the same visibility.
+  // Three venue plans (Free + one Pro per fiscal type). The Ultra tier was
+  // retired once Mesita's primary revenue stream became guest-side class
+  // subscriptions ($200 / $500 / $1,000 MXN for Silver / Gold / Diamond) —
+  // venue pricing is intentionally simple now, and the dual-sided framing
+  // ("guests pay to upgrade their class, venues pay for visibility") lives
+  // at the top of this section.
   const plans = [
     {
       id: "free",
@@ -353,13 +354,13 @@ function Pricing() {
     {
       id: "formal_pro",
       name: "Formal Pro",
-      price: "$1,000",
+      price: "$400",
       cadence: "MX / month",
       mechanic: "Cashback",
-      visibility: "Medium",
+      visibility: "Priority",
       audience: "formal" as const,
       blurb:
-        "Cashback on card payments through Mesita. Normal placement across swipe, map, catalog, AI.",
+        "Cashback on card payments through Mesita. Priority placement across swipe, map, catalog, AI.",
       bullets: [
         "Cashback (card via Mesita)",
         "Per-tier rates (Bronze · Silver · Gold · Diamond)",
@@ -367,33 +368,15 @@ function Pricing() {
         "Rewards, Analytics, Wallet, Team",
       ],
       cta: "Become a partner",
-    },
-    {
-      id: "formal_ultra",
-      name: "Formal Ultra",
-      price: "$3,000",
-      cadence: "MX / month",
-      mechanic: "Cashback",
-      visibility: "Maximum",
-      audience: "formal" as const,
-      blurb:
-        "Everything in Formal Pro plus top placement on every surface and featured slots.",
-      bullets: [
-        "Everything in Pro",
-        "Top placement on swipe + map + catalog + AI",
-        "Featured slots",
-        "Priority support",
-      ],
-      cta: "Go Ultra",
       featured: true,
     },
     {
       id: "informal_pro",
       name: "Informal Pro",
-      price: "$2,000",
+      price: "$800",
       cadence: "MX / month",
       mechanic: "Discount",
-      visibility: "Medium",
+      visibility: "Priority",
       audience: "informal" as const,
       blurb:
         "Instant discount on the cash bill. Mesita stays out of the payment flow.",
@@ -404,24 +387,6 @@ function Pricing() {
         "Rewards, Analytics, Team",
       ],
       cta: "Become a partner",
-    },
-    {
-      id: "informal_ultra",
-      name: "Informal Ultra",
-      price: "$6,000",
-      cadence: "MX / month",
-      mechanic: "Discount",
-      visibility: "Maximum",
-      audience: "informal" as const,
-      blurb:
-        "Top visibility on the discount rail. 2× formal because Mesita gets no transaction data.",
-      bullets: [
-        "Everything in Informal Pro",
-        "Top placement",
-        "Featured slots",
-        "Priority support",
-      ],
-      cta: "Go Ultra",
       featured: true,
     },
   ];
@@ -435,22 +400,55 @@ function Pricing() {
               Pricing
             </p>
             <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">
-              Guests are free. Venues pay for the mechanic and the visibility.
+              Mesita monetizes from both sides.
             </h2>
           </div>
           <p className="max-w-sm text-sm text-muted-foreground">
-            The mechanic — cashback or instant discount — is pinned by whether
-            you invoice. The plan only sets price and visibility, and is billed
-            <strong className="text-foreground"> per venue</strong>: multi-unit
-            operators pick a plan for each location.
+            Guests use Mesita free forever — Bronze access and the Instagram
+            tier path cost nothing. They can pay a monthly{" "}
+            <strong className="text-foreground">Mesita class</strong> to jump
+            tiers across every partner at once. Venues pay for{" "}
+            <strong className="text-foreground">visibility + a coupon mechanic</strong>{" "}
+            on top.
           </p>
         </div>
 
-        {/* Self-identification block. Two side-by-side cards lay out the
-            exact criterion (do you issue an invoice on every ticket?) so a
-            venue reading the page can immediately point to the side they
-            belong on. The mechanic + plan tail then makes sense at a
-            glance. */}
+        {/* Two-side revenue framing — one row, two cards. The guest side is
+            the bigger lever now; the venue side is what this page is
+            mostly about. */}
+        <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-2xl bg-pink-gradient/5 p-5 ring-1 ring-primary/15">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-pink-gradient px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-glow">
+                Guest side
+              </span>
+              <p className="text-sm font-semibold">Pay to upgrade your class.</p>
+            </div>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Mesita Bronze is free for everyone. Mesita Silver / Gold / Diamond
+              are <strong className="text-foreground">$200 / $500 / $1,000 MX / month</strong>{" "}
+              and grant the tier upfront — better cashback at every Verified
+              Partner the moment you subscribe. The Instagram follower path
+              (1K / 5K / 20K followers) stays free.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-foreground px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-background">
+                Venue side
+              </span>
+              <p className="text-sm font-semibold">Pay for visibility + a mechanic.</p>
+            </div>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Free venues are auto-listed and discoverable but minimal. Pro
+              venues get priority placement on every surface plus a coupon
+              mechanic — cashback if you invoice (Formal), instant discount if
+              you don&apos;t (Informal). Three plans total, per venue.
+            </p>
+          </div>
+        </div>
+
+        {/* Self-identification: which fiscal side are you? */}
         <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2">
@@ -483,10 +481,9 @@ function Pricing() {
           </div>
         </div>
 
-        {/* Three labeled groups — Free / Formal / Informal — make the
-            structure obvious at first glance. The 5-cards-in-a-row layout
-            was technically correct but read as a spectrum; this layout
-            says "three different products, pick the one that's you." */}
+        {/* Three plan groups: Free / Formal Pro / Informal Pro. One card per
+            group keeps the structure honest — there's no spectrum anymore,
+            just "pick the one that's you." */}
         <PlanGroup
           label="Free"
           sublabel="Any venue — no commitment"
@@ -514,8 +511,7 @@ function Pricing() {
             partner. The moment you flip to Pro you join that network, and
             wallet-holding guests start showing up looking to spend what they
             already have. Visibility brings new faces; the wallet brings
-            customers with money in pocket — pull that&apos;s independent of which
-            tier you pick.
+            customers with money in pocket.
           </p>
           <p>
             <span className="font-semibold text-foreground">Per-venue billing.</span>{" "}
@@ -523,6 +519,13 @@ function Pricing() {
             pick a plan for each — different plans per venue are fine
             (one Pro, two Free). Manager accounts are free; only the venues
             themselves are billed.
+          </p>
+          <p>
+            <span className="font-semibold text-foreground">Why Informal is 2× Formal.</span>{" "}
+            Formal partners feed the wallet — Mesita captures transaction
+            data and a redemption network on the back-end. Informal partners
+            offer a standalone discount with nothing pooled across the
+            network, so they pay more for the same priority placement.
           </p>
           <p>
             <span className="font-semibold text-foreground">Payment rail rule.</span>{" "}
@@ -662,8 +665,8 @@ function FAQ() {
       a: "It comes down to whether you invoice. If you do, cashback works clean: the guest pays full price by card, you book it as marketing spend, and the % comes back to their Mesita balance for a future visit. If you don't invoice, asking the guest to pay full price first (so you can invoice + charge 16% VAT) so they can recover 10% later would lose them money. So instead the discount is revealed at the bill and applied to the cash total directly — no invoice, no IVA, the guest just pays less today.",
     },
     {
-      q: "Why does Informal cost 2× Formal at every tier?",
-      a: "Formal partners participate in the Mesita wallet. Every peso of cashback issued lives on as a balance the guest can redeem at any other Formal partner — so the network compounds: traffic flows between Formal venues that you'd never see in a vacuum. Informal partners offer a standalone discount that doesn't pool across the network the same way. Same visibility tier, no shared wallet pull — so Informal pays more for the same surface coverage.",
+      q: "Why does Informal Pro cost 2× Formal Pro?",
+      a: "Formal partners participate in the Mesita wallet. Every peso of cashback issued lives on as a balance the guest can redeem at any other Formal partner — so the network compounds: traffic flows between Formal venues that you'd never see in a vacuum. Informal partners offer a standalone discount that doesn't pool across the network the same way. Same priority placement, no shared wallet pull — so Informal pays more for the same surface coverage.",
     },
     {
       q: "What's the difference between a Verified Partner and a Web-Listed venue?",

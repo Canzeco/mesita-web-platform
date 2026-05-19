@@ -1,11 +1,15 @@
 import type { VenuePlan } from "@/lib/api/venues";
 
 // Plan catalog shared between Membership (picker) and Rewards (label lookup
-// + active-plan banner). Keep this the single source of truth for plan copy
-// and mechanic/visibility derivation.
+// + active-plan banner). Single source of truth for plan copy and the
+// mechanic / visibility derivation.
+//
+// Three plans only: Free + one Pro per fiscal type. The Ultra tier was
+// retired once Mesita's primary revenue stream became guest-side class
+// subscriptions — venue billing is now intentionally simple.
 
 export type PlanMechanic = "None" | "Cashback" | "Discount";
-export type PlanVisibility = "Minimum" | "Medium" | "Maximum";
+export type PlanVisibility = "Minimum" | "Priority";
 
 export type PlanRow = {
   id: VenuePlan;
@@ -31,53 +35,32 @@ export const PLANS: PlanRow[] = [
   {
     id: "formal_pro",
     label: "Formal Pro",
-    priceLabel: "$1,000 MX / mo",
+    priceLabel: "$400 MX / mo",
     mechanic: "Cashback",
-    visibility: "Medium",
+    visibility: "Priority",
     fiscalScope: "formal",
     blurb:
-      "Cashback on card payments through Mesita. Normal placement across swipe, map, catalog, AI planner.",
-  },
-  {
-    id: "formal_ultra",
-    label: "Formal Ultra",
-    priceLabel: "$3,000 MX / mo",
-    mechanic: "Cashback",
-    visibility: "Maximum",
-    fiscalScope: "formal",
-    blurb:
-      "Cashback on card payments. Top placement on every surface plus featured slots.",
+      "Cashback on card payments through Mesita. Priority placement across swipe, map, catalog, AI planner.",
   },
   {
     id: "informal_pro",
     label: "Informal Pro",
-    priceLabel: "$2,000 MX / mo",
+    priceLabel: "$800 MX / mo",
     mechanic: "Discount",
-    visibility: "Medium",
+    visibility: "Priority",
     fiscalScope: "informal",
     blurb:
-      "Instant discount on the cash bill. Normal placement. 2× formal price because Mesita captures no wallet / data.",
-  },
-  {
-    id: "informal_ultra",
-    label: "Informal Ultra",
-    priceLabel: "$6,000 MX / mo",
-    mechanic: "Discount",
-    visibility: "Maximum",
-    fiscalScope: "informal",
-    blurb:
-      "Instant discount. Top placement + featured slots. 2× formal at this tier.",
+      "Instant discount on the cash bill. Priority placement. 2× formal price because Mesita captures no wallet / data.",
   },
 ];
 
 export function mechanicForPlan(p: VenuePlan): PlanMechanic {
   if (p === "free") return "None";
-  if (p === "formal_pro" || p === "formal_ultra") return "Cashback";
+  if (p === "formal_pro") return "Cashback";
   return "Discount";
 }
 
 export function visibilityForPlan(p: VenuePlan): PlanVisibility {
   if (p === "free") return "Minimum";
-  if (p === "formal_pro" || p === "informal_pro") return "Medium";
-  return "Maximum";
+  return "Priority";
 }

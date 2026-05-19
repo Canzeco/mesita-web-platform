@@ -143,8 +143,9 @@ export function MembershipClient({ venue }: { venue: MyVenue }) {
             Pick a plan
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Plans differ by price and visibility. The mechanic is pinned by
-            your fiscal type above, so only matching plans show up here.
+            Two options: stay on Free and appear minimally, or go Pro for
+            priority placement plus the coupon mechanic that matches your
+            fiscal type. Switch fiscal at the top to see the other Pro.
           </p>
         </header>
 

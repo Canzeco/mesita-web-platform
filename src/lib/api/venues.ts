@@ -13,12 +13,11 @@ export type VenueListingType = "partner" | "web";
 export type VenueStatus = "lead" | "active" | "paused" | "archived";
 
 export type FiscalType = "formal" | "informal";
-export type VenuePlan =
-  | "free"
-  | "formal_pro"
-  | "formal_ultra"
-  | "informal_pro"
-  | "informal_ultra";
+// Three-plan venue catalog: Free (default) + one Pro plan per fiscal type.
+// The Ultra tier was retired once the primary revenue stream moved to the
+// guest side (Mesita class subscriptions). Anything beyond Pro is now a
+// concierge / enterprise conversation, not a self-serve plan.
+export type VenuePlan = "free" | "formal_pro" | "informal_pro";
 
 export type Venue = {
   id: string;
