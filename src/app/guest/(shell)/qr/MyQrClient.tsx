@@ -177,6 +177,20 @@ function ActiveTicketCard({ ticket }: { ticket: GuestTicket }) {
         ))}
       </ol>
 
+      {(ticket.redeem_cents ?? 0) > 0 && (
+        <div className="border-t border-border bg-pink-gradient/5 px-4 py-2.5">
+          <p className="flex items-center justify-between text-[12px]">
+            <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+              <Wallet className="h-3 w-3" />
+              Balance applied to this bill
+            </span>
+            <span className="font-display font-bold text-foreground tabular-nums">
+              −{formatCurrency(ticket.redeem_cents ?? 0)}
+            </span>
+          </p>
+        </div>
+      )}
+
       {showStoryUpload && (
         <div className="border-t border-border px-4 py-3">
           <StoryUpload ticketId={ticket.id} status={ticket.story_status} />
