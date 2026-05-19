@@ -17,6 +17,16 @@ import {
   HelpCircle,
   Award,
   Lock,
+  Footprints,
+  CircleDollarSign,
+  Sparkles,
+  Flame,
+  Map as MapIcon,
+  CalendarCheck,
+  Moon,
+  Wine,
+  UserPlus,
+  PartyPopper,
 } from "lucide-react";
 import { SimpleHeader } from "@/components/guest/SimpleHeader";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -28,6 +38,8 @@ import {
   TRANSACTIONS,
   ACHIEVEMENTS,
   venueById,
+  type Achievement,
+  type AchievementCategory,
 } from "@/lib/guest-data";
 import { cn } from "@/lib/utils";
 
@@ -494,104 +506,92 @@ function BalanceTab() {
   );
 }
 
+// Per-category visual identity for achievements. Each category gets its
+// own background tone + Lucide icon so the grid reads as a varied trophy
+// case, not 50 identical medals. Spend/cashback land on golds; visits on
+// bronze; tier on diamond gradient; story on a pink-Instagram gradient;
+// time on night-blue; etc.
+type CategoryStyle = {
+  tone: string;
+  Icon: typeof Award;
+};
+
+const CATEGORY_STYLE: Record<AchievementCategory, CategoryStyle> = {
+  visit: { tone: "bg-tier-bronze text-white", Icon: Footprints },
+  spend: { tone: "bg-tier-gold text-black", Icon: CircleDollarSign },
+  cashback: { tone: "bg-pink-gradient text-white", Icon: Sparkles },
+  streak: { tone: "bg-[oklch(0.65_0.22_25)] text-white", Icon: Flame },
+  variety: { tone: "bg-tier-silver text-foreground", Icon: MapIcon },
+  community: { tone: "bg-secondary text-white", Icon: GraduationCap },
+  story: { tone: "bg-[linear-gradient(135deg,oklch(0.70_0.20_30),oklch(0.65_0.20_350))] text-white", Icon: Instagram },
+  tier: { tone: "bg-tier-diamond text-white", Icon: Crown },
+  time: { tone: "bg-[oklch(0.40_0.15_280)] text-white", Icon: Moon },
+  category: { tone: "bg-[oklch(0.65_0.18_150)] text-white", Icon: Wine },
+  reservation: { tone: "bg-[oklch(0.65_0.18_220)] text-white", Icon: CalendarCheck },
+  social: { tone: "bg-[oklch(0.70_0.20_25)] text-white", Icon: UserPlus },
+  special: { tone: "bg-welcome-gradient text-white", Icon: PartyPopper },
+};
+
 function GameTab() {
   const unlocked = ACHIEVEMENTS.filter((a) => a.unlocked).length;
   return (
-    <div className="flex flex-col gap-5">
-      <LifetimeStats />
-
-      <div>
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Achievements
-          </p>
-          <span className="text-[12px] font-semibold text-secondary">
-            {unlocked} / {ACHIEVEMENTS.length} unlocked
-          </span>
-        </div>
-      <div className="mt-3 rounded-2xl border border-border bg-card p-3">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          Achievements
+        </p>
+        <span className="text-[12px] font-semibold text-secondary">
+          {unlocked} / {ACHIEVEMENTS.length} unlocked
+        </span>
+      </div>
+      <div className="rounded-2xl border border-border bg-card p-3">
         <div className="grid grid-cols-3 gap-2">
           {ACHIEVEMENTS.map((a) => (
-            <div
-              key={a.id}
-              className={cn(
-                "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center",
-                a.unlocked
-                  ? "border-border bg-card"
-                  : "border-transparent bg-muted/40 opacity-60",
-              )}
-            >
-              <span className="relative">
-                <span
-                  className={cn(
-                    "block h-1.5 w-3 rounded-sm",
-                    a.unlocked ? "bg-[oklch(0.55_0.22_250)]" : "bg-muted-foreground/30",
-                  )}
-                />
-                <span
-                  className={cn(
-                    "absolute left-1/2 top-0 block h-1.5 w-1 -translate-x-1/2 rounded-sm",
-                    a.unlocked ? "bg-[oklch(0.65_0.22_25)]" : "bg-muted-foreground/30",
-                  )}
-                />
-                <span
-                  className={cn(
-                    "mt-1 block flex h-8 w-8 items-center justify-center rounded-full",
-                    a.unlocked
-                      ? "bg-tier-gold text-black shadow-sm"
-                      : "bg-muted text-muted-foreground/40",
-                  )}
-                >
-                  <Award className="h-4 w-4" />
-                </span>
-              </span>
-              <p
-                className={cn(
-                  "text-[11px] font-semibold leading-tight",
-                  !a.unlocked && "text-muted-foreground",
-                )}
-              >
-                {a.label}
-              </p>
-            </div>
+            <AchievementBadge key={a.id} achievement={a} />
           ))}
         </div>
-      </div>
       </div>
     </div>
   );
 }
 
-function LifetimeStats() {
-  // Lifetime activity stats — moved here from the Class tab once Class
-  // became subscription-driven instead of spend-driven. These remain useful
-  // as a record of the guest's history on Mesita, just no longer a
-  // progression mechanic.
+function AchievementBadge({ achievement }: { achievement: Achievement }) {
+  const style = CATEGORY_STYLE[achievement.category];
+  const Icon = style.Icon;
+  const unlocked = achievement.unlocked;
   return (
-    <div>
-      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        Lifetime stats
+    <div
+      className={cn(
+        "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition",
+        unlocked
+          ? "border-border bg-card hover:shadow-sm"
+          : "border-transparent bg-muted/40 opacity-55",
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+          unlocked ? cn(style.tone, "shadow-sm") : "bg-muted text-muted-foreground/40",
+        )}
+      >
+        {unlocked ? <Icon className="h-4 w-4" /> : <Lock className="h-3.5 w-3.5" />}
+      </span>
+      <p
+        className={cn(
+          "text-[11px] font-semibold leading-tight",
+          !unlocked && "text-muted-foreground",
+        )}
+      >
+        {achievement.label}
       </p>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Spent on Mesita
-          </p>
-          <p className="mt-1 font-display text-2xl font-bold tracking-tight">
-            MX${CURRENT_USER.spendMxn.toLocaleString()}
-          </p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">All-time</p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Cashback earned
-          </p>
-          <p className="mt-1 font-display text-2xl font-bold tracking-tight">
-            MX${CURRENT_USER.savedBack.toLocaleString()}
-          </p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">All-time</p>
-        </div>
-      </div>
+      <p
+        className={cn(
+          "text-[9px] leading-snug",
+          unlocked ? "text-muted-foreground" : "text-muted-foreground/60",
+        )}
+      >
+        {achievement.description}
+      </p>
     </div>
   );
 }
