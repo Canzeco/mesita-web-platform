@@ -6,7 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Store,
-  Megaphone,
+  CreditCard,
+  Gift,
   BarChart3,
   Wallet,
   Users,
@@ -33,10 +34,13 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   // Console is the dashboard root. Branches by venue count (0 / 1 / N)
-  // and links into Place / Promos / Validator for the deep work.
+  // and links into Place / Subscription / Rewards / Validator for the deep
+  // work. Subscription holds the plan + fiscal_type knobs; Rewards holds
+  // the cashback / discount rate and ticket-type reference.
   { href: "/manager/console", label: "Console", Icon: LayoutDashboard },
   { href: "/manager/place", label: "Place", Icon: Store },
-  { href: "/manager/promos", label: "Promos", Icon: Megaphone },
+  { href: "/manager/subscription", label: "Subscription", Icon: CreditCard },
+  { href: "/manager/rewards", label: "Rewards", Icon: Gift },
   { href: "/manager/analytics", label: "Analytics", Icon: BarChart3, disabled: true },
   { href: "/manager/wallet", label: "Wallet", Icon: Wallet, disabled: true },
   { href: "/manager/team", label: "Team", Icon: Users, disabled: true },

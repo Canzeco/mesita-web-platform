@@ -51,7 +51,7 @@ export default async function ManagerSignInPage({
             Manager sign in
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Access your venue console, promos, and wallet.
+            Access your venue console, rewards, and wallet.
           </p>
         </div>
 

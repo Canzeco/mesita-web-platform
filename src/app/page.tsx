@@ -196,17 +196,17 @@ function Tiers() {
     },
     {
       name: "Silver",
-      req: "1K+ followers · or MXN $5K+ spent",
+      req: "1K+ followers · or $200 MXN / month",
       desc: "Elevated cashback at partners.",
     },
     {
       name: "Gold",
-      req: "5K+ followers · or MXN $20K+ spent",
+      req: "5K+ followers · or $500 MXN / month",
       desc: "Premium rates and priority.",
     },
     {
       name: "Diamond",
-      req: "20K+ followers (invite-only) · or MXN $100K+ spent · or appeal",
+      req: "20K+ followers · invite-only · or appeal",
       desc: "VIP treatment and private events.",
     },
   ];
@@ -219,9 +219,10 @@ function Tiers() {
             Your social capital is worth money.
           </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Four tiers. Two ways up: Instagram followers or lifetime Mesita spend.
-            If the numbers don&apos;t capture your real-world influence — models,
-            chefs, press, founders — Mesita can upgrade you manually.
+            Four tiers. Two ways up: Instagram followers or a monthly
+            membership. If the numbers don&apos;t capture your real-world
+            influence — models, chefs, press, founders — Mesita can upgrade
+            you manually.
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -363,7 +364,7 @@ function Pricing() {
         "Cashback (card via Mesita)",
         "Per-tier rates (Bronze · Silver · Gold · Diamond)",
         "Story bonus & verification",
-        "Promos, Analytics, Wallet, Team",
+        "Rewards, Analytics, Wallet, Team",
       ],
       cta: "Become a partner",
     },
@@ -400,7 +401,7 @@ function Pricing() {
         "Instant discount at the bill",
         "Cash or card — both fine",
         "Per-tier rates",
-        "Promos, Analytics, Team",
+        "Rewards, Analytics, Team",
       ],
       cta: "Become a partner",
     },
@@ -666,11 +667,11 @@ function FAQ() {
     },
     {
       q: "What's the difference between a Verified Partner and a Web-Listed venue?",
-      a: "Web-Listed venues are scraped automatically from Google Business and appear in discovery with AI reservations enabled — no sign-up, no dashboard, no coupons. Verified Partners signed up at manager.mesita.app and configured their coupon mechanic; they get priority placement and the Promos / Analytics / Wallet / Team dashboard.",
+      a: "Web-Listed venues are scraped automatically from Google Business and appear in discovery with AI reservations enabled — no sign-up, no dashboard, no coupons. Verified Partners signed up at manager.mesita.app and configured their coupon mechanic; they get priority placement and the Subscription / Rewards / Analytics / Wallet / Team dashboard.",
     },
     {
       q: "How does a guest reach Silver, Gold, or Diamond?",
-      a: "Two main ladders — Instagram followers or lifetime Mesita spend. 1K / 5K / 20K followers maps to Silver / Gold / Diamond; MXN $5K / $20K / $100K lifetime spend maps to the same tiers. Diamond is invite-only at 20K followers. There's also a manual appeal path for models, chefs, press, founders, and other local elites.",
+      a: "Two main ladders — Instagram followers or a Mesita membership. 1K / 5K / 20K followers maps to Silver / Gold / Diamond. The membership ladder grants the tier upfront: $200 MXN / month for Silver, $500 MXN / month for Gold. Diamond is invite-only — no subscription buys it. There's also a manual appeal path for models, chefs, press, founders, and other local elites.",
     },
     {
       q: "What's the Instagram story step about?",

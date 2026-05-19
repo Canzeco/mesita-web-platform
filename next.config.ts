@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // /manager/promos was split into Subscription (plan + fiscal type) and
+      // Rewards (rate + ticket types). Rewards is the closer match for old
+      // bookmarks since most managers landed there for the rate, not the plan.
+      { source: "/manager/promos", destination: "/manager/rewards", permanent: true },
+    ];
+  },
   images: {
     remotePatterns: [
       // Mock photography (legacy mock-data fallbacks).

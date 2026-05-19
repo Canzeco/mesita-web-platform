@@ -9,12 +9,13 @@ import { FiscalBadge } from "@/components/shared";
 // /manager/console — the dashboard root. Branches by venue count:
 //
 //   0 venues   → CTA to /manager/create_unit
-//   1 venue    → the venue's overview + jump-offs to Place / Promos / etc.
+//   1 venue    → the venue's overview + jump-offs to Place / Subscription /
+//                Rewards / etc.
 //   2+ venues  → unit switcher (via ?unit=<id>) + selected venue overview
 //
-// This is intentionally a thin dashboard — Place, Promos, etc. remain at
-// their own routes and the console links into them. Once the schema spec
-// arrives the console can absorb more inline panels.
+// This is intentionally a thin dashboard — Place, Subscription, Rewards,
+// etc. remain at their own routes and the console links into them. Once
+// the schema spec arrives the console can absorb more inline panels.
 
 export const dynamic = "force-dynamic";
 
@@ -231,9 +232,14 @@ function QuickActions({ activeId }: { activeId: string }) {
       sub: "Photos, hours, channels, story",
     },
     {
-      href: `/manager/promos?unit=${activeId}`,
-      label: "Promos",
-      sub: "Plan + cashback / discount + ticket types",
+      href: `/manager/subscription?unit=${activeId}`,
+      label: "Subscription",
+      sub: "Plan + fiscal type + payment rail",
+    },
+    {
+      href: `/manager/rewards?unit=${activeId}`,
+      label: "Rewards",
+      sub: "Cashback / discount rate + ticket types",
     },
     {
       href: `/validator`,
@@ -242,7 +248,7 @@ function QuickActions({ activeId }: { activeId: string }) {
     },
   ];
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {tabs.map((t) => (
         <Link
           key={t.href}

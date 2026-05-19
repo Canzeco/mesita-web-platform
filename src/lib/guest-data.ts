@@ -626,7 +626,6 @@ export const CURRENT_USER = {
   city: "CDMX",
   followers: 7320,
   spendMxn: 58400,
-  spentToNextTier: 141600,
   savedBack: 1840,
   joined: "Feb 2026",
   phone: "+52 55 1234 5678",
@@ -644,9 +643,9 @@ export const TIERS: {
   perk: string;
 }[] = [
   { id: "bronze", label: "Bronze", req: "No IG or under 1K followers", cashback: "Base cashback", perk: "Welcome to the club" },
-  { id: "silver", label: "Silver", req: "1K+ followers · or MX$5K+ spent", cashback: "More cashback", perk: "Insider perks" },
-  { id: "gold", label: "Gold", req: "5K+ followers · or MX$20K+ spent", cashback: "Even more cashback", perk: "Priority access" },
-  { id: "diamond", label: "Diamond", req: "20K+ followers · or MX$100K+ spent · or appeal", cashback: "Most cashback", perk: "VIP · invite-only" },
+  { id: "silver", label: "Silver", req: "1K+ followers · or $200 MXN / mo", cashback: "More cashback", perk: "Insider perks" },
+  { id: "gold", label: "Gold", req: "5K+ followers · or $500 MXN / mo", cashback: "Even more cashback", perk: "Priority access" },
+  { id: "diamond", label: "Diamond", req: "20K+ followers · invite-only · or appeal", cashback: "Most cashback", perk: "VIP · invite-only" },
 ];
 
 export const COMMUNITIES_JOINED = [

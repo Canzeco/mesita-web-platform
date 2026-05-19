@@ -3,15 +3,14 @@ import { Plus, Store } from "lucide-react";
 import { Topbar } from "@/components/manager/Topbar";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getUnitOverview } from "@/lib/api/unit";
-import { PromosClient } from "./PromosClient";
+import { SubscriptionClient } from "./SubscriptionClient";
 
-// Server shell: loads the active venue (which carries fiscal_type +
-// current plan) and hands the client component everything it needs to
-// render. Auth-gating already happens in middleware; we just resolve
-// the unit overview here.
+// Server shell: loads the active venue (carries fiscal_type + current plan)
+// and hands the client component everything it needs to render. Auth-gating
+// already happens in middleware; we just resolve the unit overview here.
 export const dynamic = "force-dynamic";
 
-export default async function ManagerPromosPage({
+export default async function ManagerSubscriptionPage({
   searchParams,
 }: {
   searchParams: Promise<{ unit?: string }>;
@@ -30,7 +29,7 @@ export default async function ManagerPromosPage({
   if (overviewError) {
     return (
       <>
-        <Topbar title="Promos" subtitle="Plan, cashback, and discount mechanic" />
+        <Topbar title="Subscription" subtitle="Plan, fiscal type, and payment rail" />
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-10 text-center">
@@ -41,7 +40,7 @@ export default async function ManagerPromosPage({
                 {overviewError}
               </p>
               <Link
-                href="/manager/promos"
+                href="/manager/subscription"
                 className="mt-5 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
               >
                 Try again
@@ -56,7 +55,7 @@ export default async function ManagerPromosPage({
   if (!overview || overview.venues.length === 0) {
     return (
       <>
-        <Topbar title="Promos" subtitle="Plan, cashback, and discount mechanic" />
+        <Topbar title="Subscription" subtitle="Plan, fiscal type, and payment rail" />
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-10 md:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
@@ -67,8 +66,8 @@ export default async function ManagerPromosPage({
                 No venue to configure yet
               </h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                Create your first venue, then come back here to set the
-                subscription plan and cashback / discount mechanic.
+                Create your first venue, then come back here to pick a plan and
+                fiscal type.
               </p>
               <Link
                 href="/manager/create_unit"
@@ -90,11 +89,11 @@ export default async function ManagerPromosPage({
     <>
       <Topbar
         title={active.name}
-        subtitle="Promos — subscription plan, mechanic, and ticket flows"
+        subtitle="Subscription — plan, fiscal type, and payment rail"
       />
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
-          <PromosClient venue={active} />
+          <SubscriptionClient venue={active} />
         </div>
       </div>
     </>

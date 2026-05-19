@@ -1,5 +1,3 @@
-import Link from "next/link";
-import Image from "next/image";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
   apiRecommendCatalog,
@@ -7,7 +5,7 @@ import {
   type CatalogCategory,
   type Venue,
 } from "@/lib/api/venues";
-import { PartnerBadge, RatePill } from "@/components/shared";
+import { VenueCatalogCard } from "@/components/guest/VenueCatalogCard";
 
 export const dynamic = "force-dynamic";
 
@@ -119,58 +117,10 @@ function Row({
       <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
         {venues.map((v) => (
           <div key={v.id} className="w-64 flex-shrink-0">
-            <CatalogCard venue={v} />
+            <VenueCatalogCard venue={v} />
           </div>
         ))}
       </div>
     </section>
-  );
-}
-
-function CatalogCard({ venue }: { venue: Venue }) {
-  const photo = venue.photos[0];
-  const subtitle = [venue.vibe, venue.category].filter(Boolean).join(" · ").toLowerCase();
-  return (
-    <Link
-      href={`/guest/venue/${venue.id}`}
-      className="block overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:shadow-md"
-    >
-      <div className="relative aspect-[4/3] w-full bg-muted">
-        {photo ? (
-          <Image
-            src={photo}
-            alt={venue.name}
-            fill
-            sizes="(max-width: 768px) 50vw, 256px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-pink-gradient text-white/70">
-            <span className="font-display text-4xl font-bold tracking-tight">
-              {venue.name[0]?.toUpperCase() ?? "·"}
-            </span>
-          </div>
-        )}
-        <div className="absolute left-2 top-2 flex items-center gap-1.5">
-          <PartnerBadge listingType={venue.listing_type} />
-          {venue.listing_type === "partner" &&
-            venue.cashback_percent != null &&
-            venue.cashback_percent > 0 && (
-              <RatePill
-                percent={venue.cashback_percent}
-                mechanic={venue.fiscal_type === "informal" ? "discount" : "cashback"}
-              />
-            )}
-        </div>
-      </div>
-      <div className="p-3.5">
-        <h3 className="font-display text-base font-semibold leading-tight tracking-tight">
-          {venue.name}
-        </h3>
-        <p className="mt-1 truncate text-[11px] text-muted-foreground">
-          {subtitle || venue.address || "—"}
-        </p>
-      </div>
-    </Link>
   );
 }

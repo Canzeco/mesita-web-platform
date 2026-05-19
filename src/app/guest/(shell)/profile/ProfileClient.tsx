@@ -200,8 +200,8 @@ function ClassTab({
             MX${CURRENT_USER.spendMxn.toLocaleString()}
           </p>
           <p className="mt-2 text-[12px] text-muted-foreground">
-            MX${CURRENT_USER.spentToNextTier.toLocaleString()} to{" "}
-            <span className="font-semibold text-foreground">Diamond</span>
+            Your lifetime tab. Class is set by Instagram followers or a
+            monthly membership — not by spend.
           </p>
         </div>
         <TierProgressBar />
@@ -234,12 +234,12 @@ function ClassTab({
             <Crown className="h-3.5 w-3.5 text-secondary" />
             Class ladder
           </div>
-          <span className="text-[11px] text-muted-foreground">Followers or spend</span>
+          <span className="text-[11px] text-muted-foreground">Followers or membership</span>
         </div>
         <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           Your Class is how the city sees you — earned by being{" "}
-          <span className="font-semibold text-foreground">popular</span> on Instagram or{" "}
-          <span className="font-semibold text-foreground">spending</span> on Mesita. Higher Class ·
+          <span className="font-semibold text-foreground">popular</span> on Instagram or by{" "}
+          <span className="font-semibold text-foreground">subscribing</span> to Mesita. Higher Class ·
           more cashback. Models, talents, elites, chefs & press can also get{" "}
           <span className="font-semibold text-foreground">Diamond</span> by invite or appeal.
         </p>
@@ -370,13 +370,16 @@ function ClassTab({
 }
 
 function TierProgressBar() {
+  // Static class indicator. Under the new model the "rich" path is a paid
+  // membership (Silver / Gold) granted upfront, not a spend-accumulation
+  // bar — so this no longer animates fill. It just marks where the guest
+  // sits on the four-tier ladder.
   const tierIdx = ["bronze", "silver", "gold", "diamond"].indexOf(CURRENT_USER.tier);
   const labels = ["Bronze", "Silver", "Gold", "Diamond"];
   const colors = ["bg-tier-bronze", "bg-tier-silver", "bg-tier-gold", "bg-tier-diamond"];
   return (
     <div className="mt-5">
       <div className="relative h-2 rounded-full bg-muted">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-pink-gradient" style={{ width: "68%" }} />
         {labels.map((_, i) => {
           const pct = (i / (labels.length - 1)) * 100;
           return (

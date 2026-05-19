@@ -30,7 +30,7 @@ export default async function TeamPage() {
                   Managers · Full access
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Can edit place, promos, wallet, and team.
+                  Can edit place, subscription, rewards, wallet, and team.
                 </p>
               </div>
               <button className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-[12px] font-semibold text-background">
